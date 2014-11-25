@@ -61,10 +61,11 @@ extern int read_next_xtc(t_fileio *fio,
 
 
 
-int main(void){
+int main(int argc, char* argv[]){
     int ok;
-    char groname[18] = "test_data/npt.gro";
-    char xtcname[18] = "test_data/npt.xtc";
+    //char groname[18] = "test_data/npt.gro";
+    //char xtcname[18] = "test_data/npt.xtc";
+    char groname[20], xtcname[20];
     int natoms, step;
     float time, prec;
     rvec *x;
@@ -75,19 +76,24 @@ int main(void){
     char mode[1] = {'r'};
     char mode_write[1] = {'w'};
     t_fileio *xtc_out = open_xtc("xtcout.xtc", mode_write);
-    cout << "Starting" << endl;
-    cout << "GRO file: " << groname << endl;
-    //std::cin >> groname;
-    cout << "XTC file: " << xtcname << endl;
-    //std::cin >> xtcname;
-    xtc = open_xtc(xtcname, mode);
-    ok = setup_frame(groname, xtcname, xtc, &frame, &natoms, &step, &time, box, &x, &prec);
-    /* Keep reading frames until something goes wrong (run out of frames) */
-    while(read_frame(xtc, xtc_out, &frame, &natoms, &step, &time, box, &x, &prec)){
-        calc_bond_lens(&frame, bond_lens);
+    if(argc < 3){
+        cout << "Not enough arguments" << endl;
+        return 1;
+    }else {
+        cout << "Starting" << endl;
+        strcpy(groname, argv[1]);
+        cout << "GRO file: " << groname << endl;
+        strcpy(xtcname, argv[2]);
+        cout << "XTC file: " << xtcname << endl;
+        xtc = open_xtc(xtcname, mode);
+        ok = setup_frame(groname, xtcname, xtc, &frame, &natoms, &step, &time, box, &x, &prec);
+        /* Keep reading frames until something goes wrong (run out of frames) */
+        while (read_frame(xtc, xtc_out, &frame, &natoms, &step, &time, box, &x, &prec)) {
+            calc_bond_lens(&frame, bond_lens);
+        }
+        calc_avg_bond_lens(bond_lens);
+        return !ok;
     }
-    calc_avg_bond_lens(bond_lens);
-    return !ok;
 }
 
 int setup_frame(char* groname, char* xtcname, t_fileio* xtc, Frame* frame,

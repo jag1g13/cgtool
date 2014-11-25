@@ -7,6 +7,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9f371695-8e8d-4484-8719-d7877be161c6" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CMakeLists.txt" afterPath="$PROJECT_DIR$/CMakeLists.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.cpp" afterPath="$PROJECT_DIR$/main.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="traj_process2.iws" />
@@ -239,7 +241,13 @@
       <option name="project" value="LOCAL" />
       <updated>1416933916559</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="CTest working;&#10;Input files given on command line;">
+      <created>1416935279312</created>
+      <option name="number" value="00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1416935279312</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -285,7 +293,8 @@
       <TodoPanelSettings />
     </option>
     <MESSAGE value="More working code;&#10;Moved CLion config in;" />
-    <option name="LAST_COMMIT_MESSAGE" value="More working code;&#10;Moved CLion config in;" />
+    <MESSAGE value="CTest working;&#10;Input files given on command line;" />
+    <option name="LAST_COMMIT_MESSAGE" value="CTest working;&#10;Input files given on command line;" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
