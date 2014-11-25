@@ -3,7 +3,7 @@ struct Atom{
     int atom_num;
     char atom_type[3];
     //float coords[3];
-    float *coords;
+    float coords[3];
     float charge;
     float mass;
     //Atom **neighbours; // list of pointers to neighbours
@@ -20,6 +20,8 @@ public:
     std::string name;
     
     Frame(int, int, std::string);
+
+    int allocate_atoms(int);
     
     float bond_length(int, int);
     

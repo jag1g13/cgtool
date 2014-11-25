@@ -13,7 +13,7 @@ Frame::Frame(int num, int num_atoms, string name){
     this->name = name;
     this->num = num;
     this->num_atoms = num_atoms;
-    atoms.reserve(num_atoms);
+    this->atoms.reserve(num_atoms);
     //atoms = (Atom*)malloc(num_atoms * sizeof(Atom));
     //if(atoms == NULL){
     //    cout << "Couldn't allocate memory for atoms" << endl;
@@ -21,6 +21,12 @@ Frame::Frame(int num, int num_atoms, string name){
     //    cout << "Allocated " << num_atoms << " atoms" << endl;
     //}
     cout << this->name << endl;
+}
+
+int Frame::allocate_atoms(int num_atoms){
+    this->num_atoms = num_atoms;
+    this->atoms.reserve(num_atoms);
+    return 0;
 }
 
 float Frame::bond_length(int a, int b){
