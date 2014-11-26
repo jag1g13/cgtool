@@ -1,8 +1,10 @@
 
+/**
+* \brief Struct to hold atom data
+*/
 struct Atom{
     int atom_num;
     char atom_type[3];
-    //float coords[3];
     float coords[3];
     float charge;
     float mass;
@@ -11,6 +13,11 @@ struct Atom{
 
 
 
+/**
+* \brief Class to hold a single frame of an XTC file
+*
+* Holds a std::vector<Atom> an contains member functions to operate on this
+*/
 class Frame{
 public:
     int num, num_atoms;
@@ -24,7 +31,6 @@ public:
     int allocate_atoms(int);
     
     float bond_length(int, int);
-    
-    
+
     float bond_angle(int, int, int, int);
 };
