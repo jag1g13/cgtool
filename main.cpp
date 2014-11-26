@@ -27,6 +27,7 @@ int setup_frame(char*, char*, t_fileio*, Frame*, int*, int*, float*, matrix, rve
 int read_frame(t_fileio*, Frame*, int*, int*, float*, matrix, rvec**, float*);
 vector<float> calc_bond_lens(Frame*, vector<float>);
 float calc_avg(vector<float>);
+void setup_cg_map(Frame*, Frame*);
 void cg_map(Frame*, Frame*);
 inline void split_text_output(const char *, clock_t);
 inline bool file_exists(const char *);
@@ -159,6 +160,20 @@ int read_frame(t_fileio* xtc, Frame* frame,
         memcpy(atom->coords, (*x)[i], 3*sizeof(float)); // copy coordinates into an existing Atom
     }
     return ok_out && ok && bOK;
+}
+
+void setup_cg_map(Frame* frame, Frame* cg_frame){
+    /**
+    * \brief
+    */
+    int num_cg_atoms = 0;
+    for(int i=0; i < frame->num_atoms; i++){
+
+    }
+    cg_frame->allocate_atoms(num_cg_atoms);
+}
+
+void cg_map(Frame* frame, Frame* cg_frame){
 }
 
 vector<float> calc_bond_lens(Frame* frame, vector<float> bond_lens){
