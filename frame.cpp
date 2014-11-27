@@ -17,7 +17,7 @@ Frame::Frame(int num, int num_atoms, string name){
     * this can be set later using Frame::allocate_atoms()
     */
     this->name = name;
-    this->num = num;
+    this->step = num;
     this->num_atoms = num_atoms;
     this->atoms.reserve(num_atoms);
     //cout << this->name << endl;
@@ -32,6 +32,15 @@ int Frame::allocate_atoms(int num_atoms){
     this->num_atoms = num_atoms;
     this->atoms.reserve(num_atoms);
     return 0;
+}
+
+//TODO move as much as possible into the class
+bool Frame::write_to_xtc(t_fileio* xtc){
+    gmx_bool bOK = 0;
+    rvec *x;
+    int ok = 0;
+    //ok = write_xtc(xtc, num_atoms, step, time, box, *x, prec);
+    return ok && bOK;
 }
 
 float Frame::bond_length(int a, int b){

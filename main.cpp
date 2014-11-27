@@ -4,14 +4,14 @@
 #include <numeric>
 #include <stdexcept>
 #include <ctime>
-//#include <string>
-//#include <math.h>
+#include <map>
+
 #include <gromacs/fileio/xtcio.h>
 #include <rpc/rpc.h>
-//#include <rpc/xdr.h>
 #include <sys/stat.h>
 
 #include "frame.h"
+#include "bondset.h"
 
 //things from std that get used a lot
 using std::ifstream;
@@ -23,14 +23,15 @@ using std::vector;
 using std::clock_t;
 
 //prototype functions
+//TODO convert int functions to bool
 int setup_frame(char*, char*, t_fileio*, Frame*, int*, int*, float*, matrix, rvec**, float*);
 int read_frame(t_fileio*, Frame*, int*, int*, float*, matrix, rvec**, float*);
 vector<float> calc_bond_lens(Frame*, vector<float>);
 float calc_avg(vector<float>);
 void setup_cg_map(Frame*, Frame*);
 void cg_map(Frame*, Frame*);
-inline void split_text_output(const char *, clock_t);
-inline bool file_exists(const char *);
+void split_text_output(const char *, clock_t);
+bool file_exists(const char *);
 
 extern int read_next_xtc(t_fileio *fio,
         int natoms, int *step, real *time,
@@ -83,12 +84,14 @@ int main(int argc, char* argv[]){
     /* Keep reading frames until something goes wrong (run out of frames) */
     split_text_output("Reading frames", start);
     start = std::clock();
+    int i = 0;
     while (read_frame(xtc, &frame, &natoms, &step, &time, box, &x, &prec)) {
         /* Process each frame as we read it, frames are not retained */
         //cg_map(&frame, &cg_frame);
         bond_lens = calc_bond_lens(&frame, bond_lens);
+        i++;
     }
-    cout << "Read " << step << " frames" << endl;
+    cout << "Read " << i << " frames" << endl;
 
     /* close remaining files */
     close_xtc(xtc);
@@ -162,9 +165,49 @@ int read_frame(t_fileio* xtc, Frame* frame,
     return ok_out && ok && bOK;
 }
 
+/*def map_cg_solvent_within_loop(curr_frame, frame, cg_frame=0):
+    """
+    perform CG mapping using cg_map list of lists
+            with current cg_map does a simple heavy atom mapping
+
+    will be CM or GC depending on how 'Atom.mass' was set previously
+    if mapping is changed in cg_map to include other atoms
+
+            should remove the setup code into its own function (or the main xtc setup)
+    """
+    global cg_atom_nums
+    if curr_frame == 0:
+        cg_frame = Frame(curr_frame, cg_atom_nums)
+    cg_frame.num = curr_frame
+    for i, site in enumerate(cg_sites):
+        coords = np.zeros(3)
+        tot_mass = 0.
+        charge = 0.
+        for atom in cg_map[i]:
+            mass = frame.atoms[sugar_atom_nums[atom]].mass
+            tot_mass = tot_mass + mass
+            coords = coords + mass*frame.atoms[sugar_atom_nums[atom]].loc
+            charge = charge + frame.atoms[sugar_atom_nums[atom]].charge
+        coords /= tot_mass  # number of atoms cancels out
+        if curr_frame == 0:
+            cg_frame.atoms.append(Atom(site, coords, charge))
+        else:
+            cg_frame.atoms[i] = Atom(site, coords, charge)
+        if curr_frame == 0:
+            cg_atom_nums[site] = i
+    j = len(cg_sites)
+    for atom in frame.atoms:
+        if atom.atom_type == "OW":
+            if curr_frame == 0:
+                cg_frame.atoms.append(Atom("OW", atom.loc, 0.0))
+            else:
+                cg_frame.atoms[j] = Atom("OW", atom.loc, 0.0)
+            j += 1
+    return cg_frame*/
+
 void setup_cg_map(Frame* frame, Frame* cg_frame){
     /**
-    * \brief
+    * \brief Setup a Frame to hold the coarse grained trajectory
     */
     int num_cg_atoms = 0;
     for(int i=0; i < frame->num_atoms; i++){
@@ -185,6 +228,11 @@ vector<float> calc_bond_lens(Frame* frame, vector<float> bond_lens){
     return bond_lens;
 }
 
+void read_cg_mapping(vector<char*> bead_names,
+        std::map<string, vector<string>> bead_map){
+
+}
+
 float calc_avg(vector<float> vec){
     /**
     * \brief Calculate the average of a Vector<float>
@@ -194,9 +242,8 @@ float calc_avg(vector<float> vec){
     return mean;
 }
 
-inline void split_text_output(const char *name, clock_t start){
+void split_text_output(const char *name, clock_t start){
     clock_t now = std::clock();
-
     cout << "--------------------" << endl;
     cout << (float)(now-start) / CLOCKS_PER_SEC << " seconds" << endl;
     cout << "====================" << endl;
@@ -204,7 +251,7 @@ inline void split_text_output(const char *name, clock_t start){
     cout << "--------------------" << endl;
 }
 
-inline bool file_exists(const char *name) {
+bool file_exists(const char *name) {
     struct stat buffer;
-    return (stat (name, &buffer) == 0);
+    return (stat(name, &buffer) == 0);
 }

@@ -1,4 +1,10 @@
+#ifndef INCLUDE_GMXFIO
+#define INCLUDE_GMXFIO
+#include <gromacs/fileio/xtcio.h>
+#endif
 
+#ifndef ATOMSTRUCT
+#define ATOMSTRUCT
 /**
 * \brief Struct to hold atom data
 */
@@ -10,6 +16,7 @@ struct Atom{
     float mass;
     //Atom **neighbours; // list of pointers to neighbours
 };
+#endif
 
 
 
@@ -19,16 +26,21 @@ struct Atom{
 * Holds a std::vector<Atom> an contains member functions to operate on this
 */
 class Frame{
+//TODO perhaps move xtc read functions into Frame class
 public:
-    int num, num_atoms;
-    std::vector<Atom> atoms; // list of atoms
+    int step, num_atoms;        // step is frame_num, wanted to be consistent with GMX
+    std::vector<Atom> atoms;    // list of atoms
     //Atom* atoms;
-    float time;
+    float time, prec;
+    matrix box;
     std::string name;
     
     Frame(int, int, std::string);
 
+    //TODO convert int functions to bool
     int allocate_atoms(int);
+
+    bool write_to_xtc(t_fileio*);
     
     float bond_length(int, int);
 
