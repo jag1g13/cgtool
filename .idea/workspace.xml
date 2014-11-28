@@ -7,12 +7,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="33188f4d-3b34-4636-9644-f05364432d4a" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bondset.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bondset.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CMakeLists.txt" afterPath="$PROJECT_DIR$/CMakeLists.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/frame.cpp" afterPath="$PROJECT_DIR$/frame.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/frame.h" afterPath="$PROJECT_DIR$/frame.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.cpp" afterPath="$PROJECT_DIR$/main.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="traj_process2.iws" />
@@ -198,7 +192,13 @@
       <option name="project" value="LOCAL" />
       <updated>1417022411795</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Working on code to read in bonds to calculate;&#10;First pieces of coarse graining in place">
+      <created>1417110495460</created>
+      <option name="number" value="00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1417110495460</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
@@ -263,7 +263,8 @@
     </option>
     <MESSAGE value="Rewrites/tidying of main functions;&#10;More functionality;&#10;Added Doxygen" />
     <MESSAGE value="Missed a few IDE config files" />
-    <option name="LAST_COMMIT_MESSAGE" value="Missed a few IDE config files" />
+    <MESSAGE value="Working on code to read in bonds to calculate;&#10;First pieces of coarse graining in place" />
+    <option name="LAST_COMMIT_MESSAGE" value="Working on code to read in bonds to calculate;&#10;First pieces of coarse graining in place" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
