@@ -3,8 +3,8 @@
 #include <gromacs/fileio/xtcio.h>
 #endif
 
-#ifndef ATOMSTRUCT
-#define ATOMSTRUCT
+#ifndef FRAME_H
+#define FRAME_H
 /**
 * \brief Struct to hold atom data
 */
@@ -16,8 +16,6 @@ struct Atom{
     float mass;
     //Atom **neighbours; // list of pointers to neighbours
 };
-#endif
-
 
 
 /**
@@ -46,3 +44,5 @@ public:
 
     float bond_angle(int, int, int, int);
 };
+
+#endif

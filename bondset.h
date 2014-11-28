@@ -1,9 +1,8 @@
-
+#ifndef BONDSET_H
+#define BONDSET_H
 using std::vector;
 using std::string;
 
-#ifndef BONDSTRUCT
-#define BOND_STRUCT
 /**
 * \brief Struct to hold atoms in bonds, angles and dihedrals
 */
@@ -11,7 +10,6 @@ struct bond_struct{
     vector<string> atom_names;
     vector<int> atom_nums;
 };
-#endif
 
 /**
 * \brief Class that holds all bond lengths, angles and dihedrals to be calculated
@@ -24,3 +22,5 @@ public:
 
     bool from_file(string);
 };
+
+#endif

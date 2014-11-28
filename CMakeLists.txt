@@ -11,10 +11,13 @@ set (EXTRA_LIBS ${EXTRA_LIBS} gromacs)
 set(SOURCE_FILES
     frame.cpp
     bondset.cpp
+    cg_map.cpp
+    general.cpp
     main.cpp)
 
 add_executable(traj_process2 ${SOURCE_FILES})
 target_link_libraries (traj_process2 ${EXTRA_LIBS})
 
 enable_testing()
-add_test(tp_runs traj_process2 ../test_data)
+add_test(tp_runs_1_arg traj_process2 ../test_data)
+add_test(tp_runs_2_args traj_process2 ../test_data/npt.gro ../test_data/md.xtc)

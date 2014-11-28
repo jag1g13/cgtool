@@ -6,9 +6,10 @@
 #include <ctime>
 #include <map>
 
-#include <gromacs/fileio/xtcio.h>
+#include <unistd.h>
 #include <rpc/rpc.h>
 #include <sys/stat.h>
+#include <gromacs/fileio/xtcio.h>
 
 #include "frame.h"
 #include "bondset.h"
@@ -89,6 +90,11 @@ int main(int argc, char* argv[]){
         /* Process each frame as we read it, frames are not retained */
         //cg_map(&frame, &cg_frame);
         bond_lens = calc_bond_lens(&frame, bond_lens);
+        if(i % 500 == 0){
+            cout << "Read " << i << " frames\r";
+            std::flush(cout);
+        }
+        //usleep(1000);
         i++;
     }
     cout << "Read " << i << " frames" << endl;
@@ -231,6 +237,13 @@ vector<float> calc_bond_lens(Frame* frame, vector<float> bond_lens){
 void read_cg_mapping(vector<char*> bead_names,
         std::map<string, vector<string>> bead_map){
 
+}
+
+bool get_bond_measures(string dir){
+    /**
+    * \brief Read in all required bond length, angle and dihedral measurements from file
+    */
+    string filename = dir + "bonds.conf";
 }
 
 float calc_avg(vector<float> vec){
