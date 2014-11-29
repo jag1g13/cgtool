@@ -25,8 +25,8 @@ using std::clock_t;
 
 //prototype functions
 //TODO convert int functions to bool
-int setup_frame(char*, char*, t_fileio*, Frame*, int*, int*, float*, matrix, rvec**, float*);
-int read_frame(t_fileio*, Frame*, int*, int*, float*, matrix, rvec**, float*);
+bool setup_frame(char*, char*, t_fileio*, Frame*, int*, int*, float*, matrix, rvec**, float*);
+bool read_frame(t_fileio*, Frame*, int*, int*, float*, matrix, rvec**, float*);
 vector<float> calc_bond_lens(Frame*, vector<float>);
 float calc_avg(vector<float>);
 void setup_cg_map(Frame*, Frame*);
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]){
     return !ok;
 }
 
-int setup_frame(char* groname, char* xtcname, t_fileio* xtc, Frame* frame,
+bool setup_frame(char* groname, char* xtcname, t_fileio* xtc, Frame* frame,
                 int* natoms, int* step, float* time,
                 matrix box, rvec** x, float* prec){
     /**
@@ -148,10 +148,10 @@ int setup_frame(char* groname, char* xtcname, t_fileio* xtc, Frame* frame,
     }else{
         cout << "GRO file cannot be opened" << endl;
     }
-    return ok && bOK;                           // return 1 if it worked
+    return ok && bOK;                           // return True if it worked
 }
 
-int read_frame(t_fileio* xtc, Frame* frame,
+bool read_frame(t_fileio* xtc, Frame* frame,
                int* natoms, int* step, float* time,
                matrix box, rvec** x, float* prec){
     /**
@@ -165,10 +165,10 @@ int read_frame(t_fileio* xtc, Frame* frame,
     //ok_out = write_xtc(xtc_out, *natoms, *step, *time, box, *x, *prec);
     ok = read_next_xtc(xtc, *natoms, step, time, box, *x, prec, &bOK);
     for(int i = 0; i < *natoms; i++){
-        atom = &(frame->atoms[i]);                      // alias to make it tidier
-        memcpy(atom->coords, (*x)[i], 3*sizeof(float)); // copy coordinates into an existing Atom
+        //atom = &(frame->atoms[i]);                      // alias to make it tidier
+        memcpy(frame->atoms[i].coords, (*x)[i], 3*sizeof(float)); // copy coordinates into an existing Atom
     }
-    return ok_out && ok && bOK;
+    return ok_out && ok && bOK;     //return True if everything worked
 }
 
 /*def map_cg_solvent_within_loop(curr_frame, frame, cg_frame=0):
