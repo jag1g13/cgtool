@@ -5,6 +5,11 @@
 
 #ifndef FRAME_H
 #define FRAME_H
+
+#include <vector>
+
+using std::vector;
+
 /**
 * \brief Struct to hold atom data
 */
