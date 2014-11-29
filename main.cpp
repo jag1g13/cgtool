@@ -6,7 +6,7 @@
 #include <ctime>
 #include <map>
 
-#include <unistd.h>
+//#include <unistd.h>
 #include <rpc/rpc.h>
 #include <sys/stat.h>
 #include <gromacs/fileio/xtcio.h>

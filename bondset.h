@@ -7,7 +7,9 @@ using std::string;
 * \brief Struct to hold atoms in bonds, angles and dihedrals
 */
 struct bond_struct{
+    /** Vector of atom names for this bond property; For a bond length will contain two names; three for angle; four for dihedral */
     vector<string> atom_names;
+    /** Vector of atom numbers for this bond property; For a bond length will contain two names; three for angle; four for dihedral */
     vector<int> atom_nums;
 };
 
@@ -16,10 +18,20 @@ struct bond_struct{
 */
 class BondSet{
 public:
-    vector<bond_struct> bonds, angles, dihedrals;
+    /** Vector of bond length pairs; Contains all bond lengths that must be calculated */
+    vector<bond_struct> bonds;
+    /** Vector of bond angle triples */
+    vector<bond_struct> angles;
+    /** Vector of bond dihedral quads */
+    vector<bond_struct> dihedrals;
 
     BondSet();
 
+    /**
+    * \brief Reads in from file all bond properties to be calculated
+    *
+    * Gets Vectors of all bond lengths, angles and dihedrals that must be calculated.
+    */
     bool from_file(string);
 };
 
