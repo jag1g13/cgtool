@@ -7,8 +7,10 @@
 #define FRAME_H
 
 #include <vector>
+#include <string>
 
 using std::vector;
+using std::string;
 
 /**
 * \brief Struct to hold atom data
@@ -25,7 +27,15 @@ struct Atom{
     /** Atomic mass */
     float mass;
     /** Vector of pointers to Atom listing all atoms bonded to this one */
-    vector<Atom*> neighbours;
+    vector<Atom *> neighbours;
+};
+
+/**
+* \brief Struct to hold CG bead data; inherits from Atom
+*/
+struct CGBead : Atom{
+    /** Vector of atoms that this CG bead represents */
+    vector<string> sub_atoms;
 };
 
 
@@ -71,7 +81,7 @@ public:
     /**
     * \brief Write Frame to XTC output file
     */
-    bool write_to_xtc(t_fileio*);
+    bool write_to_xtc(t_fileio *);
 
     /**
     * \brief Calculate distance between two atoms

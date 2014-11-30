@@ -9,10 +9,15 @@
 //#include <unistd.h>
 #include <rpc/rpc.h>
 #include <sys/stat.h>
+
+#ifndef INCLUDE_GMXFIO
+#define INCLUDE_GMXFIO
+
 #include <gromacs/fileio/xtcio.h>
 
+#endif
+
 #include "frame.h"
-#include "bondset.h"
 #include "cg_map.h"
 
 //things from std that get used a lot
@@ -26,13 +31,20 @@ using std::clock_t;
 
 //prototype functions
 //TODO convert int functions to bool
-bool setup_frame(char*, char*, t_fileio*, Frame*, int*, int*, float*, matrix, rvec**, float*);
-bool read_frame(t_fileio*, Frame*, int*, int*, float*, matrix, rvec**, float*);
-vector<float> calc_bond_lens(Frame*, vector<float>);
+bool setup_frame(char *, char *, t_fileio *, Frame *, int *, int *, float *, matrix, rvec **, float *);
+
+bool read_frame(t_fileio *, Frame *, int *, int *, float *, matrix, rvec **, float *);
+
+vector<float> calc_bond_lens(Frame *, vector<float>);
+
 float calc_avg(vector<float>);
-void setup_cg_map(Frame*, Frame*);
-void cg_map(Frame*, Frame*);
+
+void setup_cg_map(Frame *, Frame *);
+
+void cg_map(Frame *, Frame *);
+
 void split_text_output(const char *, clock_t);
+
 bool file_exists(const char *);
 
 extern int read_next_xtc(t_fileio *fio,
@@ -40,15 +52,15 @@ extern int read_next_xtc(t_fileio *fio,
         matrix box, rvec *x, real *prec, gmx_bool *bOK);
 
 
-int main(int argc, char* argv[]){
+int main(int argc, char *argv[]){
     int ok;
     char groname[40], xtcname[40], mapname[40];
     int natoms, step;
     float time, prec;
-    clock_t start = std::clock(), now = start;
+    clock_t start = std::clock();
     rvec *x;
     matrix box;
-    t_fileio* xtc;
+    t_fileio *xtc;
     vector<float> bond_lens;
     Frame frame = Frame(0, 0, ""), cg_frame = Frame(0, 0, "");
     char mode[1] = {'r'};
@@ -56,12 +68,12 @@ int main(int argc, char* argv[]){
 
     /* Where does the user want us to look for GRO and XTC files? */
     split_text_output("Identifying files", start);
-    if(argc < 2) {
+    if(argc < 2){
         cout << "Using current directory" << endl;
         strcpy(groname, "npt.gro");
         strcpy(xtcname, "md.xtc");
         strcpy(mapname, "mapping.in");
-    }else if(argc == 2) {
+    } else if(argc == 2){
         cout << "Using directory provided" << endl;
         strcpy(groname, argv[1]);
         strcat(groname, "/npt.gro");
@@ -69,12 +81,12 @@ int main(int argc, char* argv[]){
         strcat(xtcname, "/md.xtc");
         strcpy(mapname, argv[1]);
         strcat(mapname, "/mapping.in");
-    }else if(argc == 4) {
+    } else if(argc == 4){
         cout << "Using filenames provided" << endl;
         strcpy(groname, argv[1]);
         strcpy(xtcname, argv[2]);
         strcpy(mapname, argv[3]);
-    }else{
+    } else{
         cout << "Wrong number of arguments given" << endl;
         throw std::runtime_error("Wrong number of arguments");
     }
@@ -90,13 +102,12 @@ int main(int argc, char* argv[]){
     xtc = open_xtc(xtcname, mode);
     ok = setup_frame(groname, xtcname, xtc, &frame, &natoms, &step, &time, box, &x, &prec);
     CGMap mapping(mapname);
-    //mapping.from_file(mapname);
 
     /* Keep reading frames until something goes wrong (run out of frames) */
     split_text_output("Reading frames", start);
     start = std::clock();
     int i = 0;
-    while (read_frame(xtc, &frame, &natoms, &step, &time, box, &x, &prec)) {
+    while(read_frame(xtc, &frame, &natoms, &step, &time, box, &x, &prec)){
         /* Process each frame as we read it, frames are not retained */
         //cg_map(&frame, &cg_frame);
         bond_lens = calc_bond_lens(&frame, bond_lens);
@@ -114,13 +125,12 @@ int main(int argc, char* argv[]){
 
     /* Post processing */
     split_text_output("Post processing", start);
-    cout << calc_avg(bond_lens) << endl;
+    cout << "Avg bond[0] " << calc_avg(bond_lens) << endl;
     return !ok;
 }
 
-bool setup_frame(char* groname, char* xtcname, t_fileio* xtc, Frame* frame,
-                int* natoms, int* step, float* time,
-                matrix box, rvec** x, float* prec){
+bool setup_frame(char *groname, char *xtcname, t_fileio *xtc, Frame *frame,
+        int *natoms, int *step, float *time, matrix box, rvec **x, float *prec){
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file
     *
@@ -132,7 +142,7 @@ bool setup_frame(char* groname, char* xtcname, t_fileio* xtc, Frame* frame,
     //float atom_charge, atom_mass;
     ifstream gro;
     gmx_bool bOK = 0;
-    Atom* atom;
+    Atom *atom;
     ok = read_first_xtc(xtc, natoms, step, time, box, x, prec, &bOK);
     gro.open(groname);
     if(gro.is_open()){
@@ -149,34 +159,32 @@ bool setup_frame(char* groname, char* xtcname, t_fileio* xtc, Frame* frame,
         for(int i = 0; i < *natoms; i++){       // now we can read the atoms
             atom = &(frame->atoms[i]);
             gro >> res_name >> atom->atom_type >> atom->atom_num;
-            memcpy(atom->coords, (*x)[i], 3*sizeof(float));
+            memcpy(atom->coords, (*x)[i], 3 * sizeof(float));
             atom->charge = 0.;
             atom->mass = 1.;
         }
-    gro.close();
-    //cout << "Done init" << endl;
-    }else{
+        gro.close();
+        //cout << "Done init" << endl;
+    } else{
         cout << "GRO file cannot be opened" << endl;
     }
     return ok && bOK;                           // return True if it worked
 }
 
-bool read_frame(t_fileio* xtc, Frame* frame,
-               int* natoms, int* step, float* time,
-               matrix box, rvec** x, float* prec){
+bool read_frame(t_fileio *xtc, Frame *frame,
+        int *natoms, int *step, float *time,
+        matrix box, rvec **x, float *prec){
     /**
     * \brief Read a frame from the XTC file into an existing Frame object
     *
     * Reads a frame into a pre-setup Frame object.
     * The same Frame object should be used for each frame to save time in allocation.
     */
-    Atom* atom;
     int ok_out = 1, ok = 0, bOK = 0;
     //ok_out = write_xtc(xtc_out, *natoms, *step, *time, box, *x, *prec);
     ok = read_next_xtc(xtc, *natoms, step, time, box, *x, prec, &bOK);
     for(int i = 0; i < *natoms; i++){
-        //atom = &(frame->atoms[i]);                      // alias to make it tidier
-        memcpy(frame->atoms[i].coords, (*x)[i], 3*sizeof(float)); // copy coordinates into an existing Atom
+        memcpy(frame->atoms[i].coords, (*x)[i], 3 * sizeof(float)); // copy coordinates into an existing Atom
     }
     return ok_out && ok && bOK;     //return True if everything worked
 }
@@ -221,21 +229,23 @@ bool read_frame(t_fileio* xtc, Frame* frame,
             j += 1
     return cg_frame*/
 
-void setup_cg_map(Frame* frame, Frame* cg_frame){
+void setup_cg_map(Frame *frame, Frame *cg_frame){
     /**
     * \brief Setup a Frame to hold the coarse grained trajectory
     */
+    throw std::logic_error("Not implemented");
     int num_cg_atoms = 0;
-    for(int i=0; i < frame->num_atoms; i++){
+    for(int i = 0; i < frame->num_atoms; i++){
 
     }
     cg_frame->allocate_atoms(num_cg_atoms);
 }
 
-void cg_map(Frame* frame, Frame* cg_frame){
+void cg_map(Frame *frame, Frame *cg_frame){
+    throw std::logic_error("Not implemented");
 }
 
-vector<float> calc_bond_lens(Frame* frame, vector<float> bond_lens){
+vector<float> calc_bond_lens(Frame *frame, vector<float> bond_lens){
     /**
     * \brief Calculate all relevant bond lengths in Frame
     */
@@ -244,16 +254,18 @@ vector<float> calc_bond_lens(Frame* frame, vector<float> bond_lens){
     return bond_lens;
 }
 
-void read_cg_mapping(vector<char*> bead_names,
+void read_cg_mapping(vector<char *> bead_names,
         std::map<string, vector<string>> bead_map){
-
+    throw std::logic_error("Not implemented");
 }
 
 bool get_bond_measures(string dir){
     /**
     * \brief Read in all required bond length, angle and dihedral measurements from file
     */
+    throw std::logic_error("Not implemented");
     string filename = dir + "bonds.conf";
+    return false;
 }
 
 float calc_avg(vector<float> vec){
@@ -267,14 +279,16 @@ float calc_avg(vector<float> vec){
 
 void split_text_output(const char *name, clock_t start){
     clock_t now = std::clock();
-    cout << "--------------------" << endl;
-    cout << (float)(now-start) / CLOCKS_PER_SEC << " seconds" << endl;
+    if((float) (now - start) / CLOCKS_PER_SEC > 0.1){
+        cout << "--------------------" << endl;
+        cout << (float) (now - start) / CLOCKS_PER_SEC << " seconds" << endl;
+    }
     cout << "====================" << endl;
     cout << name << endl;
     cout << "--------------------" << endl;
 }
 
-bool file_exists(const char *name) {
+bool file_exists(const char *name){
     struct stat buffer;
     return (stat(name, &buffer) == 0);
 }

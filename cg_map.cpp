@@ -6,6 +6,8 @@
 
 #include "cg_map.h"
 
+#define DEBUG true
+
 //vector<vector<string>> tokenize_file(string filename);
 
 CGMap::CGMap(){
@@ -24,24 +26,27 @@ bool CGMap::from_file(string filename){
     while(getline(map_file, line)){
         if(line[0] == ';' || line[0] == '#') continue;  // skip comments
         if(line == "") continue;                        // line is empty, ignore it
-        boost::split(substrs, line, boost::is_any_of("\t "));
+        boost::split(substrs, line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
         BeadMap new_bead;
         new_bead.cg_bead = substrs[0];
-        new_bead.atoms = vector<string>(substrs.begin()+1, substrs.end());
+        new_bead.atoms = vector<string>(substrs.begin() + 1, substrs.end());
         mapping.push_back(new_bead);
     }
     num_beads = mapping.size();
-    for(auto &i : mapping){
-        std::cout << i.cg_bead << " contains";
-        for(auto &j : i.atoms){
-            std::cout << " " << j;
+    if(DEBUG){
+        for(auto &i : mapping){
+            std::cout << i.cg_bead << " contains";
+            for(auto &j : i.atoms){
+                std::cout << " " << j;
+            }
+            std::cout << std::endl;
         }
-        std::cout << std::endl;
     }
     return status;
 }
 
-bool CGMap::apply(Frame* aa_frame, Frame* cg_frame){
+bool CGMap::apply(Frame *aa_frame, Frame *cg_frame){
+    throw std::logic_error("Not implemented");
     bool status = true;
     return status;
 }

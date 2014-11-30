@@ -52,7 +52,7 @@ public:
     *
     * Requires a pre-constructed Frame for output, but can allocate the number of atoms here
     */
-    bool apply(Frame* aa_frame, Frame* cg_frame);
+    bool apply(Frame *aa_frame, Frame *cg_frame);
 };
 
 #endif
