@@ -13,6 +13,7 @@
 
 #include "frame.h"
 #include "bondset.h"
+#include "cg_map.h"
 
 //things from std that get used a lot
 using std::ifstream;
@@ -41,7 +42,7 @@ extern int read_next_xtc(t_fileio *fio,
 
 int main(int argc, char* argv[]){
     int ok;
-    char groname[40], xtcname[40];
+    char groname[40], xtcname[40], mapname[40];
     int natoms, step;
     float time, prec;
     clock_t start = std::clock(), now = start;
@@ -59,18 +60,25 @@ int main(int argc, char* argv[]){
         cout << "Using current directory" << endl;
         strcpy(groname, "npt.gro");
         strcpy(xtcname, "md.xtc");
+        strcpy(mapname, "mapping.in");
     }else if(argc == 2) {
         cout << "Using directory provided" << endl;
         strcpy(groname, argv[1]);
         strcat(groname, "/npt.gro");
         strcpy(xtcname, argv[1]);
         strcat(xtcname, "/md.xtc");
-    }else if(argc == 3) {
+        strcpy(mapname, argv[1]);
+        strcat(mapname, "/mapping.in");
+    }else if(argc == 4) {
         cout << "Using filenames provided" << endl;
         strcpy(groname, argv[1]);
         strcpy(xtcname, argv[2]);
+        strcpy(mapname, argv[3]);
+    }else{
+        cout << "Wrong number of arguments given" << endl;
+        throw std::runtime_error("Wrong number of arguments");
     }
-    if(!file_exists(groname) || !file_exists(xtcname)){
+    if(!file_exists(groname) || !file_exists(xtcname) || !file_exists(mapname)){
         cout << "Input file does not exist" << endl;
         throw std::runtime_error("File doesn't exist");
     }
@@ -81,6 +89,8 @@ int main(int argc, char* argv[]){
     split_text_output("Frame setup", start);
     xtc = open_xtc(xtcname, mode);
     ok = setup_frame(groname, xtcname, xtc, &frame, &natoms, &step, &time, box, &x, &prec);
+    CGMap mapping(mapname);
+    //mapping.from_file(mapname);
 
     /* Keep reading frames until something goes wrong (run out of frames) */
     split_text_output("Reading frames", start);

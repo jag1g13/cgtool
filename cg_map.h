@@ -28,9 +28,19 @@ struct BeadMap{
 class CGMap{
 public:
     /** Vector of BeadMap; holds the mappings for every bead */
-    vector<vector<string>> mapping;
+    vector<BeadMap> mapping;
+    /** Number of beads defined */
+    int num_beads;
 
+    /**
+    * \brief Constructor to create a blank instance
+    */
     CGMap();
+
+    /**
+    * \brief Constructor to create an instance from the mapping file provided
+    */
+    CGMap(string filename);
 
     /**
     * \brief Read in CG mapping from file

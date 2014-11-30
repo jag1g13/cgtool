@@ -4,5 +4,5 @@ rm -r build/*
 cd build
 cmake ..
 make
-#ctest -V
-make test
+ctest -V
+#make test

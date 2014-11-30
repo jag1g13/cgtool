@@ -20,4 +20,4 @@ target_link_libraries (traj_process2 ${EXTRA_LIBS})
 
 enable_testing()
 add_test(tp_runs_1_arg traj_process2 ../test_data)
-add_test(tp_runs_2_args traj_process2 ../test_data/npt.gro ../test_data/md.xtc)
+add_test(tp_runs_3_args traj_process2 ../test_data/npt.gro ../test_data/md.xtc ../test_data/mapping.in)

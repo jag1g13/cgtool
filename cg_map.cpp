@@ -1,13 +1,43 @@
 #include <fstream>
+#include <iostream>     // only needed for testing, get rid of this when done
 
-#include <boost/tokenizer.hpp>
+//#include <boost/tokenizer.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "cg_map.h"
 
-vector<vector<string>> tokenize_file(string filename);
+//vector<vector<string>> tokenize_file(string filename);
+
+CGMap::CGMap(){
+}
+
+CGMap::CGMap(string filename){
+    from_file(filename);
+}
 
 bool CGMap::from_file(string filename){
-    bool status = 0;
+    bool status = 1;
+    std::ifstream map_file(filename);
+    string line;
+    vector<string> substrs;
+    if(!map_file.is_open()) return 0;   // couldn't open file
+    while(getline(map_file, line)){
+        if(line[0] == ';' || line[0] == '#') continue;  // skip comments
+        if(line == "") continue;                        // line is empty, ignore it
+        boost::split(substrs, line, boost::is_any_of("\t "));
+        BeadMap new_bead;
+        new_bead.cg_bead = substrs[0];
+        new_bead.atoms = vector<string>(substrs.begin()+1, substrs.end());
+        mapping.push_back(new_bead);
+    }
+    num_beads = mapping.size();
+    for(auto &i : mapping){
+        std::cout << i.cg_bead << " contains";
+        for(auto &j : i.atoms){
+            std::cout << " " << j;
+        }
+        std::cout << std::endl;
+    }
     return status;
 }
 
@@ -16,7 +46,7 @@ bool CGMap::apply(Frame* aa_frame, Frame* cg_frame){
     return status;
 }
 
-vector<vector<string>> tokenize_file(string filename){
+/*vector<vector<string>> tokenize_file(string filename){
     vector<vector<string>> result;
     string line;
     std::ifstream map_file;
@@ -30,4 +60,4 @@ vector<vector<string>> tokenize_file(string filename){
             }
         }
     }
-}
+}*/
