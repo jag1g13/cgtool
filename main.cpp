@@ -19,6 +19,7 @@
 
 #include "frame.h"
 #include "cg_map.h"
+#include "bondset.h"
 
 #define DEBUG true
 
@@ -54,18 +55,15 @@ bool file_exists(const char *);
 
 int main(int argc, char *argv[]){
     int ok;
-    float time, prec;
-    rvec *x;
-    matrix box;
-    t_fileio *xtc;
+    bool output = false;
+    t_fileio *xtc, *xtc_out;
     vector<float> bond_lens;
-    char mode[1] = {'r'};
+    char mode[2] = {'r', 'w'};
 
     /* Where does the user want us to look for GRO and XTC files? */
     clock_t start = std::clock();
     split_text_output("Identifying files", start);
     char groname[40], xtcname[40], mapname[40];
-    int natoms, step;
     if(argc < 2){
         cout << "Using current directory" << endl;
         strcpy(groname, "npt.gro");
@@ -99,17 +97,20 @@ int main(int argc, char *argv[]){
     /* Open files and do setup */
     split_text_output("Frame setup", start);
     Frame frame = Frame(0, 0, "");
-    xtc = open_xtc(xtcname, mode);
-    ok = frame.setupFrame(groname, xtc, &natoms, &step, &time, box, &x, &prec);
+    xtc = open_xtc(xtcname, &mode[0]);
+    if(output) xtc_out = open_xtc("out.xtc", &mode[1]);
+    ok = frame.setupFrame(groname, xtc);
     Frame cg_frame = Frame(&frame);
     CGMap mapping(mapname);
     mapping.initFrame(&frame, &cg_frame);
+    BondSet bonds;
+    bonds.fromFile("../test_data/james.bond");
 
     /* Keep reading frames until something goes wrong (run out of frames) */
     split_text_output("Reading frames", start);
     start = std::clock();
     int i = 0;
-    while(frame.readNext(xtc, &natoms, &step, &time, box, &x, &prec)){
+    while(frame.readNext(xtc)){
         /* Process each frame as we read it, frames are not retained */
         //cg_map(&frame, &cg_frame);
         bond_lens = calc_bond_lens(&frame, bond_lens);
@@ -117,6 +118,7 @@ int main(int argc, char *argv[]){
             cout << "Read " << i << " frames\r";
             std::flush(cout);
         }
+        if(output) frame.writeToXtc(xtc_out);
         //usleep(1000);
         i++;
     }

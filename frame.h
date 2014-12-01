@@ -60,6 +60,8 @@ public:
     float prec_;
     /** Size of the simulation box */
     matrix box_;
+    /** Holds atomic coordinates for GROMACS */
+    rvec *x_;
     /** Name of the Frame; taken from comment in the GRO file */
     std::string name_;
     /** Dictionary mapping atom numbers to atom names */
@@ -87,14 +89,13 @@ public:
     *
     * Reads in first frame of XTC and allocates atoms
     */
-    bool setupFrame(char *groname, t_fileio *xtc, int *natoms,
-            int *step, float *time, matrix box, rvec **x, float *prec);
+    bool setupFrame(char *groname, t_fileio *xtc);
 
 
     /**
     * \brief Read next frame from the open XTC file
     */
-    bool readNext(t_fileio *xtc, int *natoms, int *step, float *time, matrix box, rvec **x, float *prec);
+    bool readNext(t_fileio *xtc);
 
     //TODO convert int functions to bool
     /**

@@ -1,7 +1,5 @@
 #include "frame.h"
 
-//#include <vector>
-#include <stdexcept>
 #include <fstream>
 #include <iostream>
 #include <cstring>
@@ -31,14 +29,10 @@ int Frame::allocateAtoms(int num_atoms){
     return 0;
 }
 
-//TODO move as much as possible into the class
 bool Frame::writeToXtc(t_fileio *xtc){
-    throw std::logic_error("Not implemented");
-    gmx_bool bOK = 0;
-    rvec *x;
-    bool ok = 0;
-    //bool ok = write_xtc(xtc, num_atoms, step, time, box, *x, prec);
-    return ok && bOK;
+    bool ok = write_xtc(xtc, num_atoms_, step_, time_, box_, x_, prec_);
+    return ok;
+    //throw std::logic_error("Not implemented");
 }
 
 float Frame::bondLength(int a, int b){
@@ -68,33 +62,35 @@ bool Frame::setupFrame(char *groname, t_fileio *xtc){
     * This function uses this data to create a Frame object to process this data
     */
     char res_name[5], line[40];
-    int ok = 0, num_atoms;
+    int ok = 0, gro_num_atoms;
     //float atom_charge, atom_mass;
     std::ifstream gro;
     gmx_bool bOK = 0;
     Atom *atom;
-    ok = read_first_xtc(xtc, &num_atoms_, &step_, &time_, box_, x, &prec_, &bOK);
+    ok = read_first_xtc(xtc, &num_atoms_, &step_, &time_, box_, &x_, &prec_, &bOK);
     gro.open(groname);
     if(gro.is_open()){
         gro.getline(line, 40);              // first line of gro is the run name
         cout << line << endl;
-        gro >> num_atoms;                    // second line is the number of atoms
-        if(num_atoms != num_atoms_){
-            cout << "XTC num atoms:" << *natoms << endl;
-            cout << "GRO num atoms:" << num_atoms << endl;
+        gro >> gro_num_atoms;                    // second line is the number of atoms
+        if(gro_num_atoms != num_atoms_){
+            cout << "XTC num atoms:" << num_atoms_ << endl;
+            cout << "GRO num atoms:" << gro_num_atoms << endl;
             cout << "Number of atoms declared in XTC file "
                     "is not the same as declared in GRO file" << endl;
             throw std::runtime_error("Number of atoms does not match");
         }else{
-            cout << "Found " << num_atoms << " atoms" << endl;
+            cout << "Found " << num_atoms_ << " atoms" << endl;
         }
-        allocateAtoms(*natoms);
-        for(int i = 0; i < *natoms; i++){       // now we can read the atoms
+        allocateAtoms(num_atoms_);
+        for(int i = 0; i < num_atoms_; i++){       // now we can read the atoms
             atom = &(atoms_[i]);
             gro >> res_name >> atom->atom_type >> atom->atom_num;
-            memcpy(atom->coords, (*x)[i], 3 * sizeof(float));
+            memcpy(atom->coords, x_[i], 3 * sizeof(float));
             atom->charge = 0.;
             atom->mass = 1.;
+            name_to_num_.emplace(atom->atom_type, i);
+            num_to_name_.emplace(i, atom->atom_type);
         }
         gro.close();
     } else{
@@ -104,20 +100,18 @@ bool Frame::setupFrame(char *groname, t_fileio *xtc){
     return ok && bOK;                           // return True if it worked
 }
 
-bool Frame::readNext(t_fileio *xtc,
-        int *natoms, int *step, float *time,
-        matrix box, rvec **x, float *prec){
+bool Frame::readNext(t_fileio *xtc){
     /**
     * \brief Read a frame from the XTC file into an existing Frame object
     *
     * Reads a frame into a pre-setup Frame object.
     * The same Frame object should be used for each frame to save time in allocation.
     */
-    int ok_out = 1, ok = 0, bOK = 0;
+    int ok = 0, bOK = 0;
     //ok_out = write_xtc(xtc_out, *natoms, *step, *time, box, *x, *prec);
-    ok = read_next_xtc(xtc, num_atoms_, &step_, &time_, box_, *x, &prec_, &bOK);
-    for(int i = 0; i < *natoms; i++){
-        memcpy(atoms_[i].coords, (*x)[i], 3 * sizeof(float)); // copy coordinates into an existing Atom
+    ok = read_next_xtc(xtc, num_atoms_, &step_, &time_, box_, x_, &prec_, &bOK);
+    for(int i = 0; i < num_atoms_; i++){
+        memcpy(atoms_[i].coords, x_[i], 3 * sizeof(float)); // copy coordinates into an existing Atom
     }
-    return ok_out && ok && bOK;     //return True if everything worked
+    return ok && bOK;     //return True if it worked
 }

@@ -10,11 +10,13 @@ using std::string;
 /**
 * \brief Struct to hold atoms in bonds, angles and dihedrals
 */
-struct bond_struct{
+struct BondStruct{
     /** Vector of atom names for this bond property; For a bond length will contain two names; three for angle; four for dihedral */
     vector<string> atom_names;
     /** Vector of atom numbers for this bond property; For a bond length will contain two names; three for angle; four for dihedral */
     vector<int> atom_nums;
+    /** Constructor to set size (bond/angle/dihedral) */
+    BondStruct(int size);
 };
 
 /**
@@ -23,11 +25,11 @@ struct bond_struct{
 class BondSet{
 public:
     /** Vector of bond length pairs; Contains all bond lengths that must be calculated */
-    vector<bond_struct> bonds;
+    vector<BondStruct> bonds_;
     /** Vector of bond angle triples */
-    vector<bond_struct> angles;
+    vector<BondStruct> angles_;
     /** Vector of bond dihedral quads */
-    vector<bond_struct> dihedrals;
+    vector<BondStruct> dihedrals_;
 
     BondSet();
 
