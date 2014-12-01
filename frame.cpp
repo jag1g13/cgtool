@@ -19,6 +19,11 @@ Frame::Frame(int num, int num_atoms, string name){
     //cout << this->name << endl;
 }
 
+Frame::Frame(const Frame* base_frame){
+    name = base_frame->name;
+    step = base_frame->step;
+}
+
 int Frame::allocate_atoms(int num_atoms){
     this->num_atoms = num_atoms;
     this->atoms.reserve(num_atoms);

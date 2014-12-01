@@ -20,6 +20,8 @@
 #include "frame.h"
 #include "cg_map.h"
 
+#define DEBUG
+
 //things from std that get used a lot
 using std::ifstream;
 using std::string;
@@ -31,7 +33,7 @@ using std::clock_t;
 
 //prototype functions
 //TODO convert int functions to bool
-bool setup_frame(char *, char *, t_fileio *, Frame *, int *, int *, float *, matrix, rvec **, float *);
+bool setup_frame(char *, t_fileio *, Frame *, int *, int *, float *, matrix, rvec **, float *);
 
 bool read_frame(t_fileio *, Frame *, int *, int *, float *, matrix, rvec **, float *);
 
@@ -62,9 +64,8 @@ int main(int argc, char *argv[]){
     matrix box;
     t_fileio *xtc;
     vector<float> bond_lens;
-    Frame frame = Frame(0, 0, ""), cg_frame = Frame(0, 0, "");
+    Frame frame = Frame(0, 0, "");
     char mode[1] = {'r'};
-    //t_fileio *xtc_out = open_xtc("xtcout.xtc", mode_write);
 
     /* Where does the user want us to look for GRO and XTC files? */
     split_text_output("Identifying files", start);
@@ -72,7 +73,7 @@ int main(int argc, char *argv[]){
         cout << "Using current directory" << endl;
         strcpy(groname, "npt.gro");
         strcpy(xtcname, "md.xtc");
-        strcpy(mapname, "mapping.in");
+        strcpy(mapname, "sacc.map");
     } else if(argc == 2){
         cout << "Using directory provided" << endl;
         strcpy(groname, argv[1]);
@@ -80,7 +81,7 @@ int main(int argc, char *argv[]){
         strcpy(xtcname, argv[1]);
         strcat(xtcname, "/md.xtc");
         strcpy(mapname, argv[1]);
-        strcat(mapname, "/mapping.in");
+        strcat(mapname, "/sacc.map");
     } else if(argc == 4){
         cout << "Using filenames provided" << endl;
         strcpy(groname, argv[1]);
@@ -96,12 +97,15 @@ int main(int argc, char *argv[]){
     }
     cout << "GRO file: " << groname << endl;
     cout << "XTC file: " << xtcname << endl;
+    cout << "MAP file: " << mapname << endl;
 
     /* Open files and do setup */
     split_text_output("Frame setup", start);
     xtc = open_xtc(xtcname, mode);
-    ok = setup_frame(groname, xtcname, xtc, &frame, &natoms, &step, &time, box, &x, &prec);
+    ok = setup_frame(groname, xtc, &frame, &natoms, &step, &time, box, &x, &prec);
+    Frame cg_frame = Frame(&frame);
     CGMap mapping(mapname);
+    mapping.init_frame(&cg_frame);
 
     /* Keep reading frames until something goes wrong (run out of frames) */
     split_text_output("Reading frames", start);
@@ -111,7 +115,7 @@ int main(int argc, char *argv[]){
         /* Process each frame as we read it, frames are not retained */
         //cg_map(&frame, &cg_frame);
         bond_lens = calc_bond_lens(&frame, bond_lens);
-        if(i % 500 == 0){
+        if(i % 1000 == 0){
             cout << "Read " << i << " frames\r";
             std::flush(cout);
         }
@@ -129,7 +133,7 @@ int main(int argc, char *argv[]){
     return !ok;
 }
 
-bool setup_frame(char *groname, char *xtcname, t_fileio *xtc, Frame *frame,
+bool setup_frame(char *groname, t_fileio *xtc, Frame *frame,
         int *natoms, int *step, float *time, matrix box, rvec **x, float *prec){
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file
@@ -138,7 +142,7 @@ bool setup_frame(char *groname, char *xtcname, t_fileio *xtc, Frame *frame,
     * This function uses this data to create a Frame object to process this data
     */
     char res_name[5], line[40];
-    int ok = 0, atom_num;
+    int ok = 0, num_atoms;
     //float atom_charge, atom_mass;
     ifstream gro;
     gmx_bool bOK = 0;
@@ -148,12 +152,15 @@ bool setup_frame(char *groname, char *xtcname, t_fileio *xtc, Frame *frame,
     if(gro.is_open()){
         gro.getline(line, 40);              // first line of gro is the run name
         cout << line << endl;
-        gro >> atom_num;                    // second line is the number of atoms
-        cout << "XTC num atoms:" << *natoms << endl;
-        cout << "GRO num atoms:" << atom_num << endl;
-        if(atom_num != *natoms){
+        gro >> num_atoms;                    // second line is the number of atoms
+        if(num_atoms != *natoms){
+            cout << "XTC num atoms:" << *natoms << endl;
+            cout << "GRO num atoms:" << num_atoms << endl;
             cout << "Number of atoms declared in XTC file "
                     "is not the same as declared in GRO file" << endl;
+            throw std::runtime_error("Number of atoms does not match");
+        }else{
+            cout << "Found " << num_atoms << " atoms" << endl;
         }
         frame->allocate_atoms(*natoms);
         for(int i = 0; i < *natoms; i++){       // now we can read the atoms
@@ -167,6 +174,7 @@ bool setup_frame(char *groname, char *xtcname, t_fileio *xtc, Frame *frame,
         //cout << "Done init" << endl;
     } else{
         cout << "GRO file cannot be opened" << endl;
+        throw std::runtime_error("Could not open GRO file");
     }
     return ok && bOK;                           // return True if it worked
 }

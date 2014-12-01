@@ -1,10 +1,10 @@
+#ifndef FRAME_H
+#define FRAME_H
+
 #ifndef INCLUDE_GMXFIO
 #define INCLUDE_GMXFIO
 #include <gromacs/fileio/xtcio.h>
 #endif
-
-#ifndef FRAME_H
-#define FRAME_H
 
 #include <vector>
 #include <string>
@@ -69,6 +69,13 @@ public:
     * this can be set later using Frame::allocate_atoms()
     */
     Frame(int, int, std::string);
+
+    /**
+    * \brief Create Frame by copying name and step from another Frame
+    *
+    * Intended for creating a CG Frame from an atomistic one
+    */
+    Frame(const Frame*);
 
     //TODO convert int functions to bool
     /**

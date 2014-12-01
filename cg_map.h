@@ -48,6 +48,11 @@ public:
     bool from_file(string filename);
 
     /**
+    * \brief Setup a CG Frame object that has already been declared
+    */
+    void init_frame(Frame *cg_frame);
+
+    /**
     * \brief Apply CG mapping to an atomistic Frame
     *
     * Requires a pre-constructed Frame for output, but can allocate the number of atoms here

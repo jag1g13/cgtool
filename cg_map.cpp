@@ -45,6 +45,10 @@ bool CGMap::from_file(string filename){
     return status;
 }
 
+void CGMap::init_frame(Frame* cg_frame){
+    cg_frame->allocate_atoms(num_beads);
+}
+
 bool CGMap::apply(Frame *aa_frame, Frame *cg_frame){
     throw std::logic_error("Not implemented");
     bool status = true;
