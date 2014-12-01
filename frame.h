@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 using std::vector;
 using std::string;
@@ -48,25 +49,29 @@ class Frame{
 //TODO perhaps move xtc read functions into Frame class
 public:
     /** The simulation step corresponding to this frame */
-    int step;
+    int step_;
     /** The number of atoms stored in this frame */
-    int num_atoms;
+    int num_atoms_;
     /** Vector of Atoms; Each Atom contains position and type data */
-    std::vector<Atom> atoms;
+    std::vector<Atom> atoms_;
     /** The simulation time of this frame, in picoseconds */
-    float time;
+    float time_;
     /** XTC precision; not used internally, just for XTC input/output */
-    float prec;
+    float prec_;
     /** Size of the simulation box */
-    matrix box;
+    matrix box_;
     /** Name of the Frame; taken from comment in the GRO file */
-    std::string name;
+    std::string name_;
+    /** Dictionary mapping atom numbers to atom names */
+    std::map<int, string> num_to_name_;
+    /** Dictionary mapping atom names to numbers */
+    std::map<string, int> name_to_num_;
 
     /**
     * \brief Create Frame passing frame number, number of atoms to store and the frame name
     *
     * If we don't know the number of atoms at creation
-    * this can be set later using Frame::allocate_atoms()
+    * this can be set later using Frame::allocateAtoms()
     */
     Frame(int, int, std::string);
 
@@ -77,30 +82,44 @@ public:
     */
     Frame(const Frame*);
 
+    /**
+    * \brief Sets up Frame from XTC and GRO files
+    *
+    * Reads in first frame of XTC and allocates atoms
+    */
+    bool setupFrame(char *groname, t_fileio *xtc, int *natoms,
+            int *step, float *time, matrix box, rvec **x, float *prec);
+
+
+    /**
+    * \brief Read next frame from the open XTC file
+    */
+    bool readNext(t_fileio *xtc, int *natoms, int *step, float *time, matrix box, rvec **x, float *prec);
+
     //TODO convert int functions to bool
     /**
     * \brief Allocate space for a number of atoms
     *
     * Used if the number of atoms isn't known at time of creation
     */
-    int allocate_atoms(int);
+    int allocateAtoms(int);
 
     /**
     * \brief Write Frame to XTC output file
     */
-    bool write_to_xtc(t_fileio *);
+    bool writeToXtc(t_fileio *);
 
     /**
     * \brief Calculate distance between two atoms
     */
-    float bond_length(int, int);
+    float bondLength(int, int);
 
     /**
     * \brief Calculate angle between vectors a->b and c->d
     *
     * To be used for bond angles (b=c) and dihedrals (b=/=c)
     */
-    float bond_angle(int, int, int, int);
+    float bondAngle(int, int, int, int);
 };
 
 #endif

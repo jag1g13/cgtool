@@ -1,12 +1,15 @@
+#include "cg_map.h"
+
 #include <fstream>
 #include <iostream>     // only needed for testing, get rid of this when done
 
 //#include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include "cg_map.h"
-
 #define DEBUG true
+
+using std::cout;
+using std::endl;
 
 //vector<vector<string>> tokenize_file(string filename);
 
@@ -14,10 +17,10 @@ CGMap::CGMap(){
 }
 
 CGMap::CGMap(string filename){
-    from_file(filename);
+    fromFile(filename);
 }
 
-bool CGMap::from_file(string filename){
+bool CGMap::fromFile(string filename){
     bool status = 1;
     std::ifstream map_file(filename);
     string line;
@@ -45,28 +48,36 @@ bool CGMap::from_file(string filename){
     return status;
 }
 
-void CGMap::init_frame(Frame* cg_frame){
-    cg_frame->allocate_atoms(num_beads);
+void CGMap::initFrame(const Frame *aa_frame, Frame *cg_frame){
+    cg_frame->allocateAtoms(num_beads);
+    for(std::vector<BeadMap>::iterator i = mapping.begin(); i != mapping.end(); ++i){
+        for(std::vector<string>::iterator j = i->atoms.begin(); j != i->atoms.end(); ++j){
+            if(DEBUG) cout << *j << endl;
+            //i->atom_nums.push_back();
+        }
+    }
 }
 
-bool CGMap::apply(Frame *aa_frame, Frame *cg_frame){
+bool CGMap::apply(const Frame *aa_frame, Frame *cg_frame){
     throw std::logic_error("Not implemented");
+
     bool status = true;
     return status;
 }
 
-/*vector<vector<string>> tokenize_file(string filename){
-    vector<vector<string>> result;
-    string line;
-    std::ifstream map_file;
-    map_file.open(filename);
-    if(map_file.is_open()){
-        while(map_file >> line){
-            if(line[0] == ';' || line[0] == '#') continue;  // skip comments
-            boost::tokenizer<> tokens(line);                // otherwise split into tokens
-            for(boost::tokenizer<>::iterator token=tokens.begin(); token!=tokens.end(); ++token){
 
-            }
-        }
-    }
-}*/
+//vector<vector<string>> tokenize_file(string filename){
+//    vector<vector<string>> result;
+//    string line;
+//    std::ifstream map_file;
+//    map_file.open(filename);
+//    if(map_file.is_open()){
+//        while(map_file >> line){
+//            if(line[0] == ';' || line[0] == '#') continue;  // skip comments
+//            boost::tokenizer<> tokens(line);                // otherwise split into tokens
+//            for(boost::tokenizer<>::iterator token=tokens.begin(); token!=tokens.end(); ++token){
+//
+//            }
+//        }
+//    }
+//}

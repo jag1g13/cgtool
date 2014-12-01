@@ -1,5 +1,9 @@
 #ifndef BONDSET_H
 #define BONDSET_H
+
+#include <vector>
+#include <string>
+
 using std::vector;
 using std::string;
 
@@ -32,7 +36,7 @@ public:
     *
     * Gets Vectors of all bond lengths, angles and dihedrals that must be calculated.
     */
-    bool from_file(string);
+    bool fromFile(string);
 };
 
 #endif

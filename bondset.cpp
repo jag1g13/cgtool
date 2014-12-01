@@ -1,11 +1,11 @@
+#include "bondset.h"
+
 #include <vector>
 #include <string>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-
-#include "bondset.h"
 
 using std::vector;
 using std::string;
@@ -18,7 +18,7 @@ vector<string> split(const string &s, char delim);
 BondSet::BondSet(){
 }
 
-bool BondSet::from_file(string filename){
+bool BondSet::fromFile(string filename){
     throw std::logic_error("Not implemented");
     bool ok = false;
     ifstream file;

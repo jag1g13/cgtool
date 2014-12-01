@@ -17,6 +17,7 @@ struct BeadMap{
     string cg_bead;
     /** The atoms which should be mapped into this bead */
     vector<string> atoms;
+    vector<int> atom_nums;
 };
 
 /**
@@ -45,19 +46,19 @@ public:
     /**
     * \brief Read in CG mapping from file
     */
-    bool from_file(string filename);
+    bool fromFile(string filename);
 
     /**
     * \brief Setup a CG Frame object that has already been declared
     */
-    void init_frame(Frame *cg_frame);
+    void initFrame(const Frame *aa_frame, Frame *cg_frame);
 
     /**
     * \brief Apply CG mapping to an atomistic Frame
     *
     * Requires a pre-constructed Frame for output, but can allocate the number of atoms here
     */
-    bool apply(Frame *aa_frame, Frame *cg_frame);
+    bool apply(const Frame *aa_frame, Frame *cg_frame);
 };
 
 #endif
