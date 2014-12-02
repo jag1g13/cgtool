@@ -29,7 +29,8 @@ struct BeadMap{
 class CGMap{
 public:
     /** Vector of BeadMap; holds the mappings for every bead */
-    vector<BeadMap> mapping;
+    vector<BeadMap> mapping_;
+    std::map<string, BeadMap*> atomname_to_bead_;
     /** Number of beads defined */
     int num_beads;
 
@@ -51,7 +52,7 @@ public:
     /**
     * \brief Setup a CG Frame object that has already been declared
     */
-    void initFrame(const Frame *aa_frame, Frame *cg_frame);
+    void initFrame(Frame *aa_frame, Frame *cg_frame);
 
     /**
     * \brief Apply CG mapping to an atomistic Frame

@@ -89,7 +89,7 @@ public:
     *
     * Reads in first frame of XTC and allocates atoms
     */
-    bool setupFrame(char *groname, t_fileio *xtc);
+    bool setupFrame(const char *groname, const char *topname, t_fileio *xtc);
 
 
     /**

@@ -33,11 +33,11 @@ bool CGMap::fromFile(string filename){
         BeadMap new_bead;
         new_bead.cg_bead = substrs[0];
         new_bead.atoms = vector<string>(substrs.begin() + 1, substrs.end());
-        mapping.push_back(new_bead);
+        mapping_.push_back(new_bead);
     }
-    num_beads = mapping.size();
+    num_beads = mapping_.size();
     if(DEBUG){
-        for(auto &i : mapping){
+        for(auto &i : mapping_){
             std::cout << i.cg_bead << " contains";
             for(auto &j : i.atoms){
                 std::cout << " " << j;
@@ -48,13 +48,17 @@ bool CGMap::fromFile(string filename){
     return status;
 }
 
-void CGMap::initFrame(const Frame *aa_frame, Frame *cg_frame){
-    cg_frame->allocateAtoms(num_beads);
-    for(std::vector<BeadMap>::iterator i = mapping.begin(); i != mapping.end(); ++i){
-        for(std::vector<string>::iterator j = i->atoms.begin(); j != i->atoms.end(); ++j){
-            if(DEBUG) cout << *j << endl;
-            //i->atom_nums.push_back();
+void CGMap::initFrame(Frame *aa_frame, Frame *cg_frame){
+    for(std::vector<BeadMap>::iterator bead = mapping_.begin(); bead != mapping_.end(); ++bead){
+        for(std::vector<string>::iterator atomname = bead->atoms.begin(); atomname!= bead->atoms.end(); ++atomname){
+            atomname_to_bead_.emplace(*atomname, &(*bead));  // dictionary of atomnames to bead pointers
+            //cout << bead->cg_bead << " contains " << *atomname << endl;
         }
+    }
+    for(std::vector<Atom>::iterator atom = aa_frame->atoms_.begin(); atom != aa_frame->atoms_.end(); ++atom){
+        // for atom in aa_frame
+        BeadMap* inbead = atomname_to_bead_[atom->atom_type];
+        // need to work out bonding
     }
 }
 

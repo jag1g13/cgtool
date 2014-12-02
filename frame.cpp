@@ -54,7 +54,7 @@ float Frame::bondAngle(int a, int b, int c, int d){
     return 180. - (angle * 180. / M_PI);
 }
 
-bool Frame::setupFrame(char *groname, t_fileio *xtc){
+bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file
     *

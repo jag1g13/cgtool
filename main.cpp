@@ -63,12 +63,13 @@ int main(int argc, char *argv[]){
     /* Where does the user want us to look for GRO and XTC files? */
     clock_t start = std::clock();
     split_text_output("Identifying files", start);
-    char groname[40], xtcname[40], mapname[40];
+    char groname[40], xtcname[40], mapname[40], topname[40];
     if(argc < 2){
         cout << "Using current directory" << endl;
         strcpy(groname, "npt.gro");
         strcpy(xtcname, "md.xtc");
         strcpy(mapname, "sacc.map");
+        strcpy(topname, "topol.top");
     } else if(argc == 2){
         cout << "Using directory provided" << endl;
         strcpy(groname, argv[1]);
@@ -77,11 +78,14 @@ int main(int argc, char *argv[]){
         strcat(xtcname, "/md.xtc");
         strcpy(mapname, argv[1]);
         strcat(mapname, "/sacc.map");
-    } else if(argc == 4){
+        strcpy(topname, argv[1]);
+        strcat(topname, "/topol.top");
+    } else if(argc == 5){
         cout << "Using filenames provided" << endl;
         strcpy(groname, argv[1]);
         strcpy(xtcname, argv[2]);
         strcpy(mapname, argv[3]);
+        strcpy(topname, argv[4]);
     } else{
         cout << "Wrong number of arguments given" << endl;
         throw std::runtime_error("Wrong number of arguments");
@@ -93,13 +97,14 @@ int main(int argc, char *argv[]){
     cout << "GRO file: " << groname << endl;
     cout << "XTC file: " << xtcname << endl;
     cout << "MAP file: " << mapname << endl;
+    cout << "TOP file: " << topname << endl;
 
     /* Open files and do setup */
     split_text_output("Frame setup", start);
     Frame frame = Frame(0, 0, "");
     xtc = open_xtc(xtcname, &mode[0]);
     if(output) xtc_out = open_xtc("out.xtc", &mode[1]);
-    ok = frame.setupFrame(groname, xtc);
+    ok = frame.setupFrame(groname, topname, xtc);
     Frame cg_frame = Frame(&frame);
     CGMap mapping(mapname);
     mapping.initFrame(&frame, &cg_frame);
