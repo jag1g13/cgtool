@@ -5,8 +5,8 @@
 #include <stdexcept>
 #include <ctime>
 #include <map>
+#include <algorithm>
 
-//#include <unistd.h>
 #include <rpc/rpc.h>
 #include <sys/stat.h>
 
@@ -33,35 +33,23 @@ using std::vector;
 using std::clock_t;
 
 /*prototype functions*/
-//TODO convert int functions to bool
-
-
 vector<float> calc_bond_lens(Frame *, vector<float>);
 
-float calc_avg(vector<float>);
-
-void setup_cg_map(Frame *, Frame *);
-
-void cg_map(Frame *, Frame *);
+vector<float> calc_avg(vector<vector<float>>);
 
 void split_text_output(const char *, clock_t);
 
 bool file_exists(const char *);
 
-//extern int read_next_xtc(t_fileio *fio,
-//        int natoms, int *step, real *time,
-//        matrix box, rvec *x, real *prec, gmx_bool *bOK);
-
 
 int main(int argc, char *argv[]){
-    int ok;
     bool output = false;
     t_fileio *xtc, *xtc_out;
-    vector<float> bond_lens;
     char mode[2] = {'r', 'w'};
 
     /* Where does the user want us to look for GRO and XTC files? */
     clock_t start = std::clock();
+    clock_t start_time = std::clock();
     split_text_output("Identifying files", start);
     char groname[40], xtcname[40], mapname[40], topname[40];
     if(argc < 2){
@@ -104,21 +92,22 @@ int main(int argc, char *argv[]){
     Frame frame = Frame(0, 0, "");
     xtc = open_xtc(xtcname, &mode[0]);
     if(output) xtc_out = open_xtc("out.xtc", &mode[1]);
-    ok = frame.setupFrame(groname, topname, xtc);
+    frame.setupFrame(groname, topname, xtc);
     Frame cg_frame = Frame(&frame);
     CGMap mapping(mapname);
     mapping.initFrame(&frame, &cg_frame);
-    BondSet bonds;
-    bonds.fromFile("../test_data/james.bond");
+    BondSet bond_set;
+    bond_set.fromFile("../test_data/james.bond");
 
     /* Keep reading frames until something goes wrong (run out of frames) */
     split_text_output("Reading frames", start);
     start = std::clock();
     int i = 0;
+    vector<vector<float>> bond_lens;
     while(frame.readNext(xtc)){
         /* Process each frame as we read it, frames are not retained */
         //cg_map(&frame, &cg_frame);
-        bond_lens = calc_bond_lens(&frame, bond_lens);
+        bond_lens.push_back(bond_set.calcBondLens(&frame));
         if(i % 1000 == 0){
             cout << "Read " << i << " frames\r";
             std::flush(cout);
@@ -134,97 +123,35 @@ int main(int argc, char *argv[]){
 
     /* Post processing */
     split_text_output("Post processing", start);
-    cout << "Avg bond[0] " << calc_avg(bond_lens) << endl;
-    return !ok;
+    //cout << "Avg bond[0] " << calc_avg(bond_lens) << endl;
+    calc_avg(bond_lens);
+
+    /* Final timer */
+    split_text_output("Finished", start);
+    split_text_output("Total time", start_time);
+    return 0;
 }
 
-
-
-/*def map_cg_solvent_within_loop(curr_frame, frame, cg_frame=0):
-    """
-    perform CG mapping using cg_map list of lists
-            with current cg_map does a simple heavy atom mapping
-
-    will be CM or GC depending on how 'Atom.mass' was set previously
-    if mapping is changed in cg_map to include other atoms
-
-            should remove the setup code into its own function (or the main xtc setup)
-    """
-    global cg_atom_nums
-    if curr_frame == 0:
-        cg_frame = Frame(curr_frame, cg_atom_nums)
-    cg_frame.num = curr_frame
-    for i, site in enumerate(cg_sites):
-        coords = np.zeros(3)
-        tot_mass = 0.
-        charge = 0.
-        for atom in cg_map[i]:
-            mass = frame.atoms[sugar_atom_nums[atom]].mass
-            tot_mass = tot_mass + mass
-            coords = coords + mass*frame.atoms[sugar_atom_nums[atom]].loc
-            charge = charge + frame.atoms[sugar_atom_nums[atom]].charge
-        coords /= tot_mass  # number of atoms cancels out
-        if curr_frame == 0:
-            cg_frame.atoms.append(Atom(site, coords, charge))
-        else:
-            cg_frame.atoms[i] = Atom(site, coords, charge)
-        if curr_frame == 0:
-            cg_atom_nums[site] = i
-    j = len(cg_sites)
-    for atom in frame.atoms:
-        if atom.atom_type == "OW":
-            if curr_frame == 0:
-                cg_frame.atoms.append(Atom("OW", atom.loc, 0.0))
-            else:
-                cg_frame.atoms[j] = Atom("OW", atom.loc, 0.0)
-            j += 1
-    return cg_frame*/
-
-void setup_cg_map(Frame *frame, Frame *cg_frame){
+vector<float> calc_avg(vector<vector<float>> bond_lens){
     /**
-    * \brief Setup a Frame to hold the coarse grained trajectory
+    * \brief Calculate the average of bond lengths in vector<vector<float>
+    *
+    * This is not cache friendly
     */
-    throw std::logic_error("Not implemented");
-    int num_cg_atoms = 0;
-    for(int i = 0; i < frame->num_atoms_; i++){
-
+    int length = bond_lens.size();
+    int width = bond_lens[0].size();
+    vector<float> sum(width);
+    vector<float> mean(width);
+    for(vector<vector<float>>::iterator row = bond_lens.begin(); row != bond_lens.end(); ++row){
+        for(int i = 0; i < width; i++){
+            sum[i] += (*row)[i];
+        }
     }
-    cg_frame->allocateAtoms(num_cg_atoms);
-}
-
-void cg_map(Frame *frame, Frame *cg_frame){
-    throw std::logic_error("Not implemented");
-}
-
-vector<float> calc_bond_lens(Frame *frame, vector<float> bond_lens){
-    /**
-    * \brief Calculate all relevant bond lengths in Frame
-    */
-    bond_lens.push_back(frame->bondLength(0, 1));
-    //cout << bond_lens.back() << endl;
-    return bond_lens;
-}
-
-void read_cg_mapping(vector<char *> bead_names,
-        std::map<string, vector<string>> bead_map){
-    throw std::logic_error("Not implemented");
-}
-
-bool get_bond_measures(string dir){
-    /**
-    * \brief Read in all required bond length, angle and dihedral measurements from file
-    */
-    throw std::logic_error("Not implemented");
-    string filename = dir + "bonds.conf";
-    return false;
-}
-
-float calc_avg(vector<float> vec){
-    /**
-    * \brief Calculate the average of a Vector<float>
-    */
-    double sum = std::accumulate(vec.begin(), vec.end(), 0.0);
-    float mean = sum / vec.size();
+    cout << "Bond lengths" << endl;
+    for(int i = 0; i < width; i++){
+        mean[i] = sum[i] / length;
+        cout << mean[i] << endl;
+    }
     return mean;
 }
 
@@ -243,3 +170,4 @@ bool file_exists(const char *name){
     struct stat buffer;
     return (stat(name, &buffer) == 0);
 }
+

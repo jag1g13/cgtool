@@ -6,12 +6,12 @@
 //#include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include "parser.h"
+
 #define DEBUG true
 
 using std::cout;
 using std::endl;
-
-//vector<vector<string>> tokenize_file(string filename);
 
 CGMap::CGMap(){
 }
@@ -20,16 +20,11 @@ CGMap::CGMap(string filename){
     fromFile(filename);
 }
 
-bool CGMap::fromFile(string filename){
-    bool status = 1;
-    std::ifstream map_file(filename);
-    string line;
+void CGMap::fromFile(string filename){
+    string section;
     vector<string> substrs;
-    if(!map_file.is_open()) return 0;   // couldn't open file
-    while(getline(map_file, line)){
-        if(line[0] == ';' || line[0] == '#') continue;  // skip comments
-        if(line == "") continue;                        // line is empty, ignore it
-        boost::split(substrs, line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+    Parser parser(filename);
+    while(parser.getLine(&section, &substrs)){
         BeadMap new_bead;
         new_bead.cg_bead = substrs[0];
         new_bead.atoms = vector<string>(substrs.begin() + 1, substrs.end());
@@ -45,7 +40,6 @@ bool CGMap::fromFile(string filename){
             std::cout << std::endl;
         }
     }
-    return status;
 }
 
 void CGMap::initFrame(Frame *aa_frame, Frame *cg_frame){
@@ -69,19 +63,44 @@ bool CGMap::apply(const Frame *aa_frame, Frame *cg_frame){
     return status;
 }
 
+// the mapping function used in traj_process (Python)
+/*def map_cg_solvent_within_loop(curr_frame, frame, cg_frame=0):
+    """
+    perform CG mapping using cg_map list of lists
+            with current cg_map does a simple heavy atom mapping
 
-//vector<vector<string>> tokenize_file(string filename){
-//    vector<vector<string>> result;
-//    string line;
-//    std::ifstream map_file;
-//    map_file.open(filename);
-//    if(map_file.is_open()){
-//        while(map_file >> line){
-//            if(line[0] == ';' || line[0] == '#') continue;  // skip comments
-//            boost::tokenizer<> tokens(line);                // otherwise split into tokens
-//            for(boost::tokenizer<>::iterator token=tokens.begin(); token!=tokens.end(); ++token){
-//
-//            }
-//        }
-//    }
-//}
+    will be CM or GC depending on how 'Atom.mass' was set previously
+    if mapping is changed in cg_map to include other atoms
+
+            should remove the setup code into its own function (or the main xtc setup)
+    """
+    global cg_atom_nums
+    if curr_frame == 0:
+        cg_frame = Frame(curr_frame, cg_atom_nums)
+    cg_frame.num = curr_frame
+    for i, site in enumerate(cg_sites):
+        coords = np.zeros(3)
+        tot_mass = 0.
+        charge = 0.
+        for atom in cg_map[i]:
+            mass = frame.atoms[sugar_atom_nums[atom]].mass
+            tot_mass = tot_mass + mass
+            coords = coords + mass*frame.atoms[sugar_atom_nums[atom]].loc
+            charge = charge + frame.atoms[sugar_atom_nums[atom]].charge
+        coords /= tot_mass  # number of atoms cancels out
+        if curr_frame == 0:
+            cg_frame.atoms.append(Atom(site, coords, charge))
+        else:
+            cg_frame.atoms[i] = Atom(site, coords, charge)
+        if curr_frame == 0:
+            cg_atom_nums[site] = i
+    j = len(cg_sites)
+    for atom in frame.atoms:
+        if atom.atom_type == "OW":
+            if curr_frame == 0:
+                cg_frame.atoms.append(Atom("OW", atom.loc, 0.0))
+            else:
+                cg_frame.atoms[j] = Atom("OW", atom.loc, 0.0)
+            j += 1
+    return cg_frame*/
+

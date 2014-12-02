@@ -26,19 +26,23 @@ Frame::Frame(const Frame* base_frame){
 int Frame::allocateAtoms(int num_atoms){
     num_atoms_ = num_atoms;
     atoms_.reserve(num_atoms_);
-    return 0;
+    return (int)atoms_.size();
 }
 
 bool Frame::writeToXtc(t_fileio *xtc){
-    bool ok = write_xtc(xtc, num_atoms_, step_, time_, box_, x_, prec_);
-    return ok;
-    //throw std::logic_error("Not implemented");
+    return (bool)write_xtc(xtc, num_atoms_, step_, time_, box_, x_, prec_);
 }
 
 float Frame::bondLength(int a, int b){
-    return sqrt(pow((atoms_[a].coords[0] - atoms_[b].coords[0]), 2) +
+    return (float)sqrt(pow((atoms_[a].coords[0] - atoms_[b].coords[0]), 2) +
             pow((atoms_[a].coords[1] - atoms_[b].coords[1]), 2) +
             pow((atoms_[a].coords[2] - atoms_[b].coords[2]), 2));
+}
+
+float Frame::bondLength(BondStruct *bond){
+    int a = name_to_num_[bond->atom_names[0]];
+    int b = name_to_num_[bond->atom_names[1]];
+    return bondLength(a, b);
 }
 
 float Frame::bondAngle(int a, int b, int c, int d){
@@ -48,10 +52,10 @@ float Frame::bondAngle(int a, int b, int c, int d){
         vec2[i] = atoms_[d].coords[i] - atoms_[c].coords[i];
         dot += vec1[i] * vec2[i];
     }
-    mag1 = sqrt(pow(vec1[0], 2) + pow(vec1[1], 2) + pow(vec1[2], 2));
-    mag2 = sqrt(pow(vec2[0], 2) + pow(vec2[1], 2) + pow(vec2[2], 2));
-    angle = acos(dot / (mag1 * mag2));
-    return 180. - (angle * 180. / M_PI);
+    mag1 = (float)sqrt(pow(vec1[0], 2) + pow(vec1[1], 2) + pow(vec1[2], 2));
+    mag2 = (float)sqrt(pow(vec2[0], 2) + pow(vec2[1], 2) + pow(vec2[2], 2));
+    angle = (float)acos(dot / (mag1 * mag2));
+    return (180.f - (angle * 180.f / (float)M_PI));
 }
 
 bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
@@ -87,8 +91,8 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
             atom = &(atoms_[i]);
             gro >> res_name >> atom->atom_type >> atom->atom_num;
             memcpy(atom->coords, x_[i], 3 * sizeof(float));
-            atom->charge = 0.;
-            atom->mass = 1.;
+            atom->charge = 0.f;
+            atom->mass = 1.f;
             name_to_num_.emplace(atom->atom_type, i);
             num_to_name_.emplace(i, atom->atom_type);
         }

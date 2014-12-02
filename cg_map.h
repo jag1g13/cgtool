@@ -1,5 +1,5 @@
-#ifndef CGMAP_H
-#define CGMAP_H
+#ifndef CGMAP_H_
+#define CGMAP_H_
 
 #include <string>
 #include <vector>
@@ -47,7 +47,7 @@ public:
     /**
     * \brief Read in CG mapping from file
     */
-    bool fromFile(string filename);
+    void fromFile(string filename);
 
     /**
     * \brief Setup a CG Frame object that has already been declared

@@ -1,5 +1,5 @@
-#ifndef FRAME_H
-#define FRAME_H
+#ifndef FRAME_H_
+#define FRAME_H_
 
 #ifndef INCLUDE_GMXFIO
 #define INCLUDE_GMXFIO
@@ -9,6 +9,8 @@
 #include <vector>
 #include <string>
 #include <map>
+
+#include "bond_struct.h"
 
 using std::vector;
 using std::string;
@@ -46,7 +48,6 @@ struct CGBead : Atom{
 * Holds a std::vector<Atom> and contains member functions to operate on this
 */
 class Frame{
-//TODO perhaps move xtc read functions into Frame class
 public:
     /** The simulation step corresponding to this frame */
     int step_;
@@ -97,7 +98,6 @@ public:
     */
     bool readNext(t_fileio *xtc);
 
-    //TODO convert int functions to bool
     /**
     * \brief Allocate space for a number of atoms
     *
@@ -114,6 +114,11 @@ public:
     * \brief Calculate distance between two atoms
     */
     float bondLength(int, int);
+
+    /**
+    * \brief Calculate distance between two atoms in a BondStruct object
+    */
+    float bondLength(BondStruct *bond);
 
     /**
     * \brief Calculate angle between vectors a->b and c->d

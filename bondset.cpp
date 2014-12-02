@@ -3,9 +3,10 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <stdexcept>
 
 #include <boost/algorithm/string.hpp>
+
+#include "parser.h"
 
 #define DEBUG true
 
@@ -22,17 +23,11 @@ BondStruct::BondStruct(int size){
 BondSet::BondSet(){
 }
 
-bool BondSet::fromFile(string filename){
-    bool ok = true;
-    std::ifstream map_file(filename);
-    string line;
+void BondSet::fromFile(string filename){
     vector<string> substrs;
-    if(!map_file.is_open()) return 0;   // couldn't open file
-    while(getline(map_file, line)){
-        if(line[0] == ';' || line[0] == '#') continue;  // skip comments
-        if(line[0] == '[') continue;                    // TODO change this
-        if(line == "") continue;                        // line is empty, ignore it
-        boost::split(substrs, line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+    string section;
+    Parser parser(filename);
+    while(parser.getLine(&section, &substrs)){
         BondStruct bond_tmp = BondStruct(2);
         bond_tmp.atom_names = substrs;
         switch(substrs.size()){
@@ -56,5 +51,14 @@ bool BondSet::fromFile(string filename){
             std::cout << std::endl;
         }
     }
-    return ok;
+}
+
+vector<float> BondSet::calcBondLens(Frame *frame){
+    vector<float> bond_lens(bonds_.size());
+    for(vector<BondStruct>::iterator bond = bonds_.begin(); bond != bonds_.end(); ++bond){
+        //bond_lens.push_back(frame->bondLength(bond->atom_nums[0], bond->atom_nums[1]));
+        bond_lens.push_back(frame->bondLength(&*bond));
+    }
+    //cout << bond_lens.back() << endl;
+    return bond_lens;
 }
