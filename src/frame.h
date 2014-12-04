@@ -10,10 +10,9 @@
 #include <string>
 #include <map>
 
-#include "bond_struct.h"
+#include <string.h>
 
-using std::vector;
-using std::string;
+#include "bond_struct.h"
 
 /**
 * \brief Struct to hold atom data
@@ -21,6 +20,8 @@ using std::string;
 struct Atom{
     /** A serial number; no longer needed */
     int atom_num;
+    /** Residue number and name in the GRO file */
+    char resid[10];
     /** A three character atom type specifier; e.g. "OH1"; Should replace with a string */
     char atom_type[3];
     /** Atomic coordinates in x, y, z */
@@ -30,7 +31,7 @@ struct Atom{
     /** Atomic mass */
     float mass;
     /** Vector of pointers to Atom listing all atoms bonded to this one */
-    vector<Atom *> neighbours;
+    std::vector<Atom *> neighbours;
 };
 
 /**
@@ -38,7 +39,23 @@ struct Atom{
 */
 struct CGBead : Atom{
     /** Vector of atoms that this CG bead represents */
-    vector<string> sub_atoms;
+    std::vector<std::string> sub_atoms;
+};
+
+/**
+* \brief A residue from the GRO file, contains pointers to atoms
+*/
+struct Residue{
+    /** The name of this Residue */
+    char res_name[10];
+    /** Atoms contained within this residue */
+    std::vector<int> atoms;
+    /** Atoms contained within this residue */
+    std::vector<std::string> atom_names;
+    /** Constructor to set res_name */
+    Residue(const char* tmp){strcpy(res_name, tmp);};
+    /** Blank constructor */
+    Residue();
 };
 
 
@@ -57,6 +74,8 @@ public:
     int num_atoms_;
     /** Vector of Atoms; Each Atom contains position and type data */
     std::vector<Atom> atoms_;
+    /** Vector of Residues; Each Residue contains pointers to atoms */
+    std::vector<Residue> residues_;
     /** The simulation time of this frame, in picoseconds */
     float time_;
     /** XTC precision; not used internally, just for XTC input/output */
@@ -68,9 +87,9 @@ public:
     /** Name of the Frame; taken from comment in the GRO file */
     std::string name_;
     /** Dictionary mapping atom numbers to atom names */
-    std::map<int, string> num_to_name_;
+    std::map<int, std::string> num_to_name_;
     /** Dictionary mapping atom names to numbers */
-    std::map<string, int> name_to_num_;
+    std::map<std::string, int> name_to_num_;
 
     /**
     * \brief Create Frame passing frame number, number of atoms to store and the frame name

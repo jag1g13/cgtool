@@ -3,9 +3,9 @@
 #include <fstream>
 #include <iostream>
 #include <cstring>
+#include <limits>
 
 #include <math.h>
-#include <limits>
 
 using std::string;
 using std::vector;
@@ -43,9 +43,6 @@ float Frame::bondLength(int a, int b){
 float Frame::bondLength(BondStruct *bond) {
     int a = name_to_num_[bond->atom_names[0]];
     int b = name_to_num_[bond->atom_names[1]];
-    if(num_ == 1){
-        cout << a << ": " << bond->atom_names[0] << " " << b << ": " << bond->atom_names[1] << endl;
-    }
     return bondLength(a, b);
 }
 
@@ -81,7 +78,7 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
     * GROMACS read_first_xtc() gets data from the XTC file about the system.
     * This function uses this data to create a Frame object to process this data
     */
-    char res_name[5], line[40];
+    char line[40];
     int ok = 0, gro_num_atoms;
     num_ = 0;
     //float atom_charge, atom_mass;
@@ -93,7 +90,7 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
     if(gro.is_open()){
         gro.getline(line, 40);              // first line of gro is the run name
         cout << line << endl;
-        gro >> gro_num_atoms;                    // second line is the number of atoms
+        gro >> gro_num_atoms;               // second line is the number of atoms
         if(gro_num_atoms != num_atoms_){
             cout << "XTC num atoms:" << num_atoms_ << endl;
             cout << "GRO num atoms:" << gro_num_atoms << endl;
@@ -104,11 +101,22 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
             cout << "Found " << num_atoms_ << " atoms" << endl;
         }
         allocateAtoms(num_atoms_);
+        Residue *res;
+        char res_name_new[10], res_name_last[10];
         for(int i = 0; i < num_atoms_; i++){       // now we can read the atoms
             atom = &(atoms_[i]);
-            gro >> res_name >> atom->atom_type >> atom->atom_num;
+            gro >> res_name_new >> atom->atom_type >> atom->atom_num;
             gro.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             atom->atom_num--;
+            cout << res_name_new << endl;
+            strcpy(atom->resid, res_name_new);
+            if(res_name_new != res_name_last){
+                Residue res_tmp = Residue(res_name_new);
+                residues_.push_back(res_tmp);
+                res = &*residues_.end();
+            }
+            res->atoms.push_back(atom->atom_num);
+            res->atom_names.push_back(atom->atom_type);
             //if(i < 50){
             //    cout << "i=" << i << " type: " << atom->atom_type << " num: " << atom->atom_num << endl;
             //}

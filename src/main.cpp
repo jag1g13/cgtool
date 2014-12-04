@@ -129,7 +129,6 @@ int main(int argc, char *argv[]){
     /* Post processing */
     split_text_output("Post processing", start);
     start = std::clock();
-    //cout << calc_avg(bond_lens) << endl;
     calc_avg(bond_lens);
     calc_avg(bond_angles);
     calc_avg(bond_dihedrals);
