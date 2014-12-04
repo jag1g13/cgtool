@@ -26,7 +26,7 @@ bool Parser::getLine(string *section, vector <string> *tokens){
         if(line_[0] == ';' || line_[0] == '#') continue;    // skip comments
         if(line_ == "") continue;                           // line is empty, ignore it
         if(line_[0] == '['){                                // line is a section header
-            section_ = line_.substr(line_.find_first_of('['), line_.find_last_of(']'));
+            section_ = line_.substr(line_.find_first_of('[')+1, line_.find_last_of(']')-1);
             continue;
         }
         break;                                              // line isn't empty, accept it

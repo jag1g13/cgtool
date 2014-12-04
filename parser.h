@@ -5,6 +5,9 @@
 #include <string>
 #include <vector>
 
+/**
+* \brief Parses input files for comments, section headers and data lines
+*/
 class Parser{
 private:
 public:
@@ -41,9 +44,8 @@ public:
     /**
     * \brief Reads a line from file and splits it into tokens
     *
-    * string section and Vector<string> will be filled with
-    * the section of the file currently being read and the
-    * tokens found on the current line
+    * Will skip over empty lines and comments and read section headers transparently
+    * Parses the next data line and fills a vector<string> of tokens
     */
     bool getLine(std::string *section, std::vector<std::string> *tokens);
 };

@@ -37,7 +37,7 @@ vector<float> calc_bond_lens(Frame *, vector<float>);
 
 vector<float> calc_avg(vector<vector<float>>);
 
-void split_text_output(const char *, clock_t);
+void split_text_output(const char *, const clock_t);
 
 bool file_exists(const char *);
 
@@ -47,11 +47,11 @@ int main(int argc, char *argv[]){
     t_fileio *xtc, *xtc_out;
     char mode[2] = {'r', 'w'};
 
-    /* Where does the user want us to look for GRO and XTC files? */
+    /* Where does the user want us to look for input files? */
     clock_t start = std::clock();
     clock_t start_time = std::clock();
     split_text_output("Identifying files", start);
-    char groname[40], xtcname[40], mapname[40], topname[40];
+    char groname[40], xtcname[40], mapname[40], topname[40], bndname[40];
     if(argc < 2){
         cout << "Using current directory" << endl;
         strcpy(groname, "npt.gro");
@@ -65,9 +65,11 @@ int main(int argc, char *argv[]){
         strcpy(xtcname, argv[1]);
         strcat(xtcname, "/md.xtc");
         strcpy(mapname, argv[1]);
-        strcat(mapname, "/sacc.map");
+        strcat(mapname, "/map.in");
         strcpy(topname, argv[1]);
         strcat(topname, "/topol.top");
+        strcpy(bndname, argv[1]);
+        strcat(bndname, "/bonds.in");
     } else if(argc == 5){
         cout << "Using filenames provided" << endl;
         strcpy(groname, argv[1]);
@@ -84,8 +86,9 @@ int main(int argc, char *argv[]){
     }
     cout << "GRO file: " << groname << endl;
     cout << "XTC file: " << xtcname << endl;
-    cout << "MAP file: " << mapname << endl;
     cout << "TOP file: " << topname << endl;
+    cout << "MAP file: " << mapname << endl;
+    cout << "BND file: " << bndname << endl;
 
     /* Open files and do setup */
     split_text_output("Frame setup", start);
@@ -97,7 +100,7 @@ int main(int argc, char *argv[]){
     CGMap mapping(mapname);
     mapping.initFrame(&frame, &cg_frame);
     BondSet bond_set;
-    bond_set.fromFile("../test_data/james.bond");
+    bond_set.fromFile(bndname);
 
     /* Keep reading frames until something goes wrong (run out of frames) */
     split_text_output("Reading frames", start);
@@ -155,7 +158,7 @@ vector<float> calc_avg(vector<vector<float>> bond_lens){
     return mean;
 }
 
-void split_text_output(const char *name, clock_t start){
+void split_text_output(const char *name, const clock_t start){
     clock_t now = std::clock();
     if((float) (now - start) / CLOCKS_PER_SEC > 0.1){
         cout << "--------------------" << endl;

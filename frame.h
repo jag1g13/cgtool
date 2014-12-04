@@ -92,7 +92,6 @@ public:
     */
     bool setupFrame(const char *groname, const char *topname, t_fileio *xtc);
 
-
     /**
     * \brief Read next frame from the open XTC file
     */
@@ -117,6 +116,8 @@ public:
 
     /**
     * \brief Calculate distance between two atoms in a BondStruct object
+    *
+    * Wrapper around float bondLength(int, int)
     */
     float bondLength(BondStruct *bond);
 
@@ -126,6 +127,14 @@ public:
     * To be used for bond angles (b=c) and dihedrals (b=/=c)
     */
     float bondAngle(int, int, int, int);
+
+
+    /**
+    * \brief Calculate angle or dihedral between atoms in a BondStruct object
+    *
+    * Wrapper around float bondAngle(int, int, int, int)
+    */
+    float bondAngle(BondStruct *bond);
 };
 
 #endif

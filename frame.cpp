@@ -58,6 +58,18 @@ float Frame::bondAngle(int a, int b, int c, int d){
     return (180.f - (angle * 180.f / (float)M_PI));
 }
 
+float Frame::bondAngle(BondStruct *bond){
+    int a = name_to_num_[bond->atom_names[0]];
+    int b = name_to_num_[bond->atom_names[1]];
+    int c = name_to_num_[bond->atom_names[2]];
+    if(bond->atom_names.size() == 4){
+        int d = name_to_num_[bond->atom_names[3]];
+        return bondAngle(a, b, c, d);
+    }else{
+        return bondAngle(a, b, b, c);
+    }
+}
+
 bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file

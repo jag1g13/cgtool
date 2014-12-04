@@ -8,7 +8,7 @@
 
 #include "parser.h"
 
-#define DEBUG true
+#define DEBUG false
 
 using std::vector;
 using std::string;
@@ -28,23 +28,20 @@ void BondSet::fromFile(string filename){
     string section;
     Parser parser(filename);
     while(parser.getLine(&section, &substrs)){
-        BondStruct bond_tmp = BondStruct(2);
+        BondStruct bond_tmp = BondStruct(4);
         bond_tmp.atom_names = substrs;
-        switch(substrs.size()){
-            case 2:
-                bonds_.push_back(bond_tmp);
-                break;
-            case 3:
-                angles_.push_back(bond_tmp);
-                break;
-            case 4:
-                dihedrals_.push_back(bond_tmp);
-                break;
-            default: cout << "Case error in BondSet::fromFile" << endl;
+        if(section == "length") {
+            bonds_.push_back(bond_tmp);
+        }else if(section == "angle") {
+            angles_.push_back(bond_tmp);
+        }else if(section == "dihedral"){
+            dihedrals_.push_back(bond_tmp);
+        }else{
+            cout << "Error in bond sections" << endl;
         }
     }
     if(DEBUG){
-        for(auto &i : bonds_){
+        for(auto &i : dihedrals_){
             for(auto &j : i.atom_names){
                 std::cout << " " << j;
             }

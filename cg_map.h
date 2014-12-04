@@ -17,6 +17,7 @@ struct BeadMap{
     string cg_bead;
     /** The atoms which should be mapped into this bead */
     vector<string> atoms;
+    /** The atoms which should be mapped into this bead, by order in Frame */
     vector<int> atom_nums;
 };
 
@@ -30,6 +31,7 @@ class CGMap{
 public:
     /** Vector of BeadMap; holds the mappings for every bead */
     vector<BeadMap> mapping_;
+    /** Dictionary mapping an atom to the bead it should be mapped into */
     std::map<string, BeadMap*> atomname_to_bead_;
     /** Number of beads defined */
     int num_beads;
@@ -46,6 +48,8 @@ public:
 
     /**
     * \brief Read in CG mapping from file
+    *
+    * Will throw std::runtime_error if file cannot be opened
     */
     void fromFile(string filename);
 
