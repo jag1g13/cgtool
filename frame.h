@@ -49,6 +49,8 @@ struct CGBead : Atom{
 */
 class Frame{
 public:
+    /** The number of this Frame, starting at 0 */
+    int num_;
     /** The simulation step corresponding to this frame */
     int step_;
     /** The number of atoms stored in this frame */

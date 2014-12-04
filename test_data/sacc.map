@@ -1,9 +1,0 @@
-; this is a comment
-# this is also a comment
-# cg_bead <- list of atoms
-C1  C1  O1  HO1
-C2  C2  O2  HO2
-C3  C3  O3  HO3
-C4  C4  O4  HO4
-C5  C5  C6  O6  HO6
-O5  O5

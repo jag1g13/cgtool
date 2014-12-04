@@ -106,11 +106,13 @@ int main(int argc, char *argv[]){
     split_text_output("Reading frames", start);
     start = std::clock();
     int i = 0;
-    vector<vector<float>> bond_lens;
+    vector<vector<float>> bond_lens, bond_angles, bond_dihedrals;
     while(frame.readNext(xtc)){
         /* Process each frame as we read it, frames are not retained */
         //cg_map(&frame, &cg_frame);
         bond_lens.push_back(bond_set.calcBondLens(&frame));
+        bond_angles.push_back(bond_set.calcBondAngles(&frame));
+        bond_dihedrals.push_back(bond_set.calcBondDihedrals(&frame));
         if(i % 1000 == 0){
             cout << "Read " << i << " frames\r";
             std::flush(cout);
@@ -126,8 +128,11 @@ int main(int argc, char *argv[]){
 
     /* Post processing */
     split_text_output("Post processing", start);
-    //cout << "Avg bond[0] " << calc_avg(bond_lens) << endl;
+    start = std::clock();
+    //cout << calc_avg(bond_lens) << endl;
     calc_avg(bond_lens);
+    calc_avg(bond_angles);
+    calc_avg(bond_dihedrals);
 
     /* Final timer */
     split_text_output("Finished", start);
@@ -150,7 +155,7 @@ vector<float> calc_avg(vector<vector<float>> bond_lens){
             sum[i] += (*row)[i];
         }
     }
-    cout << "Bond lengths" << endl;
+    cout << "Bonds" << endl;
     for(int i = 0; i < width; i++){
         mean[i] = sum[i] / length;
         cout << mean[i] << endl;

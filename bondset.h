@@ -38,6 +38,20 @@ public:
     * *Something, something, locality*
     */
     vector<float> calcBondLens(Frame *frame);
+
+    /**
+    * \brief Calculate all bond angles that were requested in the input file
+    *
+    * *Something, something, locality*
+    */
+    vector<float> calcBondAngles(Frame *frame);
+
+    /**
+    * \brief Calculate all bond dihedrals that were requested in the input file
+    *
+    * *Something, something, locality*
+    */
+    vector<float> calcBondDihedrals(Frame *frame);
 };
 
 #endif

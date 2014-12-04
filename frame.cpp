@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include <math.h>
+#include <limits>
 
 using std::string;
 using std::vector;
@@ -39,14 +40,17 @@ float Frame::bondLength(int a, int b){
             pow((atoms_[a].coords[2] - atoms_[b].coords[2]), 2));
 }
 
-float Frame::bondLength(BondStruct *bond){
+float Frame::bondLength(BondStruct *bond) {
     int a = name_to_num_[bond->atom_names[0]];
     int b = name_to_num_[bond->atom_names[1]];
+    if(num_ == 1){
+        cout << a << ": " << bond->atom_names[0] << " " << b << ": " << bond->atom_names[1] << endl;
+    }
     return bondLength(a, b);
 }
 
 float Frame::bondAngle(int a, int b, int c, int d){
-    float vec1[3], vec2[3], mag1, mag2, dot, angle;
+    float vec1[3], vec2[3], mag1, mag2, dot = 0, angle;
     for(int i = 0; i < 3; i++){
         vec1[i] = atoms_[b].coords[i] - atoms_[a].coords[i];
         vec2[i] = atoms_[d].coords[i] - atoms_[c].coords[i];
@@ -79,6 +83,7 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
     */
     char res_name[5], line[40];
     int ok = 0, gro_num_atoms;
+    num_ = 0;
     //float atom_charge, atom_mass;
     std::ifstream gro;
     gmx_bool bOK = 0;
@@ -102,6 +107,11 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
         for(int i = 0; i < num_atoms_; i++){       // now we can read the atoms
             atom = &(atoms_[i]);
             gro >> res_name >> atom->atom_type >> atom->atom_num;
+            gro.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            atom->atom_num--;
+            //if(i < 50){
+            //    cout << "i=" << i << " type: " << atom->atom_type << " num: " << atom->atom_num << endl;
+            //}
             memcpy(atom->coords, x_[i], 3 * sizeof(float));
             atom->charge = 0.f;
             atom->mass = 1.f;
@@ -129,5 +139,6 @@ bool Frame::readNext(t_fileio *xtc){
     for(int i = 0; i < num_atoms_; i++){
         memcpy(atoms_[i].coords, x_[i], 3 * sizeof(float)); // copy coordinates into an existing Atom
     }
+    num_++;
     return ok && bOK;     //return True if it worked
 }

@@ -10,15 +10,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="33188f4d-3b34-4636-9644-f05364432d4a" name="Default" comment="Working on code to read in bonds to calculate;&#10;First pieces of coarse graining in place">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/james.bond" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bondset.cpp" afterPath="$PROJECT_DIR$/bondset.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cg_map.h" afterPath="$PROJECT_DIR$/cg_map.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/frame.cpp" afterPath="$PROJECT_DIR$/frame.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/frame.h" afterPath="$PROJECT_DIR$/frame.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.cpp" afterPath="$PROJECT_DIR$/main.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/parser.cpp" afterPath="$PROJECT_DIR$/parser.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/parser.h" afterPath="$PROJECT_DIR$/parser.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="traj_process2.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -39,11 +31,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="main.cpp" pinned="false" current-in-tab="true">
+      <file leaf-file-name="main.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.68255687" vertical-offset="954" max-vertical-offset="3276">
-              <caret line="88" column="4" selection-start-line="88" selection-start-column="4" selection-end-line="88" selection-end-column="4" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="1777" max-vertical-offset="3366">
+              <caret line="130" column="4" selection-start-line="130" selection-start-column="4" selection-end-line="130" selection-end-column="4" />
               <folding>
                 <element signature="e#0#19#0" expanded="true" />
                 <element signature="e#285#303#0" expanded="true" />
@@ -80,8 +72,8 @@
       <file leaf-file-name="bondset.h" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/bondset.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="864">
-              <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="162" max-vertical-offset="1116">
+              <caret line="53" column="34" selection-start-line="53" selection-start-column="34" selection-end-line="53" selection-end-column="34" />
               <folding>
                 <element signature="e#39#56#0" expanded="true" />
               </folding>
@@ -92,10 +84,11 @@
       <file leaf-file-name="bondset.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/bondset.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1206">
-              <caret line="30" column="41" selection-start-line="30" selection-start-column="41" selection-end-line="30" selection-end-column="41" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="535" max-vertical-offset="1458">
+              <caret line="69" column="22" selection-start-line="69" selection-start-column="22" selection-end-line="69" selection-end-column="22" />
               <folding>
                 <element signature="e#0#20#0" expanded="true" />
+                <marker date="1417704703728" expanded="true" signature="1173:1381" placeholder="{...}" />
               </folding>
             </state>
           </provider>
@@ -116,8 +109,8 @@
       <file leaf-file-name="frame.h" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/frame.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="1633" max-vertical-offset="2628">
-              <caret line="134" column="7" selection-start-line="134" selection-start-column="7" selection-end-line="134" selection-end-column="7" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="1147" max-vertical-offset="2664">
+              <caret line="51" column="49" selection-start-line="51" selection-start-column="49" selection-end-line="51" selection-end-column="49" />
               <folding>
                 <element signature="e#123#140#0" expanded="true" />
               </folding>
@@ -125,11 +118,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="frame.cpp" pinned="false" current-in-tab="false">
+      <file leaf-file-name="frame.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/frame.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="553" max-vertical-offset="2502">
-              <caret line="66" column="34" selection-start-line="66" selection-start-column="34" selection-end-line="66" selection-end-column="34" />
+            <state vertical-scroll-proportion="0.43445286" vertical-offset="535" max-vertical-offset="2700">
+              <caret line="52" column="45" selection-start-line="52" selection-start-column="45" selection-end-line="52" selection-end-column="45" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -169,15 +162,15 @@
         <option value="$PROJECT_DIR$/bondstructs.h" />
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/cg_map.cpp" />
-        <option value="$PROJECT_DIR$/bondset.h" />
         <option value="$PROJECT_DIR$/bond_struct.h" />
         <option value="$PROJECT_DIR$/cg_map.h" />
         <option value="$PROJECT_DIR$/parser.cpp" />
-        <option value="$PROJECT_DIR$/bondset.cpp" />
         <option value="$PROJECT_DIR$/parser.h" />
+        <option value="$PROJECT_DIR$/bondset.h" />
         <option value="$PROJECT_DIR$/frame.h" />
-        <option value="$PROJECT_DIR$/frame.cpp" />
+        <option value="$PROJECT_DIR$/bondset.cpp" />
         <option value="$PROJECT_DIR$/main.cpp" />
+        <option value="$PROJECT_DIR$/frame.cpp" />
       </list>
     </option>
   </component>
@@ -420,6 +413,7 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
+            <marker date="1417704703728" expanded="true" signature="1173:1381" placeholder="{...}" />
           </folding>
         </state>
       </provider>
@@ -522,6 +516,7 @@
           <caret line="21" column="4" selection-start-line="21" selection-start-column="4" selection-end-line="21" selection-end-column="4" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
+            <marker date="1417704703728" expanded="true" signature="1173:1381" placeholder="{...}" />
           </folding>
         </state>
       </provider>
@@ -601,6 +596,7 @@
           <caret line="12" column="73" selection-start-line="12" selection-start-column="73" selection-end-line="12" selection-end-column="73" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
+            <marker date="1417704703728" expanded="true" signature="1173:1381" placeholder="{...}" />
           </folding>
         </state>
       </provider>
@@ -659,6 +655,7 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
+            <marker date="1417704703728" expanded="true" signature="1173:1381" placeholder="{...}" />
           </folding>
         </state>
       </provider>
@@ -714,17 +711,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cg_map.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="373" max-vertical-offset="2016">
-          <caret line="65" column="51" selection-start-line="65" selection-start-column="51" selection-end-line="65" selection-end-column="51" />
-          <folding>
-            <element signature="e#0#19#0" expanded="true" />
-            <element signature="e#152#189#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/parser.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="756">
@@ -745,30 +731,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/frame.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1633" max-vertical-offset="2628">
-          <caret line="134" column="7" selection-start-line="134" selection-start-column="7" selection-end-line="134" selection-end-column="7" />
-          <folding>
-            <element signature="e#123#140#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/frame.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="553" max-vertical-offset="2502">
-          <caret line="66" column="34" selection-start-line="66" selection-start-column="34" selection-end-line="66" selection-end-column="34" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/bondset.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="864">
-          <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="162" max-vertical-offset="1116">
+          <caret line="53" column="34" selection-start-line="53" selection-start-column="34" selection-end-line="53" selection-end-column="34" />
           <folding>
             <element signature="e#39#56#0" expanded="true" />
           </folding>
@@ -785,23 +751,55 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/cg_map.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2016">
+          <caret line="65" column="51" selection-start-line="65" selection-start-column="51" selection-end-line="65" selection-end-column="51" />
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+            <element signature="e#152#189#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/bondset.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1206">
-          <caret line="30" column="41" selection-start-line="30" selection-start-column="41" selection-end-line="30" selection-end-column="41" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="535" max-vertical-offset="1458">
+          <caret line="69" column="22" selection-start-line="69" selection-start-column="22" selection-end-line="69" selection-end-column="22" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
+            <marker date="1417704703728" expanded="true" signature="1173:1381" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/frame.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="715" max-vertical-offset="2664">
+          <caret line="51" column="49" selection-start-line="51" selection-start-column="49" selection-end-line="51" selection-end-column="49" />
+          <folding>
+            <element signature="e#123#140#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.68255687" vertical-offset="954" max-vertical-offset="3276">
-          <caret line="88" column="4" selection-start-line="88" selection-start-column="4" selection-end-line="88" selection-end-column="4" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="1777" max-vertical-offset="3366">
+          <caret line="130" column="4" selection-start-line="130" selection-start-column="4" selection-end-line="130" selection-end-column="4" />
           <folding>
             <element signature="e#0#19#0" expanded="true" />
             <element signature="e#285#303#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/frame.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.43445286" vertical-offset="535" max-vertical-offset="2700">
+          <caret line="52" column="45" selection-start-line="52" selection-start-column="45" selection-end-line="52" selection-end-column="45" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>
