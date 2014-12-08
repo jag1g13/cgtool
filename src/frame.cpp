@@ -106,16 +106,19 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
         for(int i = 0; i < num_atoms_; i++){       // now we can read the atoms
             atom = &(atoms_[i]);
             gro >> res_name_new >> atom->atom_type >> atom->atom_num;
+            atom->atom_type[3] = '\0';
             gro.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             atom->atom_num--;
             cout << res_name_new << endl;
             strcpy(atom->resid, res_name_new);
             if(res_name_new != res_name_last){
-                Residue res_tmp = Residue(res_name_new);
-                residues_.push_back(res_tmp);
-                res = &*residues_.end();
+                //Residue res_tmp = Residue(res_name_new);
+                residues_.push_back(Residue(res_name_new));
+                res = &residues_[0] + (residues_.size()-1);
             }
             res->atoms.push_back(atom->atom_num);
+            cout << res->atoms.size() << endl;
+            cout << atom->atom_type << endl;
             res->atom_names.push_back(atom->atom_type);
             //if(i < 50){
             //    cout << "i=" << i << " type: " << atom->atom_type << " num: " << atom->atom_num << endl;

@@ -23,7 +23,7 @@ struct Atom{
     /** Residue number and name in the GRO file */
     char resid[10];
     /** A three character atom type specifier; e.g. "OH1"; Should replace with a string */
-    char atom_type[3];
+    char atom_type[4];
     /** Atomic coordinates in x, y, z */
     float coords[3];
     /** Atomic charge from the force field */
@@ -51,7 +51,8 @@ struct Residue{
     /** Atoms contained within this residue */
     std::vector<int> atoms;
     /** Atoms contained within this residue */
-    std::vector<std::string> atom_names;
+    //std::vector<std::string> atom_names;
+    std::vector<char *> atom_names;
     /** Constructor to set res_name */
     Residue(const char* tmp){strcpy(res_name, tmp);};
     /** Blank constructor */
