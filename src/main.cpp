@@ -25,6 +25,7 @@
 
 /*things from std that get used a lot*/
 using std::ifstream;
+using std::ofstream;
 using std::string;
 using std::cout;
 using std::cin;
@@ -33,9 +34,9 @@ using std::vector;
 using std::clock_t;
 
 /*prototype functions*/
-vector<float> calc_bond_lens(Frame *, vector<float>);
-
 vector<float> calc_avg(vector<vector<float>>);
+
+void printToCSV(ofstream *file, const vector<float> *vec);
 
 void split_text_output(const char *, const clock_t);
 
@@ -107,12 +108,21 @@ int main(int argc, char *argv[]){
     start = std::clock();
     int i = 0;
     vector<vector<float>> bond_lens, bond_angles, bond_dihedrals;
+    vector<float> tmp;
+    tmp.reserve(6);
+    ofstream file_len("length.csv"), file_angle("angle.csv"), file_dih("dihedral.csv");
     while(frame.readNext(xtc)){
         /* Process each frame as we read it, frames are not retained */
         //cg_map(&frame, &cg_frame);
-        bond_lens.push_back(bond_set.calcBondLens(&frame));
-        bond_angles.push_back(bond_set.calcBondAngles(&frame));
-        bond_dihedrals.push_back(bond_set.calcBondDihedrals(&frame));
+        tmp = bond_set.calcBondLens(&frame);
+        bond_lens.push_back(tmp);
+        printToCSV(&file_len, &tmp);
+        tmp = bond_set.calcBondAngles(&frame);
+        bond_angles.push_back(tmp);
+        printToCSV(&file_angle, &tmp);
+        tmp = bond_set.calcBondDihedrals(&frame);
+        bond_dihedrals.push_back(tmp);
+        printToCSV(&file_dih, &tmp);
         if(i % 1000 == 0){
             cout << "Read " << i << " frames\r";
             std::flush(cout);
@@ -124,6 +134,9 @@ int main(int argc, char *argv[]){
     cout << "Read " << i << " frames" << endl;
 
     /* close remaining files */
+    file_len.close();
+    file_angle.close();
+    file_dih.close();
     close_xtc(xtc);
 
     /* Post processing */
@@ -137,6 +150,13 @@ int main(int argc, char *argv[]){
     split_text_output("Finished", start);
     split_text_output("Total time", start_time);
     return 0;
+}
+
+void printToCSV(ofstream *file, const vector<float> *vec){
+    for(auto &item : *vec){
+        *file << item << ',';
+    }
+    *file << endl;
 }
 
 vector<float> calc_avg(vector<vector<float>> bond_lens){

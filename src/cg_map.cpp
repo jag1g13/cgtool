@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iostream>     // only needed for testing, get rid of this when done
 
-//#include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include "parser.h"
@@ -58,7 +57,6 @@ void CGMap::initFrame(Frame *aa_frame, Frame *cg_frame){
 
 bool CGMap::apply(const Frame *aa_frame, Frame *cg_frame){
     throw std::logic_error("Not implemented");
-
     bool status = true;
     return status;
 }
