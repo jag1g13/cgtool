@@ -100,34 +100,34 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
         }else{
             cout << "Found " << num_atoms_ << " atoms" << endl;
         }
-        allocateAtoms(num_atoms_);
-        Residue *res;
-        char res_name_new[10], res_name_last[10];
+        //allocateAtoms(num_atoms_);
+        //Residue *res;
+        string res_name_new, res_name_last;
+        int res_loc = -1;
         for(int i = 0; i < num_atoms_; i++){       // now we can read the atoms
-            atom = &(atoms_[i]);
-            gro >> res_name_new >> atom->atom_type >> atom->atom_num;
-            atom->atom_type[3] = '\0';
+            atoms_.push_back(Atom(i));
+            //atom = &(atoms_[i]);
+            gro >> res_name_new >> atoms_[i].atom_type >> atoms_[i].atom_num;
+            atoms_[i].atom_type[3] = '\0';
             gro.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            atom->atom_num--;
-            cout << res_name_new << endl;
-            strcpy(atom->resid, res_name_new);
-            if(res_name_new != res_name_last){
-                //Residue res_tmp = Residue(res_name_new);
+            atoms_[i].atom_num--;
+            atoms_[i].resid = res_name_new;
+            if(res_name_new.compare(res_name_last) != 0){
                 residues_.push_back(Residue(res_name_new));
-                res = &residues_[0] + (residues_.size()-1);
+                res_loc++;
+                if(res_loc < 10 && res_loc > 0){
+                    cout << "res: " << res_loc-1 << " resname: "<< residues_[res_loc-1].res_name;
+                    cout << " size: " << residues_[res_loc-1].atoms.size() << endl;
+                }
             }
-            res->atoms.push_back(atom->atom_num);
-            cout << res->atoms.size() << endl;
-            cout << atom->atom_type << endl;
-            res->atom_names.push_back(atom->atom_type);
-            //if(i < 50){
-            //    cout << "i=" << i << " type: " << atom->atom_type << " num: " << atom->atom_num << endl;
-            //}
-            memcpy(atom->coords, x_[i], 3 * sizeof(float));
-            atom->charge = 0.f;
-            atom->mass = 1.f;
-            name_to_num_.emplace(atom->atom_type, i);
-            num_to_name_.emplace(i, atom->atom_type);
+            residues_[res_loc].atoms.push_back(atoms_[i].atom_num);
+            residues_[res_loc].atom_names.push_back(atoms_[i].atom_type);
+            memcpy(atoms_[i].coords, x_[i], 3 * sizeof(float));
+            atoms_[i].charge = 0.f;
+            atoms_[i].mass = 1.f;
+            name_to_num_.emplace(atoms_[i].atom_type, i);
+            num_to_name_.emplace(i, atoms_[i].atom_type);
+            res_name_last = res_name_new;
         }
         gro.close();
     } else{

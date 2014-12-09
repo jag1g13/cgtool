@@ -21,7 +21,8 @@ struct Atom{
     /** A serial number; no longer needed */
     int atom_num;
     /** Residue number and name in the GRO file */
-    char resid[10];
+    //char resid[10];
+    std::string resid;
     /** A three character atom type specifier; e.g. "OH1"; Should replace with a string */
     char atom_type[4];
     /** Atomic coordinates in x, y, z */
@@ -32,6 +33,7 @@ struct Atom{
     float mass;
     /** Vector of pointers to Atom listing all atoms bonded to this one */
     std::vector<Atom *> neighbours;
+    Atom(int num){atom_num = num;};
 };
 
 /**
@@ -47,14 +49,16 @@ struct CGBead : Atom{
 */
 struct Residue{
     /** The name of this Residue */
-    char res_name[10];
+    std::string res_name;
+    //char res_name[10];
     /** Atoms contained within this residue */
     std::vector<int> atoms;
     /** Atoms contained within this residue */
     //std::vector<std::string> atom_names;
     std::vector<char *> atom_names;
     /** Constructor to set res_name */
-    Residue(const char* tmp){strcpy(res_name, tmp);};
+    //Residue(const char* tmp){strcpy(res_name, tmp);};
+    Residue(const std::string tmp){res_name = tmp;};
     /** Blank constructor */
     Residue();
 };
