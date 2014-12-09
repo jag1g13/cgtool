@@ -149,9 +149,9 @@ vector<float> calc_avg(vector<vector<float>> bond_lens){
     int width = bond_lens[0].size();
     vector<float> sum(width);
     vector<float> mean(width);
-    for(vector<vector<float>>::iterator row = bond_lens.begin(); row != bond_lens.end(); ++row){
+    for(auto &row : bond_lens){
         for(int i = 0; i < width; i++){
-            sum[i] += (*row)[i];
+            sum[i] += row[i];
         }
     }
     cout << "Bonds" << endl;

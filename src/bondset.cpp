@@ -51,25 +51,25 @@ void BondSet::fromFile(string filename){
 }
 
 vector<float> BondSet::calcBondLens(Frame *frame){
-    vector<float> bond_lens;
-    for(vector<BondStruct>::iterator bond = bonds_.begin(); bond != bonds_.end(); ++bond) {
-        bond_lens.push_back(frame->bondLength(&*bond));
+    vector<float> bonds;
+    for(auto &bond : bonds_){
+        bonds.push_back(frame->bondLength(&bond));
     }
-    return bond_lens;
+    return bonds;
 }
 
 vector<float> BondSet::calcBondAngles(Frame *frame){
-    vector<float> bond_angles;
-    for(vector<BondStruct>::iterator bond = angles_.begin(); bond != angles_.end(); ++bond){
-        bond_angles.push_back(frame->bondAngle(&*bond));
+    vector<float> bonds;
+    for(auto &bond : angles_){
+        bonds.push_back(frame->bondAngle(&bond));
     }
-    return bond_angles;
+    return bonds;
 }
 
 vector<float> BondSet::calcBondDihedrals(Frame *frame){
     vector<float> bonds;
-    for(vector<BondStruct>::iterator bond = dihedrals_.begin(); bond != dihedrals_.end(); ++bond){
-        bonds.push_back(frame->bondAngle(&*bond));
+    for(auto &bond : dihedrals_){
+        bonds.push_back(frame->bondAngle(&bond));
     }
     return bonds;
 }
