@@ -44,8 +44,8 @@ void CGMap::fromFile(string filename){
 
 void CGMap::initFrame(Frame *aa_frame, Frame *cg_frame){
     for(auto &bead : mapping_){
-        for(auto &atomname : bead){
-            atomname_to_bead_.emplace(*atomname, bead);  // dictionary of atomnames to bead pointers
+        for(auto &atomname : bead.atoms){
+            atomname_to_bead_.emplace(atomname, &bead);  // dictionary of atomnames to bead pointers
             //cout << bead->cg_bead << " contains " << *atomname << endl;
         }
     }
