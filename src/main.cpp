@@ -20,6 +20,7 @@
 #include "frame.h"
 #include "cg_map.h"
 #include "bondset.h"
+#include "field_map.h"
 
 #define DEBUG true
 
