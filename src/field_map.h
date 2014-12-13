@@ -3,7 +3,8 @@
 
 #include <vector>
 
-#include "boost/multi_array.hpp"
+#include "general.h"
+//#include "boost/multi_array.hpp"
 
 /**
 * \brief Class to hold and operate on electric field maps
@@ -13,8 +14,9 @@
 */
 class FieldMap{
 private:
-    typedef boost::multi_array<float, 2> array_float_2d;
-    typedef array_float_2d::index index;
+    //typedef boost::multi_array<float, 2> array_float_2d;
+    //typedef array_float_2d::index index;
+    typedef array_float_2d float**;
     /** Dimensions of the field grids (3 ints) */
     std::vector<int> gridDims_;
     /** Array to hold electric field calculated from monopoles */
