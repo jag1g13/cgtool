@@ -1,3 +1,50 @@
+#include <stdexcept>
+#include <algorithm>
+
+#include "field_map.h"
+
+using std::min;
+using std::max;
+
+FieldMap::FieldMap(){
+}
+
+FieldMap::FieldMap(const int a, const int b, const int c){
+    gridDims_.reserve(3);
+    gridDims_[0] = a; gridDims_[1] = b; gridDims_[2] = c;
+    fieldMonopole_ = alloc_float_3d(a, b, c);
+    //fieldMonopole_ = alloc_float_3d_flat(a, b, c);
+    if(fieldMonopole_ == NULL) throw std::runtime_error("Array alloc error");
+    fieldDipole_ = alloc_float_3d(a, b, c);
+    //fieldMonopole_ = alloc_float_3d_flat(a, b, c);
+    if(fieldDipole_ == NULL) throw std::runtime_error("Array alloc error");
+}
+
+void FieldMap::setupGrid(Frame *frame){
+    /* create min and max initial values */
+    gridBounds_[0][0] = 1e6; gridBounds_[0][1] = -1e6;
+    gridBounds_[1][0] = 1e6; gridBounds_[1][1] = -1e6;
+    gridBounds_[2][0] = 1e6; gridBounds_[2][1] = -1e6;
+    for(auto atom : frame->atoms_){
+        /* for each atom, compare min and max against coords */
+        gridBounds_[0][0] = min(gridBounds_[0][0], atom.coords[0]);
+        gridBounds_[0][1] = max(gridBounds_[0][1], atom.coords[0]);
+        gridBounds_[1][0] = min(gridBounds_[1][0], atom.coords[1]);
+        gridBounds_[1][1] = max(gridBounds_[1][1], atom.coords[1]);
+        gridBounds_[2][0] = min(gridBounds_[2][0], atom.coords[2]);
+        gridBounds_[2][1] = max(gridBounds_[2][1], atom.coords[2]);
+    }
+    gridBounds_[0][0] -= border_; gridBounds_[0][1] += border_;
+    gridBounds_[1][0] -= border_; gridBounds_[1][1] += border_;
+    gridBounds_[2][0] -= border_; gridBounds_[2][1] += border_;
+    for(int i=0; i<3; i++){
+        /* for x, y, z do linspace of grid coordinates */
+        linspace_1d(gridCoords_[0], gridBounds_[0][0], gridBounds_[0][1], gridDims_[0]);
+        linspace_1d(gridCoords_[1], gridBounds_[1][0], gridBounds_[1][1], gridDims_[1]);
+        linspace_1d(gridCoords_[2], gridBounds_[2][0], gridBounds_[2][1], gridDims_[2]);
+    }
+}
+
 /*
 import numpy as np
 import matplotlib.pyplot as plt

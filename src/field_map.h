@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "general.h"
+#include "frame.h"
 //#include "boost/multi_array.hpp"
 
 /**
@@ -14,19 +15,28 @@
 */
 class FieldMap{
 private:
-    //typedef boost::multi_array<float, 2> array_float_2d;
-    //typedef array_float_2d::index index;
-    typedef array_float_2d float**;
     /** Dimensions of the field grids (3 ints) */
     std::vector<int> gridDims_;
     /** Array to hold electric field calculated from monopoles */
-    array_float_2d fieldMonopole_();
-    //std::vector<std::vector<float>> fieldMonopole;
+    array_float_3d fieldMonopole_;
     /** Array to hold electric field calculated from dipoles */
-    array_float_2d fieldDipole_;
-    //std::vector<std::vector<float>> fieldDipole;
-    //std::vector<std::vector<float>> dipoles;
+    array_float_3d fieldDipole_;
+    /** Border to leave around molecule in field grid */
     float border_ = 1.f;
+    /** Array to hold atomic dipoles */
+    array_float_2d dipoles_;
+    /** Array to hold grid bounds; needs to be reset each frame (or often) */
+    array_float_2d gridBounds_;
+    /** Coordinates of each grid point */
+    array_float_2d gridCoords_;
+
+public:
+    /** Constructor for a blank instance of an electric field map */
+    FieldMap();
+    /** Constructor for FieldMap to perform setup */
+    FieldMap(const int a, const int b, const int c);
+    /** Determine grid bounds from a Frame object and do setup each time */
+    void setupGrid(Frame *frame);
 };
 
 #endif

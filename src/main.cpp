@@ -103,6 +103,7 @@ int main(int argc, char *argv[]){
     mapping.initFrame(&frame, &cg_frame);
     BondSet bond_set;
     bond_set.fromFile(bndname);
+    //FieldMap field(5, 5, 5);
 
     /* Keep reading frames until something goes wrong (run out of frames) */
     split_text_output("Reading frames", start);
@@ -115,6 +116,7 @@ int main(int argc, char *argv[]){
     while(frame.readNext(xtc)){
         /* Process each frame as we read it, frames are not retained */
         //cg_map(&frame, &cg_frame);
+        //field.setupGrid(&frame);
         tmp = bond_set.calcBondLens(&frame);
         bond_lens.push_back(tmp);
         printToCSV(&file_len, &tmp);
