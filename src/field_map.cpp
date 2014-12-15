@@ -13,11 +13,13 @@ FieldMap::FieldMap(const int a, const int b, const int c){
     gridDims_.reserve(3);
     gridDims_[0] = a; gridDims_[1] = b; gridDims_[2] = c;
     fieldMonopole_ = alloc_float_3d(a, b, c);
-    //fieldMonopole_ = alloc_float_3d_flat(a, b, c);
     if(fieldMonopole_ == NULL) throw std::runtime_error("Array alloc error");
     fieldDipole_ = alloc_float_3d(a, b, c);
-    //fieldMonopole_ = alloc_float_3d_flat(a, b, c);
     if(fieldDipole_ == NULL) throw std::runtime_error("Array alloc error");
+    gridBounds_ = alloc_float_2d(3, 2);
+    if(gridBounds_ == NULL) throw std::runtime_error("Array alloc error");
+    gridCoords_ = alloc_float_2d(3, max(a, max(b, c)));
+    if(gridCoords_ == NULL) throw std::runtime_error("Array alloc error");
 }
 
 void FieldMap::setupGrid(Frame *frame){

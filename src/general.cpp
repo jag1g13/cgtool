@@ -29,18 +29,18 @@ array_float_2d alloc_float_2d(const int a, const int b){
 
 array_float_3d alloc_float_3d(const int a, const int b, const int c){
     //std::cout << "a:" << a << " b:" << b << " c:" << c << std::endl;
-    array_float_3d array = (float***)malloc(a * sizeof(float*));
+    array_float_3d array = (float***)malloc(a * sizeof(float**));
     if(array == NULL) throw std::runtime_error("Array alloc failed");
-    array[0] = (float**)malloc(a * b * sizeof(float));
+    array[0] = (float**)malloc(a * b * sizeof(float*));
     if(array[0] == NULL) throw std::runtime_error("Array alloc failed");
     array[0][0] = (float*)malloc(a * b * c * sizeof(float));
     if(array[0][0] == NULL) throw std::runtime_error("Array alloc failed");
 
     for(int i=0; i<b; i++){
-        array[i] = array[0] + i * b * c;
+        array[i] = array[0] + i;
         for(int j=0; j<c; j++) {
             //std::cout << "i: " << i << " j: " << j << std::endl;
-            array[i][j] = array[0][0] + i * b + j * c;
+            array[i][j] = array[0][0] + i * (b*c) + j * c;
         }
     }
     return array;
