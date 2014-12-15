@@ -17,19 +17,31 @@ int main(int argc, char* argv[]){
 void test_3d(){
     array_float_3d array = alloc_float_3d(3, 3, 3);
     cout << "Starting 3d" << endl;
+    cout << "Starting writing" << endl;
     for(int i=0; i<3; i++){
         for(int j=0; j<3; j++){
             for(int k=0; k<3; k++){
                 //array[i][j][k] = 100*i + 10*j + k;
                 array[0][0][9*i + 3*j + k] = 100*i + 10*j + k;
-                cout << i+j+k << ": " << array[i][j][k] << endl;
+                //cout << i<<j<<k << ": " << array[i][j][k] << endl;
+                cout << i<<j<<k << ": " << array[0][0][9*i + 3*j + k] << endl;
             }
         }
     }
+    cout << "Finished writing" << endl;
     for(int i=0; i<3; i++){
         for(int j=0; j<3; j++){
             for(int k=0; k<3; k++){
-                cout << array[i][j][k] << endl;
+                //cout << i<<j<<k << ": " << array[i][j][k] << endl;
+                cout << i<<j<<k << ": " << array[0][0][9*i + 3*j + k] << endl;
+            }
+        }
+    }
+    zero_float_3d(array, 3, 3, 3);
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            for(int k=0; k<3; k++){
+                if(array[i][j][k] != 0) cout << "Nope" << endl;
             }
         }
     }
@@ -43,12 +55,18 @@ void test_2d(){
         for(int j=0; j<3; j++){
             //array[i][j][k] = 100*i + 10*j + k;
             array[0][3*i + j] = 10*i + j;
-            cout << i+j << ": " << array[i][j] << endl;
         }
     }
     for(int i=0; i<3; i++){
         for(int j=0; j<3; j++){
-            cout << array[i][j] << endl;
+            //cout << array[i][j] << endl;
+            cout << i<<j << ": " << array[i][j] << endl;
+        }
+    }
+    zero_float_2d(array, 3, 3);
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            if(array[i][j] != 0) cout << "Nope" << endl;
         }
     }
     cout << "Done" << endl;

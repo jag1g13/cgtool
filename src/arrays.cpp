@@ -1,7 +1,14 @@
 #include <stdexcept>
 #include <iostream>
 
-#include "general.h"
+#include "arrays.h"
+
+using std::vector;
+
+Array::Array(vector<int> size){
+    dimensions_ = size.size();
+    size_ = size;
+}
 
 array_float_1d alloc_float_3d_flat(const int a, const int b, const int c){
     array_float_1d array = (float*)malloc(a * b * c * sizeof(float));
@@ -36,11 +43,12 @@ array_float_3d alloc_float_3d(const int a, const int b, const int c){
     array[0][0] = (float*)malloc(a * b * c * sizeof(float));
     if(array[0][0] == NULL) throw std::runtime_error("Array alloc failed");
 
-    for(int i=0; i<b; i++){
+    for(int i=0; i<a; i++){
+        //array[i] = array[0] + i*b;
         array[i] = array[0] + i;
-        for(int j=0; j<c; j++) {
+        for(int j=0; j<b; j++) {
             //std::cout << "i: " << i << " j: " << j << std::endl;
-            array[i][j] = array[0][0] + i * (b*c) + j * c;
+            array[i][j] = array[i][0] + j*c;
         }
     }
     return array;
