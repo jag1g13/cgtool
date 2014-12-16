@@ -22,13 +22,33 @@ class Array{
 protected:
     int dimensions_;
     std::vector<int> size_;
+    int elems_;
 
 public:
     Array(std::vector<int> size);
+    //unsigned long operator ()(int i, int j=0, int k=0) const;
+    //unsigned long & operator ()(int i, int j=0, int k=0);
 };
 
-class ArrayFloatOne : Array{
+class ArrayFloat{
+protected:
+    int dimensions_;
+    std::vector<int> size_;
+    int elems_;
+    float* array_;
+    bool fast_;
+    bool allocated_;
 
+public:
+    ArrayFloat(const std::vector<int> size, const bool fast=false);
+    ArrayFloat();
+    ~ArrayFloat();
+    //unsigned long operator ()(int i, int j=0, int k=0) const;
+    //unsigned long & operator ()(int i, int j=0, int k=0);
+    float& operator()(const int x);
+    float& operator()(const int x, const int y);
+    float& operator()(const int x, const int y, const int z);
+    void zero();
 };
 
 /** Linspace (similar to numpy) over a 1d array */

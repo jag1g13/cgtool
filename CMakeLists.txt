@@ -10,7 +10,7 @@ include_directories ("/usr/local/gromacs/include"
 set (EXTRA_LIBS ${EXTRA_LIBS} gromacs)
 
 set(SOURCE_FILES
-    src/general.cpp
+    src/arrays.cpp
     src/field_map.cpp
     src/frame.cpp
     src/bondset.cpp

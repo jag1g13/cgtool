@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "general.h"
+#include "arrays.h"
 #include "frame.h"
 //#include "boost/multi_array.hpp"
 
@@ -18,17 +18,22 @@ private:
     /** Dimensions of the field grids (3 ints) */
     std::vector<int> gridDims_;
     /** Array to hold electric field calculated from monopoles */
-    array_float_3d fieldMonopole_;
+    ArrayFloat fieldMonopole_;
+    //array_float_3d fieldMonopole_;
     /** Array to hold electric field calculated from dipoles */
-    array_float_3d fieldDipole_;
+    ArrayFloat fieldDipole_;
+    //array_float_3d fieldDipole_;
     /** Border to leave around molecule in field grid */
     float border_ = 1.f;
     /** Array to hold atomic dipoles */
-    array_float_2d dipoles_;
+    ArrayFloat dipoles_;
+    //array_float_2d dipoles_;
     /** Array to hold grid bounds; needs to be reset each frame (or often) */
-    array_float_2d gridBounds_;
+    ArrayFloat gridBounds_;
+    //array_float_2d gridBounds_;
     /** Coordinates of each grid point */
-    array_float_2d gridCoords_;
+    ArrayFloat gridCoords_;
+    //array_float_2d gridCoords_;
 
 public:
     /** Constructor for a blank instance of an electric field map */
