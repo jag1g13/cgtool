@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <algorithm>
+#include <iostream>
 
 #include "arrays.h"
 #include "field_map.h"
@@ -7,6 +8,8 @@
 using std::min;
 using std::max;
 using std::vector;
+using std::cout;
+using std::endl;
 
 FieldMap::FieldMap(){
 }
@@ -16,17 +19,29 @@ FieldMap::FieldMap(const int a, const int b, const int c){
     gridDims_[0] = a; gridDims_[1] = b; gridDims_[2] = c;
 //    fieldMonopole_ = alloc_float_3d(a, b, c);
 //    if(fieldMonopole_ == NULL) throw std::runtime_error("Array alloc error");
-    fieldMonopole_ = ArrayFloat(gridDims_);
+    //fieldMonopole_ = ArrayFloat(gridDims_);
+    cout << "Field Monopole" << endl;
+    //fieldMonopole_ = ArrayFloat(a, b, c);
+    fieldMonopole_.init(a, b, c);
 //    fieldDipole_ = alloc_float_3d(a, b, c);
-    fieldDipole_ = ArrayFloat(gridDims_);
+    //fieldDipole_ = ArrayFloat(gridDims_);
+    cout << "Field Dipole" << endl;
+    //fieldDipole_ = ArrayFloat(a, b, c);
+    fieldDipole_.init(a, b, c);
 //    if(fieldDipole_ == NULL) throw std::runtime_error("Array alloc error");
 //    gridBounds_ = alloc_float_2d(3, 2);
-    vector<int> tmp{3, 2};
-    gridBounds_ = ArrayFloat(tmp);
+    //vector<int> tmp{3, 2};
+    //gridBounds_ = ArrayFloat(tmp);
+    cout << "Grid bounds" << endl;
+    //gridBounds_ = ArrayFloat(3, 2, 1);
+    gridBounds_.init(3, 2, 1);
 //    if(gridBounds_ == NULL) throw std::runtime_error("Array alloc error");
 //    gridCoords_ = alloc_float_2d(3, max(a, max(b, c)));
-    tmp = {3, max(a, max(b, c))};
-    gridCoords_ = ArrayFloat(tmp);
+    //tmp = {3, max(a, max(b, c))};
+    //gridCoords_ = ArrayFloat(tmp);
+    cout << "Coords" << endl;
+    //gridCoords_ = ArrayFloat(3, max(a, max(b, c)), 1);
+    gridCoords_.init(3, max(a, max(b, c)), 1);
 //    if(gridCoords_ == NULL) throw std::runtime_error("Array alloc error");
 }
 

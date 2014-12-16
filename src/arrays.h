@@ -18,18 +18,6 @@ array_float_1d alloc_float_2d_flat(const int a, const int b, const int c);
 /** Allocate a 3d array of floats in flat form, return pointer if successful */
 array_float_1d alloc_float_3d_flat(const int a, const int b, const int c);
 
-class Array{
-protected:
-    int dimensions_;
-    std::vector<int> size_;
-    int elems_;
-
-public:
-    Array(std::vector<int> size);
-    //unsigned long operator ()(int i, int j=0, int k=0) const;
-    //unsigned long & operator ()(int i, int j=0, int k=0);
-};
-
 class ArrayFloat{
 protected:
     int dimensions_;
@@ -40,9 +28,12 @@ protected:
     bool allocated_;
 
 public:
-    ArrayFloat(const std::vector<int> size, const bool fast=false);
+    //ArrayFloat(const std::vector<int> size, const bool fast=false);
+    ArrayFloat(const int a, const int b, const int c, const bool fast=false);
     ArrayFloat();
-    ~ArrayFloat();
+    //TODO Destructor doesn't work??  Fix this
+    //~ArrayFloat();
+    void init(const int a, const int b, const int c, const bool fast=false);
     //unsigned long operator ()(int i, int j=0, int k=0) const;
     //unsigned long & operator ()(int i, int j=0, int k=0);
     float& operator()(const int x);
