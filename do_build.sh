@@ -2,7 +2,6 @@
 
 cd build
 cmake ..
-make clean
-make all
-ctest -V
+make
+#ctest -V
 #make test

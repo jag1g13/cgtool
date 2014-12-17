@@ -52,6 +52,7 @@ void ArrayFloat::init(const int a, const int b, const int c, const bool fast){
     if(c > 1) dimensions_++;
     size_.reserve(3);
     size_[0] = a; size_[1] = b; size_[2] = c;
+    sizex_ = a; sizey_ = b; sizez_ = c;
     cout << size_[0] << size_[1] << size_[2] << endl;
     elems_ = a*b*c;
     for(int i : size_) elems_ *= i;
@@ -88,7 +89,8 @@ float& ArrayFloat::operator()(int x, int y){
             return array_[x * size_[1] * size_[2] + y * size_[2]];
         }
     }
-    return array_[x * size_[1] + y];
+    //return array_[x * size_[1] + y];
+    return array_[x * sizey_ + y];
 }
 
 float& ArrayFloat::operator()(int x, int y, int z){
@@ -101,12 +103,26 @@ float& ArrayFloat::operator()(int x, int y, int z){
         assert(y < size_[1] && y >= 0);
         assert(z < size_[2] && z >= 0);
     }
-    return array_[x * size_[1] * size_[2] + y * size_[2] + z];
+    //return array_[x * size_[1] * size_[2] + y * size_[2] + z];
+    return array_[x * sizey_ * sizez_ + y * sizez_ + z];
+}
+
+void ArrayFloat::linspace(const int a, const float min, const float max){
+    assert(dimensions_ == 2);
+    assert(a < size_[0]);
+    float *tmp = array_ + a*size_[1];
+    for(int i=0; i<size_[1]; i++){
+        tmp[i] = min + size_[1]*(max-min);
+    }
 }
 
 void ArrayFloat::linspace(const int a, const int b, const float min, const float max){
-    for(int i=0; i<size_[0]; i++){
-        array_[i] = min + size_[0]*(max-min);
+    assert(dimensions_ == 3);
+    assert(a < size_[0]);
+    assert(b < size_[1]);
+    float *tmp = array_ + a*size_[1]*size_[2] + b*size_[2];
+    for(int i=0; i<size_[2]; i++){
+        tmp[i] = min + size_[2]*(max-min);
     }
 }
 

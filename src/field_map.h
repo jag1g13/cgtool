@@ -39,6 +39,8 @@ public:
     FieldMap(const int a, const int b, const int c);
     /** Determine grid bounds from a Frame object and do setup each time */
     void setupGrid(Frame *frame);
+    void calcFieldMonopoles(Frame *frame);
+    float distSqr(float *coords, int i, int j, int k);
 };
 
 #endif

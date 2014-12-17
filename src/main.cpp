@@ -23,6 +23,7 @@
 #include "field_map.h"
 
 #define DEBUG true
+#define PROGRESS_UPDATE_FREQ 1
 
 /*things from std that get used a lot*/
 using std::ifstream;
@@ -65,7 +66,7 @@ int main(int argc, char *argv[]){
         strcpy(groname, argv[1]);
         strcat(groname, "/npt.gro");
         strcpy(xtcname, argv[1]);
-        strcat(xtcname, "/md.xtc");
+        strcat(xtcname, "/npt.xtc");
         strcpy(mapname, argv[1]);
         strcat(mapname, "/map.in");
         strcpy(topname, argv[1]);
@@ -117,6 +118,7 @@ int main(int argc, char *argv[]){
         /* Process each frame as we read it, frames are not retained */
         //cg_map(&frame, &cg_frame);
         field.setupGrid(&frame);
+        field.calcFieldMonopoles(&frame);
         tmp = bond_set.calcBondLens(&frame);
         bond_lens.push_back(tmp);
         printToCSV(&file_len, &tmp);
@@ -126,7 +128,7 @@ int main(int argc, char *argv[]){
         tmp = bond_set.calcBondDihedrals(&frame);
         bond_dihedrals.push_back(tmp);
         printToCSV(&file_dih, &tmp);
-        if(i % 100 == 0){
+        if(i % PROGRESS_UPDATE_FREQ == 0){
             cout << "Read " << i << " frames\r";
             std::flush(cout);
         }

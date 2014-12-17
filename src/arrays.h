@@ -18,6 +18,13 @@ array_float_1d alloc_float_2d_flat(const int a, const int b, const int c);
 /** Allocate a 3d array of floats in flat form, return pointer if successful */
 array_float_1d alloc_float_3d_flat(const int a, const int b, const int c);
 
+/**
+* \brief Array of floats with safety features.
+*
+* Holds a 1, 2 or 3 dimensional array of floats.  In safemode (default) array bounds will be checked
+* and Python style negative indices for back counting.  Contains some common array functions which
+* can operate on the entire array or on sections.
+*/
 class ArrayFloat{
 protected:
     int dimensions_;
@@ -26,6 +33,7 @@ protected:
     float* array_;
     bool fast_;
     bool allocated_;
+    int sizex_, sizey_, sizez_;
 
 public:
     //ArrayFloat(const std::vector<int> size, const bool fast=false);
@@ -41,6 +49,7 @@ public:
     float& operator()(int x, int y, int z);
     void zero();
     void linspace(const int a, const int b, const float min, const float max);
+    void linspace(const int a, const float min, const float max);
     void linspace(const float min, const float max);
 };
 

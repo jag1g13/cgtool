@@ -1,9 +1,7 @@
-#include <stdexcept>
+#include "field_map.h"
+
 #include <algorithm>
 #include <iostream>
-
-#include "arrays.h"
-#include "field_map.h"
 
 using std::min;
 using std::max;
@@ -19,13 +17,13 @@ FieldMap::FieldMap(const int a, const int b, const int c){
     gridDims_[0] = a; gridDims_[1] = b; gridDims_[2] = c;
     gridCentre_.reserve(3);
     cout << "Field Monopole" << endl;
-    fieldMonopole_.init(a, b, c);
+    fieldMonopole_.init(a, b, c, true);
     cout << "Field Dipole" << endl;
-    fieldDipole_.init(a, b, c);
+    fieldDipole_.init(a, b, c, true);
     cout << "Grid bounds" << endl;
-    gridBounds_.init(3, 2, 1);
+    gridBounds_.init(3, 2, 1, true);
     cout << "Coords" << endl;
-    gridCoords_.init(3, max(a, max(b, c)), 1);
+    gridCoords_.init(3, max(a, max(b, c)), 1, true);
 }
 
 void FieldMap::setupGrid(Frame *frame){
@@ -52,80 +50,35 @@ void FieldMap::setupGrid(Frame *frame){
     //cout << "Grid centre at: " << gridCentre_[0] << "," << gridCentre_[1] << "," << gridCentre_[2] << endl;
     for(int i=0; i<3; i++){
         /* for x, y, z do linspace of grid coordinates */
-//        linspace_1d(gridCoords_(0), gridBounds_(0)(0), gridBounds_(0)(1), gridDims_[0]);
-//        linspace_1d(gridCoords_(1), gridBounds_(1)(0), gridBounds_(1)(1), gridDims_[1]);
-//        linspace_1d(gridCoords_(2), gridBounds_(2)(0), gridBounds_(2)(1), gridDims_[2]);
+        gridCoords_.linspace(0, gridBounds_(0, 0), gridBounds_(0, 1));
+        gridCoords_.linspace(1, gridBounds_(1, 0), gridBounds_(1, 1));
+        gridCoords_.linspace(2, gridBounds_(2, 0), gridBounds_(2, 1));
     }
 }
 
+void FieldMap::calcFieldMonopoles(Frame *frame){
+    float inveps = 1. / (4 * M_PI * 8.854187817e-12);
+    // inveps = 8.9875517873681e9
+    for(int i=0; i < gridDims_[0]; i++){
+        for(int j=0; j < gridDims_[1]; j++){
+            for(int k=0; k < gridDims_[2]; k++){
+                fieldMonopole_(i, j, k) = 0.;
+                for(Atom atom : frame->atoms_){
+                    fieldMonopole_(i, j, k) += atom.charge /
+                            distSqr(atom.coords, i, j, k);
+                }
+            }
+        }
+    }
+}
+
+float FieldMap::distSqr(float *coords, int i, int j, int k) {
+    return pow((coords[0] - gridCoords_(0, i)), 2.f) +
+            pow((coords[1] - gridCoords_(1, j)), 2.f) +
+            pow((coords[2] - gridCoords_(2, k)), 2.f);
+}
+
 /*
-import numpy as np
-import matplotlib.pyplot as plt
-# from scipy import optimize
-from math import sqrt
-from math import cos
-
-# from frame import Frame
-
-
-class FieldMap:
-    """
-    Calclates, stores and manipulates the electric field around a molecule, given from a Frame instance
-    """
-    def __init__(self, frame):
-        self.border = 1       # disance from molecule that the grid extends in nm
-        # self.grid_dim = [3, 75, 75]       # looks okay as an image
-        # self.grid_dim = [3, 125, 125]     # looks good as an image
-        self.grid_dim = [5, 5, 5]     # looks bad as an image
-        self.grid_monopole = np.zeros(self.grid_dim)
-        self.grid_dipole = np.zeros(self.grid_dim)
-        self.dipoles = np.ndarray([len(frame.atoms), 7])  # for each atom store dipole coords, vector and magnitude
-        print("Grid:", self.grid_dim)
-        print(str(self.grid_dim[0] * self.grid_dim[1] * self.grid_dim[2]) + " grid points")
-
-    def setup_grid(self, frame):
-        """
-        Need to check the bounds of the grid with every new frame
-        :param frame: Frame object containing the xtc frame to read
-        :return: Nothing
-        """
-        xmax, ymax, zmax = float("-inf"), float("-inf"), float("-inf")
-        xmin, ymin, zmin = float("inf"), float("inf"), float("inf")
-        for atom in frame.atoms:
-            xmax = max(xmax, atom.loc[0])
-            xmin = min(xmin, atom.loc[0])
-            ymax = max(ymax, atom.loc[1])
-            ymin = min(ymin, atom.loc[1])
-            zmax = max(zmax, atom.loc[2])
-            zmin = min(zmin, atom.loc[2])
-        xmax += self.border
-        ymax += self.border
-        zmax += self.border
-        xmin -= self.border
-        ymin -= self.border
-        zmin -= self.border
-        self.grid_x = np.linspace(xmin, xmax, self.grid_dim[0])
-        self.grid_y = np.linspace(ymin, ymax, self.grid_dim[1])
-        self.grid_z = np.linspace(zmin, zmax, self.grid_dim[2])
-
-    def calc_field_monopoles(self, frame):
-        """
-        Calculate the electric field over the grid from atomic charges
-        :param frame:
-        :return: Nothing, store result in self.grid_monopole
-        """
-        inveps = 1. / (4 * np.pi * 8.854187817e-12)     # I don't multiply by this, would just cancel out anyway
-        # inveps = 8.9875517873681e9
-        for i in xrange(self.grid_dim[0]):
-            for j in xrange(self.grid_dim[1]):
-                for k in xrange(self.grid_dim[2]):
-                    self.grid_monopole[i][j][k] = 0.
-                    for atom in frame.atoms:
-                        self.grid_monopole[i][j][k] += atom.charge /\
-                                                       self.dist_sqr(atom.loc[0], atom.loc[1], atom.loc[2],
-                                                                     i, j, k)
-                    # self.grid[i][j][k] *= inveps
-
     def calc_field_dipoles(self):
         """
         Calculate the electric field over the grid from point dipoles
@@ -143,22 +96,4 @@ class FieldMap:
                                                      dist_sqr(dipole[0], dipole[1], dipole[2],
                                                               i, j, k)
                     # self.grid[i][j][k] *= inveps
-
-    def dist_sqr(self, x, y, z, i, j, k):
-        return (x-self.grid_x[i])**2 + \
-               (y-self.grid_y[j])**2 + \
-               (z-self.grid_z[k])**2
-
-    def plot(self, x):
-        # plt.contourf(self.grid_y, self.grid_z, self.grid[x])
-        plt.pcolor(self.grid_y, self.grid_z, self.grid_monopole[x], vmin=-1, vmax=1)
-        # plt.imshow(self.grid[x], extent=[self.grid_y[0], self.grid_y[-1], self.grid_z[0], self.grid_z[-1]])
-        plt.show()
-
-    def __repr__(self):
-        # print("Grid:", self.grid_dim)
-        # print(self.grid)
-        return "Grid: " + repr(self.grid_dim) + "\n" +\
-               str(self.grid_dim[0] * self.grid_dim[1] * self.grid_dim[2]) + " grid points\n" +\
-               repr(self.grid_monopole)
 */
