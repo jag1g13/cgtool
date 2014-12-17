@@ -17,50 +17,24 @@ FieldMap::FieldMap(){
 FieldMap::FieldMap(const int a, const int b, const int c){
     gridDims_.reserve(3);
     gridDims_[0] = a; gridDims_[1] = b; gridDims_[2] = c;
-//    fieldMonopole_ = alloc_float_3d(a, b, c);
-//    if(fieldMonopole_ == NULL) throw std::runtime_error("Array alloc error");
-    //fieldMonopole_ = ArrayFloat(gridDims_);
+    gridCentre_.reserve(3);
     cout << "Field Monopole" << endl;
-    //fieldMonopole_ = ArrayFloat(a, b, c);
     fieldMonopole_.init(a, b, c);
-//    fieldDipole_ = alloc_float_3d(a, b, c);
-    //fieldDipole_ = ArrayFloat(gridDims_);
     cout << "Field Dipole" << endl;
-    //fieldDipole_ = ArrayFloat(a, b, c);
     fieldDipole_.init(a, b, c);
-//    if(fieldDipole_ == NULL) throw std::runtime_error("Array alloc error");
-//    gridBounds_ = alloc_float_2d(3, 2);
-    //vector<int> tmp{3, 2};
-    //gridBounds_ = ArrayFloat(tmp);
     cout << "Grid bounds" << endl;
-    //gridBounds_ = ArrayFloat(3, 2, 1);
     gridBounds_.init(3, 2, 1);
-//    if(gridBounds_ == NULL) throw std::runtime_error("Array alloc error");
-//    gridCoords_ = alloc_float_2d(3, max(a, max(b, c)));
-    //tmp = {3, max(a, max(b, c))};
-    //gridCoords_ = ArrayFloat(tmp);
     cout << "Coords" << endl;
-    //gridCoords_ = ArrayFloat(3, max(a, max(b, c)), 1);
     gridCoords_.init(3, max(a, max(b, c)), 1);
-//    if(gridCoords_ == NULL) throw std::runtime_error("Array alloc error");
 }
 
 void FieldMap::setupGrid(Frame *frame){
     /* create min and max initial values */
-//    gridBounds_[0][0] = 1e6; gridBounds_[0][1] = -1e6;
-//    gridBounds_[1][0] = 1e6; gridBounds_[1][1] = -1e6;
-//    gridBounds_[2][0] = 1e6; gridBounds_[2][1] = -1e6;
     gridBounds_(0, 0) = 1e6; gridBounds_(0, 1) = -1e6;
     gridBounds_(1, 0) = 1e6; gridBounds_(1, 1) = -1e6;
     gridBounds_(2, 0) = 1e6; gridBounds_(2, 1) = -1e6;
     for(auto atom : frame->atoms_){
         /* for each atom, compare min and max against coords */
-//        gridBounds_[0][0] = min(gridBounds_[0][0], atom.coords[0]);
-//        gridBounds_[0][1] = max(gridBounds_[0][1], atom.coords[0]);
-//        gridBounds_[1][0] = min(gridBounds_[1][0], atom.coords[1]);
-//        gridBounds_[1][1] = max(gridBounds_[1][1], atom.coords[1]);
-//        gridBounds_[2][0] = min(gridBounds_[2][0], atom.coords[2]);
-//        gridBounds_[2][1] = max(gridBounds_[2][1], atom.coords[2]);
         gridBounds_(0, 0) = min(gridBounds_(0, 0), atom.coords[0]);
         gridBounds_(0, 1) = max(gridBounds_(0, 1), atom.coords[0]);
         gridBounds_(1, 0) = min(gridBounds_(1, 0), atom.coords[1]);
@@ -68,17 +42,19 @@ void FieldMap::setupGrid(Frame *frame){
         gridBounds_(2, 0) = min(gridBounds_(2, 0), atom.coords[2]);
         gridBounds_(2, 1) = max(gridBounds_(2, 1), atom.coords[2]);
     }
-//    gridBounds_[0][0] -= border_; gridBounds_[0][1] += border_;
-//    gridBounds_[1][0] -= border_; gridBounds_[1][1] += border_;
-//    gridBounds_[2][0] -= border_; gridBounds_[2][1] += border_;
     gridBounds_(0, 0) -= border_; gridBounds_(0, 1) += border_;
     gridBounds_(1, 0) -= border_; gridBounds_(1, 1) += border_;
     gridBounds_(2, 0) -= border_; gridBounds_(2, 1) += border_;
+    /* set gridCentre */
+    gridCentre_[0] = (gridBounds_(0, 1) - gridBounds_(0, 0)) / 2.;
+    gridCentre_[1] = (gridBounds_(1, 1) - gridBounds_(1, 0)) / 2.;
+    gridCentre_[2] = (gridBounds_(2, 1) - gridBounds_(2, 0)) / 2.;
+    //cout << "Grid centre at: " << gridCentre_[0] << "," << gridCentre_[1] << "," << gridCentre_[2] << endl;
     for(int i=0; i<3; i++){
         /* for x, y, z do linspace of grid coordinates */
-//        linspace_1d(gridCoords_[0], gridBounds_[0][0], gridBounds_[0][1], gridDims_[0]);
-//        linspace_1d(gridCoords_[1], gridBounds_[1][0], gridBounds_[1][1], gridDims_[1]);
-//        linspace_1d(gridCoords_[2], gridBounds_[2][0], gridBounds_[2][1], gridDims_[2]);
+//        linspace_1d(gridCoords_(0), gridBounds_(0)(0), gridBounds_(0)(1), gridDims_[0]);
+//        linspace_1d(gridCoords_(1), gridBounds_(1)(0), gridBounds_(1)(1), gridDims_[1]);
+//        linspace_1d(gridCoords_(2), gridBounds_(2)(0), gridBounds_(2)(1), gridDims_[2]);
     }
 }
 

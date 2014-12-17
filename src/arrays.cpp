@@ -63,27 +63,35 @@ void ArrayFloat::init(const int a, const int b, const int c, const bool fast){
     cout << elems_ << " elements" << endl;
 }
 
-float& ArrayFloat::operator()(const int x){
+float& ArrayFloat::operator()(int x){
     if(!fast_) {
-        assert(dimensions_ == 1);
+        assert(dimensions_ >= 1);
         if(x < 0) x = size_[0] + x;
         assert(x < size_[0] && x >= 0);
+        /* if 2d array return ref to a row */
+        if(dimensions_ == 2){
+            return array_[x * size_[1]];
+        }
     }
     return array_[x];
 }
 
-float& ArrayFloat::operator()(const int x, const int y){
+float& ArrayFloat::operator()(int x, int y){
     if(!fast_) {
-        assert(dimensions_ == 2);
+        assert(dimensions_ >= 2);
         if(x < 0) x = size_[0] + x;
         if(y < 0) y = size_[1] + y;
         assert(x < size_[0] && x >= 0);
         assert(y < size_[1] && y >= 0);
+        /* if 3d array return ref to a row */
+        if(dimensions_ == 3){
+            return array_[x * size_[1] * size_[2] + y * size_[2]];
+        }
     }
     return array_[x * size_[1] + y];
 }
 
-float& ArrayFloat::operator()(const int x, const int y, const int z){
+float& ArrayFloat::operator()(int x, int y, int z){
     if(!fast_) {
         assert(dimensions_ == 3);
         if(x < 0) x = size_[0] + x;
@@ -94,6 +102,19 @@ float& ArrayFloat::operator()(const int x, const int y, const int z){
         assert(z < size_[2] && z >= 0);
     }
     return array_[x * size_[1] * size_[2] + y * size_[2] + z];
+}
+
+void ArrayFloat::linspace(const int a, const int b, const float min, const float max){
+    for(int i=0; i<size_[0]; i++){
+        array_[i] = min + size_[0]*(max-min);
+    }
+}
+
+void ArrayFloat::linspace(const float min, const float max){
+    assert(dimensions_ == 1);
+    for(int i=0; i<size_[0]; i++){
+        array_[i] = min + size_[0]*(max-min);
+    }
 }
 
 void ArrayFloat::zero(){

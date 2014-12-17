@@ -36,10 +36,12 @@ public:
     void init(const int a, const int b, const int c, const bool fast=false);
     //unsigned long operator ()(int i, int j=0, int k=0) const;
     //unsigned long & operator ()(int i, int j=0, int k=0);
-    float& operator()(const int x);
-    float& operator()(const int x, const int y);
-    float& operator()(const int x, const int y, const int z);
+    float& operator()(int x);
+    float& operator()(int x, int y);
+    float& operator()(int x, int y, int z);
     void zero();
+    void linspace(const int a, const int b, const float min, const float max);
+    void linspace(const float min, const float max);
 };
 
 /** Linspace (similar to numpy) over a 1d array */

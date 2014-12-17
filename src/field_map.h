@@ -19,21 +19,18 @@ private:
     std::vector<int> gridDims_;
     /** Array to hold electric field calculated from monopoles */
     ArrayFloat fieldMonopole_;
-    //array_float_3d fieldMonopole_;
     /** Array to hold electric field calculated from dipoles */
     ArrayFloat fieldDipole_;
-    //array_float_3d fieldDipole_;
     /** Border to leave around molecule in field grid */
     float border_ = 1.f;
     /** Array to hold atomic dipoles */
     ArrayFloat dipoles_;
-    //array_float_2d dipoles_;
     /** Array to hold grid bounds; needs to be reset each frame (or often) */
     ArrayFloat gridBounds_;
-    //array_float_2d gridBounds_;
     /** Coordinates of each grid point */
     ArrayFloat gridCoords_;
-    //array_float_2d gridCoords_;
+    /** Centre of grid */
+    std::vector<float> gridCentre_;
 
 public:
     /** Constructor for a blank instance of an electric field map */
