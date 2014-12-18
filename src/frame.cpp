@@ -81,10 +81,10 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
     char line[40];
     int ok = 0, gro_num_atoms;
     num_ = 0;
-    //float atom_charge, atom_mass;
+//    float atom_charge, atom_mass;
     std::ifstream gro;
     gmx_bool bOK = 0;
-    Atom *atom;
+//    Atom *atom;
     ok = read_first_xtc(xtc, &num_atoms_, &step_, &time_, box_, &x_, &prec_, &bOK);
     gro.open(groname);
     if(gro.is_open()){
@@ -100,13 +100,11 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
         }else{
             cout << "Found " << num_atoms_ << " atoms" << endl;
         }
-        //allocateAtoms(num_atoms_);
-        //Residue *res;
+//        Residue *res;
         string res_name_new, res_name_last;
         int res_loc = -1;
         for(int i = 0; i < num_atoms_; i++){       // now we can read the atoms
             atoms_.push_back(Atom(i));
-            //atom = &(atoms_[i]);
             gro >> res_name_new >> atoms_[i].atom_type >> atoms_[i].atom_num;
             atoms_[i].atom_type[3] = '\0';
             gro.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -115,7 +113,8 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
             if(res_name_new.compare(res_name_last) != 0){
                 residues_.push_back(Residue(res_name_new));
                 res_loc++;
-                if(res_loc < 10 && res_loc > 0){
+                if(res_loc == 1){
+//                if(res_loc < 10 && res_loc > 0){
                     cout << "res: " << res_loc-1 << " resname: "<< residues_[res_loc-1].res_name;
                     cout << " size: " << residues_[res_loc-1].atoms.size() << endl;
                 }

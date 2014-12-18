@@ -1,6 +1,7 @@
 #include "field_map.h"
 
-#include <algorithm>
+//#include <algorithm>
+#include <cmath>
 #include <iostream>
 
 using std::min;
@@ -12,18 +13,20 @@ using std::endl;
 FieldMap::FieldMap(){
 }
 
-FieldMap::FieldMap(const int a, const int b, const int c){
+FieldMap::FieldMap(const int a, const int b, const int c, const int natoms){
     gridDims_.reserve(3);
     gridDims_[0] = a; gridDims_[1] = b; gridDims_[2] = c;
     gridCentre_.reserve(3);
     cout << "Field Monopole" << endl;
-    fieldMonopole_.init(a, b, c, true);
+    fieldMonopole_.init(a, b, c, false);
     cout << "Field Dipole" << endl;
-    fieldDipole_.init(a, b, c, true);
+    fieldDipole_.init(a, b, c, false);
     cout << "Grid bounds" << endl;
-    gridBounds_.init(3, 2, 1, true);
+    gridBounds_.init(3, 2, 1, false);
     cout << "Coords" << endl;
-    gridCoords_.init(3, max(a, max(b, c)), 1, true);
+    gridCoords_.init(max(a, max(b, c)), 3, 1, false);
+    cout << "Dipoles" << endl;
+    dipoles_.init(natoms, 7, 1, false);
 }
 
 void FieldMap::setupGrid(Frame *frame){
@@ -59,41 +62,61 @@ void FieldMap::setupGrid(Frame *frame){
 void FieldMap::calcFieldMonopoles(Frame *frame){
     float inveps = 1. / (4 * M_PI * 8.854187817e-12);
     // inveps = 8.9875517873681e9
+    float x, y, z;
+    #pragma omp parallel for
     for(int i=0; i < gridDims_[0]; i++){
+        x = gridCoords_(i, 0);
         for(int j=0; j < gridDims_[1]; j++){
+            y = gridCoords_(j, 1);
             for(int k=0; k < gridDims_[2]; k++){
+                z = gridCoords_(k, 2);
                 fieldMonopole_(i, j, k) = 0.;
                 for(Atom atom : frame->atoms_){
                     fieldMonopole_(i, j, k) += atom.charge /
-                            distSqr(atom.coords, i, j, k);
+                            distSqr(atom.coords, x, y, z);
                 }
             }
         }
     }
 }
 
-float FieldMap::distSqr(float *coords, int i, int j, int k) {
-    return pow((coords[0] - gridCoords_(0, i)), 2.f) +
-            pow((coords[1] - gridCoords_(1, j)), 2.f) +
-            pow((coords[2] - gridCoords_(2, k)), 2.f);
+void FieldMap::calcFieldDipoles(Frame *frame) {
+    float inveps = 1. / (4 * M_PI * 8.854187817e-12);
+    //float inveps = 8.9875517873681e9;
+    float x, y, z;
+    float dip_angle = 0;
+    #pragma omp parallel for
+    for(int i=0; i < gridDims_[0]; i++){
+        x = gridCoords_(i, 0);
+        for(int j=0; j < gridDims_[1]; j++){
+            y = gridCoords_(j, 1);
+            for(int k=0; k < gridDims_[2]; k++){
+                z = gridCoords_(k, 2);
+                fieldDipole_(i, j, k) = 0.;
+                int ii = 0;
+                for(Atom atom : frame->atoms_){
+                    fieldDipole_(i, j, k) += dipoles_(ii, 6) * cos(dip_angle) /
+                            distSqr(atom.coords, x, y, z);
+                    ii++;
+                    //self.grid_dipole[i][j][k] += dipole[6] * cos(dip_angle)
+                }
+            }
+        }
+    }
 }
 
-/*
-    def calc_field_dipoles(self):
-        """
-        Calculate the electric field over the grid from point dipoles
-        :return: Nothing, store result in self.grid_dipole
-        """
-        inveps = 1. / (4 * np.pi * 8.854187817e-12)     # I don't multiply by this, would just cancel out anyway
-        # inveps = 8.9875517873681e9
-        for i in xrange(self.grid_dim[0]):
-            for j in xrange(self.grid_dim[1]):
-                for k in xrange(self.grid_dim[2]):
-                    self.grid_dipole[i][j][k] = 0.
-                    for dipole in self.dipoles:
-                        #self.grid_monopole[i][j][k] += atom.charge / self.dist_sqr(atom, i, j, k)
-                        self.grid_dipole[i][j][k] += dipole[6] * cos(dip_angle) /\
-                                                     dist_sqr(dipole[0], dipole[1], dipole[2],
-                                                              i, j, k)
-                    # self.grid[i][j][k] *= inveps
+/**
+* \brief Return distance squared between two points.
+*
+* Originally used cmath pow - this version is much faster.
 */
+float FieldMap::distSqr(float *coords, const float x, const float y, const float z) {
+//    return (coords[0] - x)*(coords[0] - x) +
+//            (coords[1] - y)*(coords[1] - y) +
+//            (coords[2] - z)*(coords[2] - z);
+    float tmpx = coords[0] - x;
+    float tmpy = coords[1] - y;
+    float tmpz = coords[2] - z;
+    return tmpx*tmpx + tmpy*tmpy + tmpz*tmpz;
+}
+

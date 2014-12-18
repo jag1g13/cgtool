@@ -41,7 +41,7 @@ public:
     ArrayFloat();
     //TODO Destructor doesn't work??  Fix this
     //~ArrayFloat();
-    void init(const int a, const int b, const int c, const bool fast=false);
+    void init(const int a, const int b=1, const int c=1, const bool fast=false);
     //unsigned long operator ()(int i, int j=0, int k=0) const;
     //unsigned long & operator ()(int i, int j=0, int k=0);
     float& operator()(int x);

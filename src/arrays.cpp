@@ -16,7 +16,6 @@ ArrayFloat::ArrayFloat(){
 ArrayFloat::ArrayFloat(const int a, const int b, const int c, const bool fast){
     fast_ = fast;
     allocated_ = false;
-    //if(a<1 || b<1 || c<1) throw std::runtime_error("Passed 0 size to array allocation");
     assert(a > 0);
     assert(b > 0);
     assert(c > 0);
@@ -24,19 +23,16 @@ ArrayFloat::ArrayFloat(const int a, const int b, const int c, const bool fast){
     if(a > 1) dimensions_++;
     if(b > 1) dimensions_++;
     if(c > 1) dimensions_++;
-    //size_ = size;
     size_.reserve(3);
     size_[0] = a; size_[1] = b; size_[2] = c;
-    cout << size_[0] << size_[1] << size_[2] << endl;
+    cout << size_[0] << "x" << size_[1] << "x" << size_[2] << endl;
     elems_ = a*b*c;
-    for(int i : size_) elems_ *= i;
-    //array_ = (float*)malloc(elems_ * sizeof(float));
+//    for(int i : size_) elems_ *= i;
     array_ = new float[elems_];
     if(array_ == NULL) throw std::runtime_error("Array alloc failed");
     allocated_ = true;
     cout << dimensions_ << "d array\t";
-    for(int i : size_) cout << i << " ";
-    //cout << size_[0] << "x" << size_[1] << "x" << size_[2] << "\t";
+//    for(int i : size_) cout << i << "x";
     cout << elems_ << " elements" << endl;
 }
 
@@ -53,14 +49,14 @@ void ArrayFloat::init(const int a, const int b, const int c, const bool fast){
     size_.reserve(3);
     size_[0] = a; size_[1] = b; size_[2] = c;
     sizex_ = a; sizey_ = b; sizez_ = c;
-    cout << size_[0] << size_[1] << size_[2] << endl;
+    cout << size_[0] << "x" << size_[1] << "x" << size_[2] << endl;
     elems_ = a*b*c;
-    for(int i : size_) elems_ *= i;
+//    for(int i : size_) elems_ *= i;
     array_ = new float[elems_];
     if(array_ == NULL) throw std::runtime_error("Array alloc failed");
     allocated_ = true;
     cout << dimensions_ << "d array\t";
-    for(int i : size_) cout << i << " ";
+//    for(int i : size_) cout << i << "x";
     cout << elems_ << " elements" << endl;
 }
 

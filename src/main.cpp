@@ -23,7 +23,8 @@
 #include "field_map.h"
 
 #define DEBUG true
-#define PROGRESS_UPDATE_FREQ 1
+#define PROGRESS_UPDATE_FREQ 10
+#define ELECTRIC_FIELD_FREQ 25
 
 /*things from std that get used a lot*/
 using std::ifstream;
@@ -66,7 +67,7 @@ int main(int argc, char *argv[]){
         strcpy(groname, argv[1]);
         strcat(groname, "/npt.gro");
         strcpy(xtcname, argv[1]);
-        strcat(xtcname, "/npt.xtc");
+        strcat(xtcname, "/md.xtc");
         strcpy(mapname, argv[1]);
         strcat(mapname, "/map.in");
         strcpy(topname, argv[1]);
@@ -104,7 +105,7 @@ int main(int argc, char *argv[]){
     mapping.initFrame(&frame, &cg_frame);
     BondSet bond_set;
     bond_set.fromFile(bndname);
-    FieldMap field(5, 5, 5);
+    FieldMap field(10, 10, 10, frame.num_atoms_);
 
     /* Keep reading frames until something goes wrong (run out of frames) */
     split_text_output("Reading frames", start);
@@ -116,9 +117,15 @@ int main(int argc, char *argv[]){
     ofstream file_len("length.csv"), file_angle("angle.csv"), file_dih("dihedral.csv");
     while(frame.readNext(xtc)){
         /* Process each frame as we read it, frames are not retained */
+        if(i % PROGRESS_UPDATE_FREQ == 0){
+            cout << "Read " << i << " frames\r";
+            std::flush(cout);
+        }
         //cg_map(&frame, &cg_frame);
-        field.setupGrid(&frame);
-        field.calcFieldMonopoles(&frame);
+        if(i % ELECTRIC_FIELD_FREQ == 0){
+            field.setupGrid(&frame);
+            field.calcFieldMonopoles(&frame);
+        }
         tmp = bond_set.calcBondLens(&frame);
         bond_lens.push_back(tmp);
         printToCSV(&file_len, &tmp);
@@ -128,10 +135,6 @@ int main(int argc, char *argv[]){
         tmp = bond_set.calcBondDihedrals(&frame);
         bond_dihedrals.push_back(tmp);
         printToCSV(&file_dih, &tmp);
-        if(i % PROGRESS_UPDATE_FREQ == 0){
-            cout << "Read " << i << " frames\r";
-            std::flush(cout);
-        }
         if(output) frame.writeToXtc(xtc_out);
         //usleep(1000);
         i++;
@@ -145,15 +148,15 @@ int main(int argc, char *argv[]){
     close_xtc(xtc);
 
     /* Post processing */
-    split_text_output("Post processing", start);
-    start = std::clock();
-    calc_avg(bond_lens);
-    calc_avg(bond_angles);
-    calc_avg(bond_dihedrals);
+//    split_text_output("Post processing", start);
+//    start = std::clock();
+//    calc_avg(bond_lens);
+//    calc_avg(bond_angles);
+//    calc_avg(bond_dihedrals);
 
     /* Final timer */
-    split_text_output("Finished", start);
-    split_text_output("Total time", start_time);
+//    split_text_output("Finished", start);
+//    split_text_output("Total time", start_time);
     return 0;
 }
 

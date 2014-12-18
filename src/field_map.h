@@ -23,7 +23,7 @@ private:
     ArrayFloat fieldDipole_;
     /** Border to leave around molecule in field grid */
     float border_ = 1.f;
-    /** Array to hold atomic dipoles */
+    /** Dipole of each atom, coords, vector, magnitude */
     ArrayFloat dipoles_;
     /** Array to hold grid bounds; needs to be reset each frame (or often) */
     ArrayFloat gridBounds_;
@@ -36,11 +36,12 @@ public:
     /** Constructor for a blank instance of an electric field map */
     FieldMap();
     /** Constructor for FieldMap to perform setup */
-    FieldMap(const int a, const int b, const int c);
+    FieldMap(const int a, const int b, const int c, const int natoms=0);
     /** Determine grid bounds from a Frame object and do setup each time */
     void setupGrid(Frame *frame);
     void calcFieldMonopoles(Frame *frame);
-    float distSqr(float *coords, int i, int j, int k);
+    void calcFieldDipoles(Frame *frame);
+    float distSqr(float *coords, const float x, const float y, const float z);
 };
 
 #endif
