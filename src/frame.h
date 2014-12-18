@@ -77,6 +77,8 @@ public:
     int step_;
     /** The number of atoms stored in this frame */
     int num_atoms_;
+    /** The number of atoms stored in this frame that we find interesting */
+    int numAtomsTrack_;
     /** Vector of Atoms; Each Atom contains position and type data */
     std::vector<Atom> atoms_;
     /** Vector of Residues; Each Residue contains pointers to atoms */

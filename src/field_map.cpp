@@ -27,6 +27,8 @@ FieldMap::FieldMap(const int a, const int b, const int c, const int natoms){
     gridCoords_.init(max(a, max(b, c)), 3, 1, false);
     cout << "Dipoles" << endl;
     dipoles_.init(natoms, 7, 1, false);
+    cout << "Grid contracted" << endl;
+    gridContracted_.init(a*b*c, 4, 1, false);
 }
 
 void FieldMap::setupGrid(Frame *frame){
@@ -57,6 +59,63 @@ void FieldMap::setupGrid(Frame *frame){
         gridCoords_.linspace(1, gridBounds_(1, 0), gridBounds_(1, 1));
         gridCoords_.linspace(2, gridBounds_(2, 0), gridBounds_(2, 1));
     }
+}
+
+void FieldMap::setupGridContracted(Frame *frame){
+    /*RADMIN=50.0D0                                                     CHE01860        still inside x,y,z, loops
+    187       DO 100 I=1,NATOMS                                                 CHE01870        for each atom
+    188       VRAD = RADII(I)                                                   CHE01880
+    189       DIST = (P1 - C(1,I))**2 + (P2 - C(2,I))**2 + (P3 - C(3,I))**2     CHE01890        calculate distance of grid point to atom
+    190       DIST = DSQRT(DIST)                                                CHE01900
+    191       IF (DIST .LT. VRAD) GOTO 210                                      CHE01910        if grid point is inside atom - skip
+    192       IF (DIST .LT. RADMIN) RADMIN = DIST                               CHE01920        keep track of closest grid point
+    193   100 CONTINUE                                                          CHE01930        do next atom
+        194       IF (RADMIN .GT. RMAX) GOTO 210                                    CHE01940        if grid point is too far away from all atoms - skip
+    195 C                                                                       CHE01950
+    196 C        STORE POINTS (IN ATOMIC UNITS)                                 CHE01960
+    197 C                                                                       CHE01970
+    198       IPOINT = IPOINT + 1                                               CHE01980
+    199       P(1,IPOINT) = P1                                                  CHE01990        store grid point if accepted
+        200       P(2,IPOINT) = P2                                                  CHE02000
+    201       P(3,IPOINT) = P3                                                  CHE02010
+    202       IF (IPO(2) .EQ. 1)                                                CHE02020
+    203      $ WRITE(IOUT,*) 'POINT ',IPOINT,' X,Y,Z ',P1,P2,P3                 CHE02030
+    204   210 CONTINUE                                                          CHE02040
+    205   200 CONTINUE
+    */
+    float radmin = 50.f;
+    float dist = 0.f;
+    float rmax = 5.0f;      // reject if more than 5A away from all atoms
+    float vrad = 0.15f;       // reject if within 1A of an atom (inside atomic radius)
+    float x, y, z;
+    bool accepted;
+    vector<float> coords(3);
+    gridContracted_.appendedRows_ = 0;
+    for(int i=0; i < gridDims_[0]; i++){
+        coords[0] = gridCoords_(i, 0);
+        for(int j=0; j < gridDims_[1]; j++){
+            coords[1] = gridCoords_(j, 1);
+            for(int k=0; k < gridDims_[2]; k++){
+                coords[2] = gridCoords_(k, 2);
+                radmin = 50.f;
+                //for(Atom atom : frame->atoms_){
+                for(int ii : frame->residues_[0].atoms){
+                    dist = sqrt(distSqr(frame->atoms_[ii].coords, coords[0], coords[1], coords[2]));
+                    if(dist < vrad){
+                        accepted = false;
+                        break;
+                    }
+                    if(dist < radmin) radmin = dist;
+                    accepted = true;
+                }
+                if(radmin > rmax) continue;
+                if(accepted){
+                    gridContracted_.append(coords);
+                }
+            }
+        }
+    }
+    cout << gridContracted_.appendedRows_ << endl;
 }
 
 void FieldMap::calcFieldMonopoles(Frame *frame){

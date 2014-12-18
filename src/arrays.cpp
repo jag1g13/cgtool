@@ -60,6 +60,18 @@ void ArrayFloat::init(const int a, const int b, const int c, const bool fast){
     cout << elems_ << " elements" << endl;
 }
 
+void ArrayFloat::append(vector<float> vec){
+    if(!fast_) {
+        assert(dimensions_ == 2);
+        assert(vec.size() <= size_[1]);
+        assert(appendedRows_ < size_[0]);
+    }
+    for(int i=0; i<vec.size(); i++){
+        array_[appendedRows_*sizey_ + i] = vec[i];
+    }
+    appendedRows_++;
+}
+
 float& ArrayFloat::operator()(int x){
     if(!fast_) {
         assert(dimensions_ >= 1);

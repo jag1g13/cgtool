@@ -23,8 +23,8 @@
 #include "field_map.h"
 
 #define DEBUG true
-#define PROGRESS_UPDATE_FREQ 10
-#define ELECTRIC_FIELD_FREQ 25
+#define PROGRESS_UPDATE_FREQ 50
+#define ELECTRIC_FIELD_FREQ 50
 
 /*things from std that get used a lot*/
 using std::ifstream;
@@ -105,7 +105,7 @@ int main(int argc, char *argv[]){
     mapping.initFrame(&frame, &cg_frame);
     BondSet bond_set;
     bond_set.fromFile(bndname);
-    FieldMap field(10, 10, 10, frame.num_atoms_);
+    FieldMap field(25, 25, 25, frame.num_atoms_);
 
     /* Keep reading frames until something goes wrong (run out of frames) */
     split_text_output("Reading frames", start);
@@ -124,6 +124,7 @@ int main(int argc, char *argv[]){
         //cg_map(&frame, &cg_frame);
         if(i % ELECTRIC_FIELD_FREQ == 0){
             field.setupGrid(&frame);
+//            field.setupGridContracted(&frame);
             field.calcFieldMonopoles(&frame);
         }
         tmp = bond_set.calcBondLens(&frame);

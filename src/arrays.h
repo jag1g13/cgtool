@@ -36,6 +36,7 @@ protected:
     int sizex_, sizey_, sizez_;
 
 public:
+    int appendedRows_ = 0;
     //ArrayFloat(const std::vector<int> size, const bool fast=false);
     ArrayFloat(const int a, const int b, const int c, const bool fast=false);
     ArrayFloat();
@@ -44,6 +45,7 @@ public:
     void init(const int a, const int b=1, const int c=1, const bool fast=false);
     //unsigned long operator ()(int i, int j=0, int k=0) const;
     //unsigned long & operator ()(int i, int j=0, int k=0);
+    void append(std::vector<float> vec);
     float& operator()(int x);
     float& operator()(int x, int y);
     float& operator()(int x, int y, int z);
