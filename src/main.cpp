@@ -26,7 +26,7 @@
 #define PROGRESS_UPDATE_FREQ 50
 #define ELECTRIC_FIELD_FREQ 50
 
-/*things from std that get used a lot*/
+/* things from std that get used a lot */
 using std::ifstream;
 using std::ofstream;
 using std::string;
@@ -36,7 +36,7 @@ using std::endl;
 using std::vector;
 using std::clock_t;
 
-/*prototype functions*/
+/* prototype functions */
 vector<float> calc_avg(vector<vector<float>>);
 
 void printToCSV(ofstream *file, const vector<float> *vec);
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]){
         strcpy(groname, argv[1]);
         strcat(groname, "/npt.gro");
         strcpy(xtcname, argv[1]);
-        strcat(xtcname, "/md.xtc");
+        strcat(xtcname, "/npt.xtc");
         strcpy(mapname, argv[1]);
         strcat(mapname, "/map.in");
         strcpy(topname, argv[1]);
@@ -105,7 +105,7 @@ int main(int argc, char *argv[]){
     mapping.initFrame(&frame, &cg_frame);
     BondSet bond_set;
     bond_set.fromFile(bndname);
-    FieldMap field(25, 25, 25, frame.num_atoms_);
+    FieldMap field(15, 15, 15, frame.num_atoms_);
 
     /* Keep reading frames until something goes wrong (run out of frames) */
     split_text_output("Reading frames", start);
@@ -124,8 +124,9 @@ int main(int argc, char *argv[]){
         //cg_map(&frame, &cg_frame);
         if(i % ELECTRIC_FIELD_FREQ == 0){
             field.setupGrid(&frame);
-//            field.setupGridContracted(&frame);
-            field.calcFieldMonopoles(&frame);
+            field.setupGridContracted(&frame);
+//            field.calcFieldMonopoles(&frame);
+            field.calcFieldMonopolesContracted(&frame);
         }
         tmp = bond_set.calcBondLens(&frame);
         bond_lens.push_back(tmp);

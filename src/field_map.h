@@ -22,7 +22,7 @@ private:
     /** Array to hold electric field calculated from dipoles */
     ArrayFloat fieldDipole_;
     /** Border to leave around molecule in field grid */
-    float border_ = 5.f;
+    float border_ = 1.f;    // 10A - 1nm
     /** Dipole of each atom, coords, vector, magnitude */
     ArrayFloat dipoles_;
     /** Array to hold grid bounds; needs to be reset each frame (or often) */
@@ -33,6 +33,8 @@ private:
     std::vector<float> gridCentre_;
     /*TODO Experimental things */
     ArrayFloat gridContracted_;
+    int numGridPoints_;
+    std::vector<float> fieldMonopoleContracted_;
 
 public:
     /** Constructor for a blank instance of an electric field map */
@@ -47,6 +49,7 @@ public:
 
     /*TODO Experimental things */
     void setupGridContracted(Frame *frame);
+    void calcFieldMonopolesContracted(Frame *frame);
 };
 
 #endif
