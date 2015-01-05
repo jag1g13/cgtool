@@ -24,7 +24,7 @@ FieldMap::FieldMap(const int a, const int b, const int c, const int natoms){
     cout << "Grid bounds" << endl;
     gridBounds_.init(3, 2, 1, false);
     cout << "Coords" << endl;
-    gridCoords_.init(max(a, max(b, c)), 3, 1, false);
+    gridCoords_.init(3, max(a, max(b, c)), 1, false);
     cout << "Dipoles" << endl;
     dipoles_.init(natoms, 7, 1, false);
     cout << "Grid contracted" << endl;
@@ -55,15 +55,34 @@ void FieldMap::setupGrid(Frame *frame){
     gridCentre_[1] = (gridBounds_(1, 1) - gridBounds_(1, 0)) / 2.;
     gridCentre_[2] = (gridBounds_(2, 1) - gridBounds_(2, 0)) / 2.;
     //cout << "Grid centre at: " << gridCentre_[0] << "," << gridCentre_[1] << "," << gridCentre_[2] << endl;
-    for(int i=0; i<3; i++){
-        /* for x, y, z do linspace of grid coordinates */
-        gridCoords_.linspace(0, gridBounds_(0, 0), gridBounds_(0, 1));
-        gridCoords_.linspace(1, gridBounds_(1, 0), gridBounds_(1, 1));
-        gridCoords_.linspace(2, gridBounds_(2, 0), gridBounds_(2, 1));
-    }
-    cout << gridBounds_(0, 0) << " " << gridBounds_(0, 1) << endl;
-    cout << gridBounds_(1, 0) << " " << gridBounds_(1, 1) << endl;
-    cout << gridBounds_(2, 0) << " " << gridBounds_(2, 1) << endl;
+        gridCoords_.linspace(0, gridDims_[0], gridBounds_(0, 0), gridBounds_(0, 1));
+        gridCoords_.linspace(1, gridDims_[1], gridBounds_(1, 0), gridBounds_(1, 1));
+        gridCoords_.linspace(2, gridDims_[2], gridBounds_(2, 0), gridBounds_(2, 1));
+//    for(int i=0; i<3; i++){
+//        /* for x, y, z do linspace of grid coordinates */
+//        gridCoords_.linspace(i, gridBounds_(i, 0), gridBounds_(i, 1));
+//    }
+//    cout << "Grid bounds" << endl;
+//    cout << gridBounds_(0, 0) << " " << gridBounds_(0, 1) << endl;
+//    cout << gridBounds_(1, 0) << " " << gridBounds_(1, 1) << endl;
+//    cout << gridBounds_(2, 0) << " " << gridBounds_(2, 1) << endl;
+//    cout << "Grid coords" << endl;
+//    for(int i=0; i<gridDims_[0]; i++){
+//        if(i%10 == 0) cout << endl;
+//        cout << gridCoords_(0, i) << " ";
+//    }
+//    cout << endl;
+//    for(int i=0; i<gridDims_[1]; i++){
+//        if(i%10 == 0) cout << endl;
+//        cout << gridCoords_(1, i) << " ";
+//    }
+//    cout << endl;
+//    for(int i=0; i<gridDims_[2]; i++){
+//        if(i%10 == 0) cout << endl;
+//        cout << gridCoords_(2, i) << " ";
+//    }
+//    cout << endl;
+//    cout << "Grid setup done" << endl;
 }
 
 void FieldMap::setupGridContracted(Frame *frame){
@@ -90,47 +109,55 @@ void FieldMap::setupGridContracted(Frame *frame){
     */
     float radmin = 500.f;
     float dist = 0.f;
-    float rmax = 5.0f;      // reject if more than 5A away from all atoms
-    float vrad = 0.0f;       // reject if within 1A of an atom (inside atomic radius)
+    float rmax = border_;    // use an rmax equal to border_ around molecule
+    float vrad = 0.1f;       // reject if within 1A of an atom (inside atomic radius)
     float x, y, z;
     bool accepted;
+    int accepted_count = 0, close_count = 0, far_count = 0;
     vector<float> coords(3);
     gridContracted_.appendedRows_ = 0;
+#pragma omp parallel for
     for(int i=0; i < gridDims_[0]; i++){
-        coords[0] = gridCoords_(i, 0);
+        coords[0] = gridCoords_(0, i);
         for(int j=0; j < gridDims_[1]; j++){
-            coords[1] = gridCoords_(j, 1);
+            coords[1] = gridCoords_(1, j);
             for(int k=0; k < gridDims_[2]; k++){
-                coords[2] = gridCoords_(k, 2);
+                coords[2] = gridCoords_(2, k);
                 radmin = 500.f;
                 accepted = true;
                 //for(Atom atom : frame->atoms_){
 //                for(int ii : frame->residues_[0].atoms){
-                cout << i << j << k << endl;
+//                cout << i << j << k << endl;
                 for(int ii=0; ii < frame->residues_[0].atoms.size(); ii++){
                     dist = sqrt(distSqr(frame->atoms_[ii].coords, coords[0], coords[1], coords[2]));
-                    cout << ii << endl;
+//                    cout << ii << endl;
+//                    if(dist < border_) cout << dist << endl;
+                    radmin = min(radmin, dist);
                     if(dist < vrad){
                         accepted = false;
-                        cout << "too close" << endl;
+//                        cout << "too close" << endl;
+                        ++close_count;
                         break;
                     }
-                    if(dist < radmin) radmin = dist;
+//                    if(dist < radmin) radmin = dist;
                 }
-                if(radmin > rmax){
-                    cout << "too far" << endl;
-                    cout << radmin << endl;
+                if(accepted && radmin > rmax){
+//                    cout << "too far" << endl;
+//                    cout << radmin << endl;
+                    ++far_count;
                     continue;
                 }
                 if(accepted){
                     gridContracted_.append(coords);
+                    ++accepted_count;
                 }
             }
         }
     }
     numGridPoints_ = gridContracted_.appendedRows_;
     fieldMonopoleContracted_.reserve(numGridPoints_);
-    cout << numGridPoints_ << " ";
+    cout << "Acc\tFar\tClose" << endl;
+    cout << accepted_count << "\t" << far_count << "\t" << close_count << endl;
 }
 
 void FieldMap::calcFieldMonopoles(Frame *frame){

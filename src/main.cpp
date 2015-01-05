@@ -9,6 +9,7 @@
 
 #include <rpc/rpc.h>
 #include <sys/stat.h>
+#include <omp.h>
 
 #ifndef INCLUDE_GMXFIO
 #define INCLUDE_GMXFIO
@@ -23,8 +24,9 @@
 #include "field_map.h"
 
 #define DEBUG true
-#define PROGRESS_UPDATE_FREQ 50
-#define ELECTRIC_FIELD_FREQ 50
+#define UPDATE_PROGRESS false
+#define PROGRESS_UPDATE_FREQ 10
+#define ELECTRIC_FIELD_FREQ 10
 
 /* things from std that get used a lot */
 using std::ifstream;
@@ -41,7 +43,7 @@ vector<float> calc_avg(vector<vector<float>>);
 
 void printToCSV(ofstream *file, const vector<float> *vec);
 
-void split_text_output(const char *, const clock_t);
+void split_text_output(const char *, const clock_t, const int num_threads);
 
 bool file_exists(const char *);
 
@@ -50,11 +52,18 @@ int main(int argc, char *argv[]){
     bool output = false;
     t_fileio *xtc, *xtc_out;
     char mode[2] = {'r', 'w'};
+    int num_threads = 0;
+    #pragma omp parallel
+    #pragma omp master
+    {
+        num_threads = omp_get_num_threads();
+    }
 
     /* Where does the user want us to look for input files? */
     clock_t start = std::clock();
     clock_t start_time = std::clock();
-    split_text_output("Identifying files", start);
+    split_text_output("Identifying files", start, num_threads);
+    cout << "Running with " << num_threads << " threads" << endl;
     char groname[40], xtcname[40], mapname[40], topname[40], bndname[40];
     if(argc < 2){
         cout << "Using current directory" << endl;
@@ -95,7 +104,7 @@ int main(int argc, char *argv[]){
     cout << "BND file: " << bndname << endl;
 
     /* Open files and do setup */
-    split_text_output("Frame setup", start);
+    split_text_output("Frame setup", start, num_threads);
     Frame frame = Frame(0, 0, "");
     xtc = open_xtc(xtcname, &mode[0]);
     if(output) xtc_out = open_xtc("out.xtc", &mode[1]);
@@ -105,10 +114,11 @@ int main(int argc, char *argv[]){
     mapping.initFrame(&frame, &cg_frame);
     BondSet bond_set;
     bond_set.fromFile(bndname);
-    FieldMap field(15, 15, 15, frame.num_atoms_);
+//    FieldMap field(25, 25, 25, frame.num_atoms_);
+    FieldMap field(20, 20, 20, frame.num_atoms_);
 
     /* Keep reading frames until something goes wrong (run out of frames) */
-    split_text_output("Reading frames", start);
+    split_text_output("Reading frames", start, num_threads);
     start = std::clock();
     int i = 0;
     vector<vector<float>> bond_lens, bond_angles, bond_dihedrals;
@@ -117,7 +127,7 @@ int main(int argc, char *argv[]){
     ofstream file_len("length.csv"), file_angle("angle.csv"), file_dih("dihedral.csv");
     while(frame.readNext(xtc)){
         /* Process each frame as we read it, frames are not retained */
-        if(i % PROGRESS_UPDATE_FREQ == 0){
+        if(i % PROGRESS_UPDATE_FREQ == 0 && UPDATE_PROGRESS){
             cout << "Read " << i << " frames\r";
             std::flush(cout);
         }
@@ -150,15 +160,15 @@ int main(int argc, char *argv[]){
     close_xtc(xtc);
 
     /* Post processing */
-//    split_text_output("Post processing", start);
+//    split_text_output("Post processing", start, num_threads);
 //    start = std::clock();
 //    calc_avg(bond_lens);
 //    calc_avg(bond_angles);
 //    calc_avg(bond_dihedrals);
 
     /* Final timer */
-//    split_text_output("Finished", start);
-//    split_text_output("Total time", start_time);
+//    split_text_output("Finished", start, num_threads);
+    split_text_output("Total time", start_time, num_threads);
     return 0;
 }
 
@@ -192,11 +202,12 @@ vector<float> calc_avg(vector<vector<float>> bond_lens){
     return mean;
 }
 
-void split_text_output(const char *name, const clock_t start){
+void split_text_output(const char *name, const clock_t start, const int num_threads){
     clock_t now = std::clock();
     if((float) (now - start) / CLOCKS_PER_SEC > 0.1){
         cout << "--------------------" << endl;
-        cout << (float) (now - start) / CLOCKS_PER_SEC << " seconds" << endl;
+//        cout << (float) (now - start) / (CLOCKS_PER_SEC) << " seconds" << endl;
+        cout << (float) (now - start) / (CLOCKS_PER_SEC * num_threads) << " seconds" << endl;
     }
     cout << "====================" << endl;
     cout << name << endl;

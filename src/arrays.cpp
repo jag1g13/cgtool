@@ -115,29 +115,29 @@ float& ArrayFloat::operator()(int x, int y, int z){
     return array_[x * sizey_ * sizez_ + y * sizez_ + z];
 }
 
-void ArrayFloat::linspace(const int a, const float min, const float max){
+void ArrayFloat::linspace(const int a, const int n, const float min, const float max){
     assert(dimensions_ == 2);
     assert(a < size_[0]);
     float *tmp = array_ + a*size_[1];
-    for(int i=0; i<size_[1]; i++){
-        tmp[i] = min + size_[1]*(max-min);
+    for(int i=0; i<n; i++){
+        tmp[i] = min + i*(max-min)/(n-1);
     }
 }
 
-void ArrayFloat::linspace(const int a, const int b, const float min, const float max){
+void ArrayFloat::linspace(const int a, const int b, const int n, const float min, const float max){
     assert(dimensions_ == 3);
     assert(a < size_[0]);
     assert(b < size_[1]);
     float *tmp = array_ + a*size_[1]*size_[2] + b*size_[2];
-    for(int i=0; i<size_[2]; i++){
-        tmp[i] = min + size_[2]*(max-min);
+    for(int i=0; i<n; i++){
+        tmp[i] = min + i*(max-min)/(n-1);
     }
 }
 
-void ArrayFloat::linspace(const float min, const float max){
+void ArrayFloat::linspace(const int n, const float min, const float max){
     assert(dimensions_ == 1);
-    for(int i=0; i<size_[0]; i++){
-        array_[i] = min + size_[0]*(max-min);
+    for(int i=0; i<n; i++){
+        array_[i] = min + i*(max-min)/(n-1);
     }
 }
 
