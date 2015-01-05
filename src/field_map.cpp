@@ -28,7 +28,7 @@ FieldMap::FieldMap(const int a, const int b, const int c, const int natoms){
     cout << "Dipoles" << endl;
     dipoles_.init(natoms, 7, 1, false);
     cout << "Grid contracted" << endl;
-    gridContracted_.init(a*b*c, 4, 1, false);
+    gridContracted_.init(a*b*c, 4, 1, true);
 }
 
 void FieldMap::setupGrid(Frame *frame){
@@ -156,8 +156,8 @@ void FieldMap::setupGridContracted(Frame *frame){
     }
     numGridPoints_ = gridContracted_.appendedRows_;
     fieldMonopoleContracted_.reserve(numGridPoints_);
-    cout << "Acc\tFar\tClose" << endl;
-    cout << accepted_count << "\t" << far_count << "\t" << close_count << endl;
+//    cout << "Acc\tFar\tClose" << endl;
+//    cout << accepted_count << "\t" << far_count << "\t" << close_count << endl;
 }
 
 void FieldMap::calcFieldMonopoles(Frame *frame){
@@ -166,11 +166,11 @@ void FieldMap::calcFieldMonopoles(Frame *frame){
     float x, y, z;
     #pragma omp parallel for
     for(int i=0; i < gridDims_[0]; i++){
-        x = gridCoords_(i, 0);
+        x = gridCoords_(0, i);
         for(int j=0; j < gridDims_[1]; j++){
-            y = gridCoords_(j, 1);
+            y = gridCoords_(1, j);
             for(int k=0; k < gridDims_[2]; k++){
-                z = gridCoords_(k, 2);
+                z = gridCoords_(2, k);
                 fieldMonopole_(i, j, k) = 0.;
                 for(Atom atom : frame->atoms_){
                     fieldMonopole_(i, j, k) += atom.charge /
@@ -216,6 +216,64 @@ void FieldMap::calcFieldDipoles(Frame *frame) {
             }
         }
     }
+}
+
+/*
+def calc_dipoles(cg_frame, frame, out_file, outfile_sum, export=True,
+                 cg_internal_bonds=cg_internal_bonds,
+                 sugar_atom_nums=sugar_atom_nums, adjacent=adjacent):
+    """
+    dipole of a charged fragment is dependent on where you measure it from
+    so now includes flag to make beads neutral
+    should modify this to include OW dipoles
+    """
+    old_dipoles = False
+    charge_redist = True   # redistribute charge, make all beads neutral
+    dipoles = []
+    frame_dipoles = np.zeros((len(cg_sites), 3))
+    for i, site in enumerate(cg_sites):
+        num_atoms = float(len(cg_internal_map[site]))
+        dipole = np.zeros(3)
+        dipole_sum = np.zeros(3)
+        if old_dipoles:     # calculate dipole from sum of bonds
+            for j, bond in enumerate(cg_internal_bonds[site]):
+                atom1 = frame.atoms[sugar_atom_nums[bond[0]]]
+                atom2 = frame.atoms[sugar_atom_nums[bond[1]]]
+                dipole += (atom1.loc - atom2.loc) *\
+                          (atom1.charge - atom2.charge)
+        else:   # dipole wrt origin then transpose
+            cg_atom = cg_frame.atoms[cg_atom_nums[site]]
+            for atom_name in cg_internal_map[site]:
+                atom = frame.atoms[sugar_atom_nums[atom_name]]
+                charge = atom.charge
+                if charge_redist:
+                    charge -= cg_atom.charge / num_atoms
+                dipole += atom.loc * charge    # first calc from origin
+            if not charge_redist:
+                dipole -= cg_atom.loc * cg_atom.charge  # then recentre it
+            # sum the dipoles, check that they equal the total molecular dipole
+        dipole_sum += dipole
+        norm, bisec = cg_frame.norm_bisec(cg_atom_nums[adjacent[site][0]], i,
+                                          cg_atom_nums[adjacent[site][1]])
+        frame_dipoles[i] += polar_coords(dipole, norm, bisec)
+        if export:
+            np.savetxt(out_file, frame_dipoles, delimiter=",")
+        dipoles.append(frame_dipoles)
+    if export:
+        np.savetxt(outfile_sum, dipole_sum, delimiter=",")
+    return dipoles
+*/
+
+/**
+* This uses a hack to allow direct calculation: charges within a bead are
+* rescaled to make each bead neutral.  This means that dipoles are no longer
+* dependent on the frame of reference.
+* The electric field from these dipoles should be compared against the field
+* from atomic point charges to determine validity.  They may need to be rescaled.
+* I don't see a better way to do this.
+*/
+void FieldMap::calcDipolesDirect(Frame *frame){
+
 }
 
 /**

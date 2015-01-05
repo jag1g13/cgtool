@@ -85,20 +85,22 @@ float& ArrayFloat::operator()(int x){
     return array_[x];
 }
 
-float& ArrayFloat::operator()(int x, int y){
-    if(!fast_) {
-        assert(dimensions_ >= 2);
-        if(x < 0) x = size_[0] + x;
-        if(y < 0) y = size_[1] + y;
+float& ArrayFloat::operator()(int x, int y) {
+    //return array_[x * size_[1] + y];
+    if(fast_){
+        return array_[x * sizey_ + y];
+    }else{
+        assert(dimensions_ == 2 || dimensions_ == 3);
+//        if (x < 0) x = size_[0] + x;
+//        if (y < 0) y = size_[1] + y;
         assert(x < size_[0] && x >= 0);
         assert(y < size_[1] && y >= 0);
         /* if 3d array return ref to a row */
-        if(dimensions_ == 3){
+        if (dimensions_ == 3) {
             return array_[x * size_[1] * size_[2] + y * size_[2]];
         }
+        return array_[x * sizey_ + y];
     }
-    //return array_[x * size_[1] + y];
-    return array_[x * sizey_ + y];
 }
 
 float& ArrayFloat::operator()(int x, int y, int z){

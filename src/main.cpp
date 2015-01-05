@@ -24,7 +24,7 @@
 #include "field_map.h"
 
 #define DEBUG true
-#define UPDATE_PROGRESS false
+#define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 10
 #define ELECTRIC_FIELD_FREQ 10
 
@@ -53,6 +53,9 @@ int main(int argc, char *argv[]){
     t_fileio *xtc, *xtc_out;
     char mode[2] = {'r', 'w'};
     int num_threads = 0;
+    clock_t start = std::clock();
+    clock_t start_time = std::clock();
+
     #pragma omp parallel
     #pragma omp master
     {
@@ -60,8 +63,6 @@ int main(int argc, char *argv[]){
     }
 
     /* Where does the user want us to look for input files? */
-    clock_t start = std::clock();
-    clock_t start_time = std::clock();
     split_text_output("Identifying files", start, num_threads);
     cout << "Running with " << num_threads << " threads" << endl;
     char groname[40], xtcname[40], mapname[40], topname[40], bndname[40];

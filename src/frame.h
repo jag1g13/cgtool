@@ -71,6 +71,8 @@ struct Residue{
 */
 class Frame{
 public:
+    /** Has the Frame been properly setup yet */
+    bool isSetup_ = false;
     /** The number of this Frame, starting at 0 */
     int num_;
     /** The simulation step corresponding to this frame */

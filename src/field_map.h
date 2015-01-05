@@ -50,6 +50,8 @@ public:
     /*TODO Experimental things */
     void setupGridContracted(Frame *frame);
     void calcFieldMonopolesContracted(Frame *frame);
+    /** \brief Calculate dipoles on beads directly from frame */
+    void calcDipolesDirect(Frame *frame);
 };
 
 #endif

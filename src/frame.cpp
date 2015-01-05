@@ -80,10 +80,11 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
     */
     char line[40];
     int ok = 0, gro_num_atoms;
-    num_ = 0;
 //    float atom_charge, atom_mass;
     std::ifstream gro;
     gmx_bool bOK = 0;
+    if(isSetup_) throw std::runtime_error("Frame has already been setup");
+    num_ = 0;
 //    Atom *atom;
     ok = read_first_xtc(xtc, &num_atoms_, &step_, &time_, box_, &x_, &prec_, &bOK);
     gro.open(groname);
@@ -133,7 +134,8 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
         cout << "GRO file cannot be opened" << endl;
         throw std::runtime_error("Could not open GRO file");
     }
-    return ok && bOK;                           // return True if it worked
+    if(ok && bOK) isSetup_ = true;
+    return isSetup_;                           // return True if it worked
 }
 
 bool Frame::readNext(t_fileio *xtc){
@@ -144,6 +146,7 @@ bool Frame::readNext(t_fileio *xtc){
     * The same Frame object should be used for each frame to save time in allocation.
     */
     int ok = 0, bOK = 0;
+    if(!isSetup_) throw std::runtime_error("Frame has already been setup");
     //ok_out = write_xtc(xtc_out, *natoms, *step, *time, box, *x, *prec);
     ok = read_next_xtc(xtc, num_atoms_, &step_, &time_, box_, x_, &prec_, &bOK);
     for(int i = 0; i < num_atoms_; i++){
