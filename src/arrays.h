@@ -50,6 +50,7 @@ public:
     float& operator()(int x, int y);
     float& operator()(int x, int y, int z);
     void zero();
+    void free();
     void linspace(const int a, const int b, const int n, const float min, const float max);
     void linspace(const int a, const int n, const float min, const float max);
     void linspace(const int n, const float min, const float max);

@@ -62,6 +62,7 @@ void ArrayFloat::init(const int a, const int b, const int c, const bool fast){
 
 void ArrayFloat::append(vector<float> vec){
     if(!fast_) {
+        assert(allocated_);
         assert(dimensions_ == 2);
         assert(vec.size() <= size_[1]);
         assert(appendedRows_ < size_[0]);
@@ -74,6 +75,7 @@ void ArrayFloat::append(vector<float> vec){
 
 float& ArrayFloat::operator()(int x){
     if(!fast_) {
+        assert(allocated_);
         assert(dimensions_ >= 1);
         if(x < 0) x = size_[0] + x;
         assert(x < size_[0] && x >= 0);
@@ -90,6 +92,7 @@ float& ArrayFloat::operator()(int x, int y) {
     if(fast_){
         return array_[x * sizey_ + y];
     }else{
+        assert(allocated_);
         assert(dimensions_ == 2 || dimensions_ == 3);
 //        if (x < 0) x = size_[0] + x;
 //        if (y < 0) y = size_[1] + y;
@@ -105,6 +108,7 @@ float& ArrayFloat::operator()(int x, int y) {
 
 float& ArrayFloat::operator()(int x, int y, int z){
     if(!fast_) {
+        assert(allocated_);
         assert(dimensions_ == 3);
         if(x < 0) x = size_[0] + x;
         if(y < 0) y = size_[1] + y;
@@ -118,6 +122,7 @@ float& ArrayFloat::operator()(int x, int y, int z){
 }
 
 void ArrayFloat::linspace(const int a, const int n, const float min, const float max){
+    assert(allocated_);
     assert(dimensions_ == 2);
     assert(a < size_[0]);
     float *tmp = array_ + a*size_[1];
@@ -127,6 +132,7 @@ void ArrayFloat::linspace(const int a, const int n, const float min, const float
 }
 
 void ArrayFloat::linspace(const int a, const int b, const int n, const float min, const float max){
+    assert(allocated_);
     assert(dimensions_ == 3);
     assert(a < size_[0]);
     assert(b < size_[1]);
@@ -137,6 +143,7 @@ void ArrayFloat::linspace(const int a, const int b, const int n, const float min
 }
 
 void ArrayFloat::linspace(const int n, const float min, const float max){
+    assert(allocated_);
     assert(dimensions_ == 1);
     for(int i=0; i<n; i++){
         array_[i] = min + i*(max-min)/(n-1);
@@ -144,9 +151,16 @@ void ArrayFloat::linspace(const int n, const float min, const float max){
 }
 
 void ArrayFloat::zero(){
+    assert(allocated_);
     for(int i=0; i<elems_; i++){
-        array_[i] = 0.;
+        array_[i] = 0.f;
     }
+}
+
+void ArrayFloat::free(){
+    assert(allocated_);
+    allocated_ = false;
+    delete[] array_;
 }
 
 //ArrayFloat::~ArrayFloat(){
