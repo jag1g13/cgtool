@@ -172,9 +172,3 @@ void ArrayFloat::free(){
 //    }
 //}
 
-void linspace_1d(array_float_1d array, const float min, const float max, const int steps){
-    for(int i=0; i<steps; i++){
-        array[i] = min + steps*(max-min);
-    }
-}
-

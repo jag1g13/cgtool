@@ -4,20 +4,6 @@
 //#include <cstdlib>
 #include <vector>
 
-typedef float* array_float_1d;
-typedef float** array_float_2d;
-typedef float*** array_float_3d;
-
-/** Allocate a 2d array of floats, return pointer if successful */
-array_float_2d alloc_float_2d(const int a, const int b);
-/** Allocate a 3d array of floats, return pointer if successful */
-array_float_3d alloc_float_3d(const int a, const int b, const int c);
-
-/** Allocate a 2d array of floats in flat form, return pointer if successful */
-array_float_1d alloc_float_2d_flat(const int a, const int b, const int c);
-/** Allocate a 3d array of floats in flat form, return pointer if successful */
-array_float_1d alloc_float_3d_flat(const int a, const int b, const int c);
-
 /**
 * \brief Array of floats with safety features.
 *
@@ -27,41 +13,57 @@ array_float_1d alloc_float_3d_flat(const int a, const int b, const int c);
 */
 class ArrayFloat{
 protected:
+    /** Dimension of array: allows 1,2,3 */
     int dimensions_;
+    /** Size of array in each dimension */
     std::vector<int> size_;
+    /** Total number of elements in array */
     int elems_;
+    /** Pointer to the actual array */
     float* array_;
+    /** Ignore safety features?  Default no */
     bool fast_;
+    /** Has array_ been allocated yet? */
     bool allocated_;
-    int sizex_, sizey_, sizez_;
+    /** Size of the array in the x dimension */
+    int sizex_;
+    /** Size of the array in the y dimension */
+    int sizey_;
+    /** Size of the array in the z dimension */
+    int sizez_;
 
 public:
+    /** How many rows have been appended to the array? */
     int appendedRows_ = 0;
     //ArrayFloat(const std::vector<int> size, const bool fast=false);
+    /** Constructor which allocates the array automatically */
     ArrayFloat(const int a, const int b, const int c, const bool fast=false);
+    /** Default constructor which doesn't allocate the array automatically */
     ArrayFloat();
     //TODO Destructor doesn't work??  Fix this
     //~ArrayFloat();
+    /** Initialise the array after calling the defaul blank constructor */
     void init(const int a, const int b=1, const int c=1, const bool fast=false);
     //unsigned long operator ()(int i, int j=0, int k=0) const;
     //unsigned long & operator ()(int i, int j=0, int k=0);
+    /** Append a row to the array into the next blank row */
     void append(std::vector<float> vec);
+    /** 1 dimensional access to the array */
     float& operator()(int x);
+    /** 2 dimensional access to the array */
     float& operator()(int x, int y);
+    /** 3 dimensional access to the array */
     float& operator()(int x, int y, int z);
+    /** Set all elements to 0.f */
     void zero();
+    /** Free the array and mark as unallocated */
     void free();
+    /** Linspace a line of a 3d array */
     void linspace(const int a, const int b, const int n, const float min, const float max);
+    /** Linspace a line of a 2d array */
     void linspace(const int a, const int n, const float min, const float max);
+    /** Linspace a line of a 1d array */
     void linspace(const int n, const float min, const float max);
 };
-
-/** Linspace (similar to numpy) over a 1d array */
-void linspace_1d(array_float_1d array, const float min, const float max, const int steps);
-
-/** Zero a 2d float array */
-void zero_float_2d(array_float_2d array, const int a, const int b);
-/** Zero a 3d float array */
-void zero_float_3d(array_float_3d array, const int a, const int b, const int c);
 
 #endif
