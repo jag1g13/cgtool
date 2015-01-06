@@ -108,6 +108,7 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
             atoms_.push_back(Atom(i));
             gro >> res_name_new >> atoms_[i].atom_type >> atoms_[i].atom_num;
             atoms_[i].atom_type[3] = '\0';
+            atoms_[i].atom_type_string = atoms_[i].atom_type;
             gro.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             atoms_[i].atom_num--;
             atoms_[i].resid = res_name_new;
@@ -120,6 +121,11 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
                     cout << " size: " << residues_[res_loc-1].atoms.size() << endl;
                 }
             }
+            /*
+            * assume we only really care about the first residue
+            * this is the one that will be CG mapped
+            */
+            numAtomsTrack_ = residues_[0].atoms.size();
             residues_[res_loc].atoms.push_back(atoms_[i].atom_num);
             residues_[res_loc].atom_names.push_back(atoms_[i].atom_type);
             memcpy(atoms_[i].coords, x_[i], 3 * sizeof(float));

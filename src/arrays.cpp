@@ -25,15 +25,15 @@ ArrayFloat::ArrayFloat(const int a, const int b, const int c, const bool fast){
     if(c > 1) dimensions_++;
     size_.reserve(3);
     size_[0] = a; size_[1] = b; size_[2] = c;
-    cout << size_[0] << "x" << size_[1] << "x" << size_[2] << endl;
+//    cout << size_[0] << "x" << size_[1] << "x" << size_[2] << endl;
     elems_ = a*b*c;
 //    for(int i : size_) elems_ *= i;
     array_ = new float[elems_];
     if(array_ == NULL) throw std::runtime_error("Array alloc failed");
     allocated_ = true;
-    cout << dimensions_ << "d array\t";
+//    cout << dimensions_ << "d array\t";
 //    for(int i : size_) cout << i << "x";
-    cout << elems_ << " elements" << endl;
+//    cout << elems_ << " elements" << endl;
 }
 
 void ArrayFloat::init(const int a, const int b, const int c, const bool fast){
@@ -49,15 +49,15 @@ void ArrayFloat::init(const int a, const int b, const int c, const bool fast){
     size_.reserve(3);
     size_[0] = a; size_[1] = b; size_[2] = c;
     sizex_ = a; sizey_ = b; sizez_ = c;
-    cout << size_[0] << "x" << size_[1] << "x" << size_[2] << endl;
+//    cout << size_[0] << "x" << size_[1] << "x" << size_[2] << endl;
     elems_ = a*b*c;
 //    for(int i : size_) elems_ *= i;
     array_ = new float[elems_];
     if(array_ == NULL) throw std::runtime_error("Array alloc failed");
     allocated_ = true;
-    cout << dimensions_ << "d array\t";
+//    cout << dimensions_ << "d array\t";
 //    for(int i : size_) cout << i << "x";
-    cout << elems_ << " elements" << endl;
+//    cout << elems_ << " elements" << endl;
 }
 
 void ArrayFloat::append(vector<float> vec){

@@ -25,6 +25,8 @@ struct Atom{
     std::string resid;
     /** A three character atom type specifier; e.g. "OH1"; Should replace with a string */
     char atom_type[4];
+    /** Atomtype as a string.  I don't want to be dealing with *char */
+    std::string atom_type_string;
     /** Atomic coordinates in x, y, z */
     float coords[3];
     /** Atomic charge from the force field */
@@ -33,7 +35,10 @@ struct Atom{
     float mass;
     /** Vector of pointers to Atom listing all atoms bonded to this one */
     std::vector<Atom *> neighbours;
+    /** Create an Atom and set its number */
     Atom(int num){atom_num = num;};
+    /** Create a blank Atom instance */
+    Atom(){};
 };
 
 /**
@@ -77,6 +82,7 @@ public:
     int num_;
     /** The simulation step corresponding to this frame */
     int step_;
+    //TODO refactor these names to match the new style
     /** The number of atoms stored in this frame */
     int num_atoms_;
     /** The number of atoms stored in this frame that we find interesting */

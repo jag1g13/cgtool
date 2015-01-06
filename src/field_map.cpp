@@ -17,17 +17,17 @@ FieldMap::FieldMap(const int a, const int b, const int c, const int natoms){
     gridDims_.reserve(3);
     gridDims_[0] = a; gridDims_[1] = b; gridDims_[2] = c;
     gridCentre_.reserve(3);
-    cout << "Field Monopole" << endl;
+//    cout << "Field Monopole" << endl;
     fieldMonopole_.init(a, b, c, false);
-    cout << "Field Dipole" << endl;
+//    cout << "Field Dipole" << endl;
     fieldDipole_.init(a, b, c, false);
-    cout << "Grid bounds" << endl;
+//    cout << "Grid bounds" << endl;
     gridBounds_.init(3, 2, 1, false);
-    cout << "Coords" << endl;
+//    cout << "Coords" << endl;
     gridCoords_.init(3, max(a, max(b, c)), 1, false);
-    cout << "Dipoles" << endl;
+//    cout << "Dipoles" << endl;
     dipoles_.init(natoms, 7, 1, false);
-    cout << "Grid contracted" << endl;
+//    cout << "Grid contracted" << endl;
     gridContracted_.init(a*b*c, 4, 1, true);
 }
 
@@ -38,7 +38,7 @@ void FieldMap::setupGrid(Frame *frame){
     gridBounds_(2, 0) = 1e6; gridBounds_(2, 1) = -1e6;
 //    for(auto atom : frame->atoms_){
     for(int ii : frame->residues_[0].atoms){
-        /* for each atom, compare min and max against coords */
+        /* find bounding box of molecule */
             Atom *atom = &(frame->atoms_[ii]);
         gridBounds_(0, 0) = min(gridBounds_(0, 0), atom->coords[0]);
         gridBounds_(0, 1) = max(gridBounds_(0, 1), atom->coords[0]);
@@ -50,14 +50,15 @@ void FieldMap::setupGrid(Frame *frame){
     gridBounds_(0, 0) -= border_; gridBounds_(0, 1) += border_;
     gridBounds_(1, 0) -= border_; gridBounds_(1, 1) += border_;
     gridBounds_(2, 0) -= border_; gridBounds_(2, 1) += border_;
-    /* set gridCentre */
+
     gridCentre_[0] = (gridBounds_(0, 1) - gridBounds_(0, 0)) / 2.;
     gridCentre_[1] = (gridBounds_(1, 1) - gridBounds_(1, 0)) / 2.;
     gridCentre_[2] = (gridBounds_(2, 1) - gridBounds_(2, 0)) / 2.;
     //cout << "Grid centre at: " << gridCentre_[0] << "," << gridCentre_[1] << "," << gridCentre_[2] << endl;
-        gridCoords_.linspace(0, gridDims_[0], gridBounds_(0, 0), gridBounds_(0, 1));
-        gridCoords_.linspace(1, gridDims_[1], gridBounds_(1, 0), gridBounds_(1, 1));
-        gridCoords_.linspace(2, gridDims_[2], gridBounds_(2, 0), gridBounds_(2, 1));
+
+    gridCoords_.linspace(0, gridDims_[0], gridBounds_(0, 0), gridBounds_(0, 1));
+    gridCoords_.linspace(1, gridDims_[1], gridBounds_(1, 0), gridBounds_(1, 1));
+    gridCoords_.linspace(2, gridDims_[2], gridBounds_(2, 0), gridBounds_(2, 1));
 //    for(int i=0; i<3; i++){
 //        /* for x, y, z do linspace of grid coordinates */
 //        gridCoords_.linspace(i, gridBounds_(i, 0), gridBounds_(i, 1));
@@ -111,7 +112,7 @@ void FieldMap::setupGridContracted(Frame *frame){
     float dist = 0.f;
     float rmax = border_;    // use an rmax equal to border_ around molecule
     float vrad = 0.1f;       // reject if within 1A of an atom (inside atomic radius)
-    float x, y, z;
+//    float x, y, z;
     bool accepted;
     int accepted_count = 0, close_count = 0, far_count = 0;
     vector<float> coords(3);

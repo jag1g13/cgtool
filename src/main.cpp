@@ -26,7 +26,7 @@
 #define DEBUG true
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 10
-#define ELECTRIC_FIELD_FREQ 10
+#define ELECTRIC_FIELD_FREQ 1
 
 /* things from std that get used a lot */
 using std::ifstream;
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]){
     BondSet bond_set;
     bond_set.fromFile(bndname);
 //    FieldMap field(25, 25, 25, frame.num_atoms_);
-    FieldMap field(20, 20, 20, frame.num_atoms_);
+    FieldMap field(10, 10, 10, frame.num_atoms_);
 
     /* Keep reading frames until something goes wrong (run out of frames) */
     split_text_output("Reading frames", start, num_threads);
@@ -132,20 +132,23 @@ int main(int argc, char *argv[]){
             cout << "Read " << i << " frames\r";
             std::flush(cout);
         }
-        //cg_map(&frame, &cg_frame);
+        mapping.apply(&frame, &cg_frame);
         if(i % ELECTRIC_FIELD_FREQ == 0){
             field.setupGrid(&frame);
             field.setupGridContracted(&frame);
 //            field.calcFieldMonopoles(&frame);
             field.calcFieldMonopolesContracted(&frame);
         }
-        tmp = bond_set.calcBondLens(&frame);
+//        tmp = bond_set.calcBondLens(&frame);
+        tmp = bond_set.calcBondLens(&cg_frame);
         bond_lens.push_back(tmp);
         printToCSV(&file_len, &tmp);
-        tmp = bond_set.calcBondAngles(&frame);
+//        tmp = bond_set.calcBondAngles(&frame);
+        tmp = bond_set.calcBondAngles(&cg_frame);
         bond_angles.push_back(tmp);
         printToCSV(&file_angle, &tmp);
-        tmp = bond_set.calcBondDihedrals(&frame);
+//        tmp = bond_set.calcBondDihedrals(&frame);
+        tmp = bond_set.calcBondDihedrals(&cg_frame);
         bond_dihedrals.push_back(tmp);
         printToCSV(&file_dih, &tmp);
         if(output) frame.writeToXtc(xtc_out);

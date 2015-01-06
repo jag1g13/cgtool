@@ -19,7 +19,13 @@ struct BeadMap{
     vector<string> atoms;
     /** The atoms which should be mapped into this bead, by order in Frame */
     vector<int> atom_nums;
+    /** Total mass of bead */
+    float mass;
+    /** Total charge on bead */
+    float charge;
 };
+
+enum class MapType{CM, GC, ATOM};
 
 /**
 * \brief Contains data and functions related to the CG mapping
@@ -35,6 +41,9 @@ public:
     std::map<string, BeadMap*> atomname_to_bead_;
     /** Number of beads defined */
     int num_beads;
+    //TODO implement more mapping types
+    /** What type of mapping are we going to apply?  CM, GC, or atom centred */
+    MapType mapType_ = MapType::ATOM;
 
     /**
     * \brief Constructor to create a blank instance
@@ -55,13 +64,16 @@ public:
 
     /**
     * \brief Setup a CG Frame object that has already been declared
+    *
+    * Allocates space for each bead and copies over constant data from the atomistic Frame
     */
-    void initFrame(Frame *aa_frame, Frame *cg_frame);
+    void initFrame(const Frame *aa_frame, Frame *cg_frame);
 
     /**
     * \brief Apply CG mapping to an atomistic Frame
     *
-    * Requires a pre-constructed Frame for output, but can allocate the number of atoms here
+    * Requires that initFrame has already been called to setup the CG Frame.
+    * Will throw std::runtime_error if Frame hasn't been setup.
     */
     bool apply(const Frame *aa_frame, Frame *cg_frame);
 };
