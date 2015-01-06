@@ -26,7 +26,7 @@
 #define DEBUG true
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 10
-#define ELECTRIC_FIELD_FREQ 1
+#define ELECTRIC_FIELD_FREQ 10
 
 /* things from std that get used a lot */
 using std::ifstream;
@@ -156,6 +156,7 @@ int main(int argc, char *argv[]){
         i++;
     }
     cout << "Read " << i << " frames" << endl;
+    cg_frame.printAtoms();
 
     /* close remaining files */
     file_len.close();

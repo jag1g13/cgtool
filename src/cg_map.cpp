@@ -42,43 +42,62 @@ void CGMap::fromFile(string filename){
 }
 
 void CGMap::initFrame(const Frame *aa_frame, Frame *cg_frame){
-    int i = 0;
     cg_frame->num_ = aa_frame->num_;
     cg_frame->name_ = aa_frame->name_;
     cg_frame->prec_ = aa_frame->prec_;
     cg_frame->time_ = aa_frame->time_;
     //TODO finish copying values over
 //    cg_frame->box_ = aa_frame->box_;
+    int i = 0;
     for(auto &bead : mapping_) {
         cg_frame->atoms_.push_back(Atom(i));
+        cg_frame->atoms_[i].atom_type_string = bead.cg_bead;
+        cg_frame->atoms_[i].coords[0] = 0.f;
+        cg_frame->atoms_[i].coords[1] = 0.f;
+        cg_frame->atoms_[i].coords[2] = 0.f;
         cg_frame->name_to_num_.emplace(bead.cg_bead, i);
         cg_frame->num_to_name_.emplace(i, bead.cg_bead);
-        for(auto &atomname : bead.atoms){
+        for(auto &atomname : bead.atoms) {
             atomname_to_bead_.emplace(atomname, &bead);  // dictionary of atomnames to bead pointers
             //cout << bead->cg_bead << " contains " << *atomname << endl;
-            for(auto &atom : aa_frame->atoms_){
-                if(atom.atom_type_string == bead.atoms[0]){
-                    bead.atom_nums.push_back(atom.atom_num);
-                    break;
+        }
+//            for(auto &atom : aa_frame->atoms_){
+        for(int j=0; j<aa_frame->numAtomsTrack_; j++) {
+            for (string &atomname : bead.atoms){
+//                cout << atomname << "\t" << aa_frame->atoms_[j].atom_type << endl;
+                if(aa_frame->atoms_[j].atom_type == atomname){
+                    cg_frame->atoms_[i].mass += aa_frame->atoms_[j].mass;
+                    cg_frame->atoms_[i].charge += aa_frame->atoms_[j].charge;
+//                    cout << "Match" << endl;
                 }
+            }
+            if(aa_frame->atoms_[j].atom_type == bead.atoms[0]){
+                bead.atom_nums.push_back(aa_frame->atoms_[j].atom_num);
             }
         }
         i++;
     }
     cg_frame->num_atoms_ = i+1;
     cg_frame->numAtomsTrack_ = i+1;
+
 //    for(auto &atom : aa_frame->atoms_){
     for(int i=0; i<aa_frame->numAtomsTrack_; i++){
         // for atom in aa_frame that we care about
         const Atom *atom = &aa_frame->atoms_[i];
 //        if(atom->atom_num < 20) cout << atomname_to_bead_[atom->atom_type] << endl;
-        BeadMap* inbead = atomname_to_bead_[atom->atom_type];
+        BeadMap *inbead = atomname_to_bead_[atom->atom_type];
+//        if(atom->atom_num < 20) cout << &inbead << endl;
         inbead->mass += atom->mass;
         inbead->charge += atom->charge;
+//        cout << inbead->mass << "\t" << inbead->charge << endl;
 //        inbead->atom_nums.push_back(atom.atom_num);
 //        this won't put them in the right order
     }
+
     cg_frame->isSetup_ = true;
+    cout << "CG Frame" << endl;
+    cg_frame->printAtoms();
+    cout << "Done init cg_frame" << endl;
 }
 
 //TODO why is this a bool?

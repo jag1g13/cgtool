@@ -145,6 +145,9 @@ public:
     */
     bool writeToXtc(t_fileio *);
 
+    /** Print info for all atoms up to n.  Default print all. */
+    void printAtoms(const int n=-1);
+
     /**
     * \brief Calculate distance between two atoms
     */
