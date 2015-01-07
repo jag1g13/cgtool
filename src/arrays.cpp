@@ -31,6 +31,8 @@ ArrayFloat::ArrayFloat(const int a, const int b, const int c, const bool fast){
     array_ = new float[elems_];
     if(array_ == NULL) throw std::runtime_error("Array alloc failed");
     allocated_ = true;
+//    if(!fast) zero();
+    zero();
 //    cout << dimensions_ << "d array\t";
 //    for(int i : size_) cout << i << "x";
 //    cout << elems_ << " elements" << endl;
@@ -55,6 +57,8 @@ void ArrayFloat::init(const int a, const int b, const int c, const bool fast){
     array_ = new float[elems_];
     if(array_ == NULL) throw std::runtime_error("Array alloc failed");
     allocated_ = true;
+//    if(!fast) zero();
+    zero();
 //    cout << dimensions_ << "d array\t";
 //    for(int i : size_) cout << i << "x";
 //    cout << elems_ << " elements" << endl;

@@ -15,6 +15,8 @@ using std::vector;
 struct BeadMap{
     /** The name of this CG bead */
     string cg_bead;
+    /** The number of atoms this bead contains */
+    int num_atoms;
     /** The atoms which should be mapped into this bead */
     vector<string> atoms;
     /** The atoms which should be mapped into this bead, by order in Frame */

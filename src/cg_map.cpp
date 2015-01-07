@@ -27,6 +27,7 @@ void CGMap::fromFile(string filename){
         BeadMap new_bead;
         new_bead.cg_bead = substrs[0];
         new_bead.atoms = vector<string>(substrs.begin() + 1, substrs.end());
+        new_bead.num_atoms = int(new_bead.atoms.size());
         mapping_.push_back(new_bead);
     }
     num_beads = mapping_.size();

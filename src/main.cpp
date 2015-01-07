@@ -26,7 +26,7 @@
 #define DEBUG true
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 10
-#define ELECTRIC_FIELD_FREQ 10
+#define ELECTRIC_FIELD_FREQ 1
 
 /* things from std that get used a lot */
 using std::ifstream;

@@ -36,13 +36,15 @@ public:
     /** How many rows have been appended to the array? */
     int appendedRows_ = 0;
     //ArrayFloat(const std::vector<int> size, const bool fast=false);
-    /** Constructor which allocates the array automatically */
+    /** \brief Constructor which allocates the array automatically.
+    * The array is zeroed after allocation. */
     ArrayFloat(const int a, const int b, const int c, const bool fast=false);
     /** Default constructor which doesn't allocate the array automatically */
     ArrayFloat();
     //TODO Destructor doesn't work??  Fix this
     //~ArrayFloat();
-    /** Initialise the array after calling the defaul blank constructor */
+    /** \brief Initialise the array after calling the default blank constructor.
+    * The array is zeroed after allocation. */
     void init(const int a, const int b=1, const int c=1, const bool fast=false);
     //unsigned long operator ()(int i, int j=0, int k=0) const;
     //unsigned long & operator ()(int i, int j=0, int k=0);

@@ -5,6 +5,7 @@
 
 #include "arrays.h"
 #include "frame.h"
+#include "cg_map.h"
 //#include "boost/multi_array.hpp"
 
 /**
@@ -42,21 +43,22 @@ public:
     /** Constructor for FieldMap to perform setup */
     FieldMap(const int a, const int b, const int c, const int natoms=0);
     /** Determine grid bounds from a Frame object and do setup each time */
-    void setupGrid(Frame *frame);
+    void setupGrid(const Frame *frame);
     /** Calculate the electric field from point charges */
-    void calcFieldMonopoles(Frame *frame);
+    void calcFieldMonopoles(const Frame *frame);
     /** Calculate the electric field from point dipoles */
-    void calcFieldDipoles(Frame *frame);
-    /** Calculate the square of the distance between two points */
-    float distSqr(float *coords, const float x, const float y, const float z);
+    void calcFieldDipoles(const Frame *frame);
+    /** \brief Calculate the square of the distance between two points */
+    float distSqr(const float *coords, const float x, const float y, const float z);
 
     /*TODO Experimental things */
     /** Create a CHELPG style grid using only points in a shell around the molecule */
-    void setupGridContracted(Frame *frame);
+    void setupGridContracted(const Frame *frame);
     /** Calculate the electric field from point charges using the CHELPG style grid */
-    void calcFieldMonopolesContracted(Frame *frame);
-    /** Calculate dipoles on beads directly from frame */
-    void calcDipolesDirect(Frame *frame);
+    void calcFieldMonopolesContracted(const Frame *frame);
+    /** \brief Calculate dipoles on beads directly from frame
+    * Modifies charges in atomistic Frame */
+    void calcDipolesDirect(const CGMap *cgmap, const Frame *frame, Frame *aa_frame);
 };
 
 #endif

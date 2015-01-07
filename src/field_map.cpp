@@ -13,7 +13,7 @@ using std::endl;
 FieldMap::FieldMap(){
 }
 
-FieldMap::FieldMap(const int a, const int b, const int c, const int natoms){
+FieldMap::FieldMap(const int a, const int b, const int c, const int ndipoles){
     gridDims_.reserve(3);
     gridDims_[0] = a; gridDims_[1] = b; gridDims_[2] = c;
     gridCentre_.reserve(3);
@@ -26,12 +26,12 @@ FieldMap::FieldMap(const int a, const int b, const int c, const int natoms){
 //    cout << "Coords" << endl;
     gridCoords_.init(3, max(a, max(b, c)), 1, false);
 //    cout << "Dipoles" << endl;
-    dipoles_.init(natoms, 7, 1, false);
+    dipoles_.init(ndipoles, 7, 1, false);
 //    cout << "Grid contracted" << endl;
     gridContracted_.init(a*b*c, 4, 1, true);
 }
 
-void FieldMap::setupGrid(Frame *frame){
+void FieldMap::setupGrid(const Frame *frame){
     /* create min and max initial values */
     gridBounds_(0, 0) = 1e6; gridBounds_(0, 1) = -1e6;
     gridBounds_(1, 0) = 1e6; gridBounds_(1, 1) = -1e6;
@@ -39,7 +39,7 @@ void FieldMap::setupGrid(Frame *frame){
 //    for(auto atom : frame->atoms_){
     for(int ii : frame->residues_[0].atoms){
         /* find bounding box of molecule */
-            Atom *atom = &(frame->atoms_[ii]);
+        const Atom *atom = &(frame->atoms_[ii]);
         gridBounds_(0, 0) = min(gridBounds_(0, 0), atom->coords[0]);
         gridBounds_(0, 1) = max(gridBounds_(0, 1), atom->coords[0]);
         gridBounds_(1, 0) = min(gridBounds_(1, 0), atom->coords[1]);
@@ -86,7 +86,7 @@ void FieldMap::setupGrid(Frame *frame){
 //    cout << "Grid setup done" << endl;
 }
 
-void FieldMap::setupGridContracted(Frame *frame){
+void FieldMap::setupGridContracted(const Frame *frame){
     /*RADMIN=50.0D0                                                     CHE01860        still inside x,y,z, loops
     187       DO 100 I=1,NATOMS                                                 CHE01870        for each atom
     188       VRAD = RADII(I)                                                   CHE01880
@@ -161,7 +161,7 @@ void FieldMap::setupGridContracted(Frame *frame){
 //    cout << accepted_count << "\t" << far_count << "\t" << close_count << endl;
 }
 
-void FieldMap::calcFieldMonopoles(Frame *frame){
+void FieldMap::calcFieldMonopoles(const Frame *frame){
     float inveps = 1. / (4 * M_PI * 8.854187817e-12);
     // inveps = 8.9875517873681e9
     float x, y, z;
@@ -182,7 +182,7 @@ void FieldMap::calcFieldMonopoles(Frame *frame){
     }
 }
 
-void FieldMap::calcFieldMonopolesContracted(Frame *frame){
+void FieldMap::calcFieldMonopolesContracted(const Frame *frame){
     float inveps = 1. / (4 * M_PI * 8.854187817e-12);
     // inveps = 8.9875517873681e9
 #pragma omp parallel for
@@ -194,7 +194,7 @@ void FieldMap::calcFieldMonopolesContracted(Frame *frame){
     }
 }
 
-void FieldMap::calcFieldDipoles(Frame *frame) {
+void FieldMap::calcFieldDipoles(const Frame *frame) {
     float inveps = 1. / (4 * M_PI * 8.854187817e-12);
     //float inveps = 8.9875517873681e9;
     float x, y, z;
@@ -228,7 +228,6 @@ def calc_dipoles(cg_frame, frame, out_file, outfile_sum, export=True,
     so now includes flag to make beads neutral
     should modify this to include OW dipoles
     """
-    old_dipoles = False
     charge_redist = True   # redistribute charge, make all beads neutral
     dipoles = []
     frame_dipoles = np.zeros((len(cg_sites), 3))
@@ -236,23 +235,16 @@ def calc_dipoles(cg_frame, frame, out_file, outfile_sum, export=True,
         num_atoms = float(len(cg_internal_map[site]))
         dipole = np.zeros(3)
         dipole_sum = np.zeros(3)
-        if old_dipoles:     # calculate dipole from sum of bonds
-            for j, bond in enumerate(cg_internal_bonds[site]):
-                atom1 = frame.atoms[sugar_atom_nums[bond[0]]]
-                atom2 = frame.atoms[sugar_atom_nums[bond[1]]]
-                dipole += (atom1.loc - atom2.loc) *\
-                          (atom1.charge - atom2.charge)
-        else:   # dipole wrt origin then transpose
-            cg_atom = cg_frame.atoms[cg_atom_nums[site]]
-            for atom_name in cg_internal_map[site]:
-                atom = frame.atoms[sugar_atom_nums[atom_name]]
-                charge = atom.charge
-                if charge_redist:
-                    charge -= cg_atom.charge / num_atoms
-                dipole += atom.loc * charge    # first calc from origin
-            if not charge_redist:
-                dipole -= cg_atom.loc * cg_atom.charge  # then recentre it
-            # sum the dipoles, check that they equal the total molecular dipole
+        cg_atom = cg_frame.atoms[cg_atom_nums[site]]
+        for atom_name in cg_internal_map[site]:
+            atom = frame.atoms[sugar_atom_nums[atom_name]]
+            charge = atom.charge
+            if charge_redist:
+                charge -= cg_atom.charge / num_atoms
+            dipole += atom.loc * charge    # first calc from origin
+        if not charge_redist:
+            dipole -= cg_atom.loc * cg_atom.charge  # then recentre it
+        # sum the dipoles, check that they equal the total molecular dipole
         dipole_sum += dipole
         norm, bisec = cg_frame.norm_bisec(cg_atom_nums[adjacent[site][0]], i,
                                           cg_atom_nums[adjacent[site][1]])
@@ -273,16 +265,25 @@ def calc_dipoles(cg_frame, frame, out_file, outfile_sum, export=True,
 * from atomic point charges to determine validity.  They may need to be rescaled.
 * I don't see a better way to do this.
 */
-void FieldMap::calcDipolesDirect(Frame *frame){
-
+void FieldMap::calcDipolesDirect(const CGMap *cgmap, const Frame *cg_frame, Frame *aa_frame){
+//    for(BeadMap &bead : cgmap->mapping_){
+    for(int i=0; i<cgmap->num_beads; i++){
+        const BeadMap &bead_type = cgmap->mapping_[i];
+        const Atom &cg_atom = cg_frame->atoms_[i];
+        // for each bead in the CG frame
+        for(const int &j : bead_type.atom_nums){
+            // for each atom inside the bead
+            // rescale charges so bead charge is zero
+            float charge = aa_frame->atoms_[j].charge;
+            charge -= cg_atom.charge / bead_type.num_atoms;
+        }
+    }
 }
 
 /**
-* \brief Return distance squared between two points.
-*
 * Originally used cmath pow - this version is much faster.
 */
-float FieldMap::distSqr(float *coords, const float x, const float y, const float z) {
+float FieldMap::distSqr(const float *coords, const float x, const float y, const float z) {
 //    return (coords[0] - x)*(coords[0] - x) +
 //            (coords[1] - y)*(coords[1] - y) +
 //            (coords[2] - z)*(coords[2] - z);
