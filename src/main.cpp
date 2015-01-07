@@ -26,7 +26,7 @@
 #define DEBUG true
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 10
-#define ELECTRIC_FIELD_FREQ 1
+#define ELECTRIC_FIELD_FREQ 150
 
 /* things from std that get used a lot */
 using std::ifstream;
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]){
     BondSet bond_set;
     bond_set.fromFile(bndname);
 //    FieldMap field(25, 25, 25, frame.num_atoms_);
-    FieldMap field(10, 10, 10, frame.num_atoms_);
+    FieldMap field(10, 10, 10, mapping.num_beads);
 
     /* Keep reading frames until something goes wrong (run out of frames) */
     split_text_output("Reading frames", start, num_threads);
@@ -138,6 +138,7 @@ int main(int argc, char *argv[]){
             field.setupGridContracted(&frame);
 //            field.calcFieldMonopoles(&frame);
             field.calcFieldMonopolesContracted(&frame);
+            field.calcDipolesDirect(&mapping, &cg_frame, &frame);
         }
 //        tmp = bond_set.calcBondLens(&frame);
         tmp = bond_set.calcBondLens(&cg_frame);
@@ -157,6 +158,7 @@ int main(int argc, char *argv[]){
     }
     cout << "Read " << i << " frames" << endl;
     cg_frame.printAtoms();
+    field.printDipoles();
 
     /* close remaining files */
     file_len.close();

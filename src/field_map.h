@@ -36,6 +36,7 @@ private:
     ArrayFloat gridContracted_;
     int numGridPoints_;
     std::vector<float> fieldMonopoleContracted_;
+    std::vector<float> fieldDipoleContracted_;
 
 public:
     /** Constructor for a blank instance of an electric field map */
@@ -56,9 +57,13 @@ public:
     void setupGridContracted(const Frame *frame);
     /** Calculate the electric field from point charges using the CHELPG style grid */
     void calcFieldMonopolesContracted(const Frame *frame);
+    /** Calculate the electric field from point dipoles using the CHELPG style grid */
+    void calcFieldDipolesContracted(const Frame *frame);
     /** \brief Calculate dipoles on beads directly from frame
     * Modifies charges in atomistic Frame */
     void calcDipolesDirect(const CGMap *cgmap, const Frame *frame, Frame *aa_frame);
+    /** Print the dipole array */
+    void printDipoles();
 };
 
 #endif

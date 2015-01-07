@@ -77,6 +77,19 @@ void ArrayFloat::append(vector<float> vec){
     appendedRows_++;
 }
 
+void ArrayFloat::append(const float *vec, const int len){
+    if(!fast_){
+        assert(allocated_);
+        assert(dimensions_ == 2);
+        assert(len <= size_[1]);
+        assert(appendedRows_ < size_[0]);
+    }
+    for(int i=0; i<len; i++){
+        array_[appendedRows_*sizey_ + i] = vec[i];
+    }
+    appendedRows_++;
+}
+
 float& ArrayFloat::operator()(int x){
     if(!fast_) {
         assert(allocated_);
@@ -98,8 +111,8 @@ float& ArrayFloat::operator()(int x, int y) {
     }else{
         assert(allocated_);
         assert(dimensions_ == 2 || dimensions_ == 3);
-//        if (x < 0) x = size_[0] + x;
-//        if (y < 0) y = size_[1] + y;
+        if (x < 0) x = size_[0] + x;
+        if (y < 0) y = size_[1] + y;
         assert(x < size_[0] && x >= 0);
         assert(y < size_[1] && y >= 0);
         /* if 3d array return ref to a row */
@@ -161,6 +174,25 @@ void ArrayFloat::zero(){
     }
 }
 
+void ArrayFloat::print(){
+    assert(allocated_);
+    if(dimensions_ == 3) throw std::runtime_error("Not implemented");
+    if(dimensions_ == 1){
+        for(int i=0; i<sizex_; i++){
+            cout << array_[i] << "\t";
+        }
+        cout << endl;
+    }else if(dimensions_ == 2){
+//        cout << sizex_ << "\t" << sizey_ << endl;
+        for(int i=0; i<sizex_; i++){
+            for(int j=0; j<sizey_; j++){
+                cout << array_[i * sizey_ + j] << "\t";
+            }
+            cout << endl;
+        }
+    }
+}
+
 void ArrayFloat::free(){
     assert(allocated_);
     allocated_ = false;
@@ -176,3 +208,8 @@ void ArrayFloat::free(){
 //    }
 //}
 
+//TODO implement array equality test
+bool operator==(ArrayFloat &a, ArrayFloat &b){
+    throw std::runtime_error("Not implemented");
+    return false;
+}

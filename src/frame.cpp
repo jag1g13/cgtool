@@ -183,9 +183,9 @@ bool Frame::readNext(t_fileio *xtc){
 
 void Frame::printAtoms(const int n){
     assert(isSetup_);
-//    cout.scientific();
+//    cout.setf(std::ios::scientific);
     cout.setf(std::ios::fixed);
-    cout.precision(3);
+    cout.precision(4);
     int i = 0;
     cout << "Name\tMass\tChrg\tPosx\tPosy\tPosz" << endl;
     for(Atom &atom : atoms_){

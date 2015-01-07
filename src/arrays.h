@@ -48,8 +48,12 @@ public:
     void init(const int a, const int b=1, const int c=1, const bool fast=false);
     //unsigned long operator ()(int i, int j=0, int k=0) const;
     //unsigned long & operator ()(int i, int j=0, int k=0);
-    /** Append a row to the array into the next blank row */
+    /** \brief Append a row to the array into the next blank row.
+    * Doesn't have to fill the row. */
     void append(std::vector<float> vec);
+    /** \brief Append a row to the array into the next blank row.
+    * Copies len floats from *vec.  Doesn't have to fill the row.*/
+    void append(const float *vec, const int len);
     /** 1 dimensional access to the array */
     float& operator()(int x);
     /** 2 dimensional access to the array */
@@ -58,6 +62,8 @@ public:
     float& operator()(int x, int y, int z);
     /** Set all elements to 0.f */
     void zero();
+    /** Print all elements of the array */
+    void print();
     /** Free the array and mark as unallocated */
     void free();
     /** Linspace a line of a 3d array */
@@ -66,6 +72,9 @@ public:
     void linspace(const int a, const int n, const float min, const float max);
     /** Linspace a line of a 1d array */
     void linspace(const int n, const float min, const float max);
+
+    // operators
+    friend bool operator==(ArrayFloat &a, ArrayFloat &b);
 };
 
 #endif

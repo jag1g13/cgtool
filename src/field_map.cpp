@@ -26,7 +26,7 @@ FieldMap::FieldMap(const int a, const int b, const int c, const int ndipoles){
 //    cout << "Coords" << endl;
     gridCoords_.init(3, max(a, max(b, c)), 1, false);
 //    cout << "Dipoles" << endl;
-    dipoles_.init(ndipoles, 7, 1, false);
+    dipoles_.init(ndipoles, 6, 1, false);
 //    cout << "Grid contracted" << endl;
     gridContracted_.init(a*b*c, 4, 1, true);
 }
@@ -51,9 +51,9 @@ void FieldMap::setupGrid(const Frame *frame){
     gridBounds_(1, 0) -= border_; gridBounds_(1, 1) += border_;
     gridBounds_(2, 0) -= border_; gridBounds_(2, 1) += border_;
 
-    gridCentre_[0] = (gridBounds_(0, 1) - gridBounds_(0, 0)) / 2.;
-    gridCentre_[1] = (gridBounds_(1, 1) - gridBounds_(1, 0)) / 2.;
-    gridCentre_[2] = (gridBounds_(2, 1) - gridBounds_(2, 0)) / 2.;
+    gridCentre_[0] = (gridBounds_(0, 1) - gridBounds_(0, 0)) / 2.f;
+    gridCentre_[1] = (gridBounds_(1, 1) - gridBounds_(1, 0)) / 2.f;
+    gridCentre_[2] = (gridBounds_(2, 1) - gridBounds_(2, 0)) / 2.f;
     //cout << "Grid centre at: " << gridCentre_[0] << "," << gridCentre_[1] << "," << gridCentre_[2] << endl;
 
     gridCoords_.linspace(0, gridDims_[0], gridBounds_(0, 0), gridBounds_(0, 1));
@@ -194,11 +194,25 @@ void FieldMap::calcFieldMonopolesContracted(const Frame *frame){
     }
 }
 
+//TODO dipole field - to check that they're right
+void FieldMap::calcFieldDipolesContracted(const Frame *frame){
+    float inveps = 1. / (4 * M_PI * 8.854187817e-12);
+    // inveps = 8.9875517873681e9
+#pragma omp parallel for
+    for(int i=0; i < numGridPoints_; i++) {
+        for(int j=0; j < frame->numAtomsTrack_; j++){
+//            fieldMonopoleContracted_[i] += atom.charge /
+//                    distSqr(atom.coords, gridContracted_(i, 0), gridContracted_(i, 1), gridContracted_(i, 2));
+
+        }
+    }
+}
+
 void FieldMap::calcFieldDipoles(const Frame *frame) {
     float inveps = 1. / (4 * M_PI * 8.854187817e-12);
     //float inveps = 8.9875517873681e9;
     float x, y, z;
-    float dip_angle = 0;
+    float cos_dip_angle = 0;
     #pragma omp parallel for
     for(int i=0; i < gridDims_[0]; i++){
         x = gridCoords_(i, 0);
@@ -209,7 +223,7 @@ void FieldMap::calcFieldDipoles(const Frame *frame) {
                 fieldDipole_(i, j, k) = 0.;
                 int ii = 0;
                 for(Atom atom : frame->atoms_){
-                    fieldDipole_(i, j, k) += dipoles_(ii, 6) * cos(dip_angle) /
+                    fieldDipole_(i, j, k) += dipoles_(ii, 5) * cos_dip_angle /
                             distSqr(atom.coords, x, y, z);
                     ii++;
                     //self.grid_dipole[i][j][k] += dipole[6] * cos(dip_angle)
@@ -266,18 +280,38 @@ def calc_dipoles(cg_frame, frame, out_file, outfile_sum, export=True,
 * I don't see a better way to do this.
 */
 void FieldMap::calcDipolesDirect(const CGMap *cgmap, const Frame *cg_frame, Frame *aa_frame){
+//    float inveps = 1. / (4 * M_PI * 8.854187817e-12);
 //    for(BeadMap &bead : cgmap->mapping_){
     for(int i=0; i<cgmap->num_beads; i++){
+//        cout << "doing bead #" << i << endl;
         const BeadMap &bead_type = cgmap->mapping_[i];
         const Atom &cg_atom = cg_frame->atoms_[i];
         // for each bead in the CG frame
         for(const int &j : bead_type.atom_nums){
+//            cout << "atom #" << j << endl;
             // for each atom inside the bead
             // rescale charges so bead charge is zero
             float charge = aa_frame->atoms_[j].charge;
-            charge -= cg_atom.charge / bead_type.num_atoms;
+//            charge -= cg_atom.charge / bead_type.num_atoms;
+            dipoles_(i, 0) += aa_frame->atoms_[j].coords[0] * charge;
+            dipoles_(i, 1) += aa_frame->atoms_[j].coords[1] * charge;
+            dipoles_(i, 2) += aa_frame->atoms_[j].coords[2] * charge;
         }
+        float charge = cg_frame->atoms_[i].charge;
+//        cout << charge << endl;
+        dipoles_(i, 0) -= cg_frame->atoms_[i].coords[0] * charge;
+        dipoles_(i, 1) -= cg_frame->atoms_[i].coords[1] * charge;
+        dipoles_(i, 2) -= cg_frame->atoms_[i].coords[2] * charge;
+        // calculate magnitude here
+        dipoles_(i, 5) = sqrt(dipoles_(i, 0)*dipoles_(i, 0) +
+                              dipoles_(i, 1)*dipoles_(i, 1) +
+                              dipoles_(i, 2)*dipoles_(i, 2));
     }
+}
+
+void FieldMap::printDipoles(){
+    cout << "Dipx\tDipy\tDipz\tPolt\tPolp\tPolm" << endl;
+    dipoles_.print();
 }
 
 /**

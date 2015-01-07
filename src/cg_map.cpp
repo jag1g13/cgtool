@@ -71,9 +71,9 @@ void CGMap::initFrame(const Frame *aa_frame, Frame *cg_frame){
                     cg_frame->atoms_[i].charge += aa_frame->atoms_[j].charge;
 //                    cout << "Match" << endl;
                 }
-            }
-            if(aa_frame->atoms_[j].atom_type == bead.atoms[0]){
-                bead.atom_nums.push_back(aa_frame->atoms_[j].atom_num);
+                if(aa_frame->atoms_[j].atom_type == atomname){
+                    bead.atom_nums.push_back(aa_frame->atoms_[j].atom_num);
+                }
             }
         }
         i++;
