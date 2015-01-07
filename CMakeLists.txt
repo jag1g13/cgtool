@@ -32,6 +32,37 @@ endif(DOXYGEN_FOUND)
 add_executable(tp2 ${SOURCE_FILES})
 target_link_libraries (tp2 ${EXTRA_LIBS})
 
+# names of the tests
+set(cpptests
+    csv)
+
+# how many parts does each test have
+set(csv_parts
+    1 2 3)
+
+# if we didn't say how many parts a test has, assume 1
+foreach(cpptest ${cpptests})
+    if(NOT DEFINED "${cpptest}_parts")
+        set(${cpptest}_parts "1")
+    endif()
+endforeach()
+
+foreach(cpptest ${cpptests})
+    set(cpptestsrc ${cpptestsrc} src/${cpptest}_test.cpp)
+endforeach()
+
+create_test_sourcelist(srclist test_runner.cpp ${cpptestsrc})
+add_executable(test_runner ${srclist})
+target_link_libraries(test_runner ${libs})
+
+foreach(cpptest ${cpptests})
+  foreach(part ${${cpptest}_parts})
+    add_test(test_${cpptest}_${part}
+             ${TEST_PATH}/test_runner src/${cpptest}_test ${part})
+    set_tests_properties(test_${cpptest}_${part} PROPERTIES
+      FAIL_REGULAR_EXPRESSION "ERROR;FAIL;Test failed")
+  endforeach()
+endforeach()
 
 enable_testing()
 add_test(tp_runs_1_arg tp2 ../test_data)
