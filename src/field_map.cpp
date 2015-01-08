@@ -225,7 +225,7 @@ void FieldMap::calcFieldDipoles(const Frame *frame) {
                 //TODO dot product: cos(theta) = A.B / |A||B|
                 for(Atom atom : frame->atoms_){
                     
-                    cos_dip_angle = dot()
+//                    cos_dip_angle = dot()
                     fieldDipole_(i, j, k) += dipoles_(ii, 5) * cos_dip_angle /
                             distSqr(atom.coords, x, y, z);
                     ii++;
