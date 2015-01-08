@@ -66,4 +66,7 @@ public:
     void printDipoles();
 };
 
+/** 3d vector dot product */
+inline float dot(const float *A, const float *B);
+
 #endif

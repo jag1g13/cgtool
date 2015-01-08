@@ -222,7 +222,10 @@ void FieldMap::calcFieldDipoles(const Frame *frame) {
                 z = gridCoords_(k, 2);
                 fieldDipole_(i, j, k) = 0.;
                 int ii = 0;
+                //TODO dot product: cos(theta) = A.B / |A||B|
                 for(Atom atom : frame->atoms_){
+                    
+                    cos_dip_angle = dot()
                     fieldDipole_(i, j, k) += dipoles_(ii, 5) * cos_dip_angle /
                             distSqr(atom.coords, x, y, z);
                     ii++;
@@ -231,6 +234,10 @@ void FieldMap::calcFieldDipoles(const Frame *frame) {
             }
         }
     }
+}
+
+inline float dot(const float *A, const float* B){
+    return A[0]*B[0] + A[1]*B[1] + A[2]*B[2];
 }
 
 /*
