@@ -78,8 +78,8 @@ void CGMap::initFrame(const Frame *aa_frame, Frame *cg_frame){
         }
         i++;
     }
-    cg_frame->num_atoms_ = i+1;
-    cg_frame->numAtomsTrack_ = i+1;
+    cg_frame->num_atoms_ = i;
+    cg_frame->numAtomsTrack_ = i;
 
 //    for(auto &atom : aa_frame->atoms_){
     for(int i=0; i<aa_frame->numAtomsTrack_; i++){

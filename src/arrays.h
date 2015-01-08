@@ -56,6 +56,8 @@ public:
     void append(const float *vec, const int len);
     /** 1 dimensional access to the array */
     float& operator()(int x);
+//    /** 1 dimensional access to the array allowing slicing */
+//    float* operator()(int x);
     /** 2 dimensional access to the array */
     float& operator()(int x, int y);
     /** 3 dimensional access to the array */

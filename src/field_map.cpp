@@ -157,6 +157,7 @@ void FieldMap::setupGridContracted(const Frame *frame){
     }
     numGridPoints_ = gridContracted_.appendedRows_;
     fieldMonopoleContracted_.reserve(numGridPoints_);
+    fieldDipoleContracted_.reserve(numGridPoints_);
 //    cout << "Acc\tFar\tClose" << endl;
 //    cout << accepted_count << "\t" << far_count << "\t" << close_count << endl;
 }
@@ -194,16 +195,50 @@ void FieldMap::calcFieldMonopolesContracted(const Frame *frame){
     }
 }
 
-//TODO dipole field - to check that they're right
+inline float dot(const float *A, const float* B){
+    return A[0]*B[0] + A[1]*B[1] + A[2]*B[2];
+}
+
+inline float abs(const float* vec){
+    return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
+}
+
+void FieldMap::printFields(){
+    cout << "ELECTRIC FIELDS" << endl;
+    for(int i=0; i<numGridPoints_; i++){
+        cout << fieldMonopoleContracted_[i] << "\t" << fieldDipoleContracted_[i] << endl;
+    }
+}
+
+//TODO dipole field - to check that they're right - pretty much done, needs testing
 void FieldMap::calcFieldDipolesContracted(const Frame *frame){
     float inveps = 1. / (4 * M_PI * 8.854187817e-12);
-    // inveps = 8.9875517873681e9
+    // float inveps = 8.9875517873681e9
+    float vec_a[3], vec_b[3];
+    float cos_dip_angle;
+    float abs_a;
+//    cout << numGridPoints_ << endl;
+//    cout << frame->numAtomsTrack_ << endl;
 #pragma omp parallel for
     for(int i=0; i < numGridPoints_; i++) {
+//        cout << "i=" << i << endl;
+        // for charge on the cg bead
+//        fieldDipoleContracted_[i] += dipoles_(j, 5) / (abs_a*abs_a);
         for(int j=0; j < frame->numAtomsTrack_; j++){
-//            fieldMonopoleContracted_[i] += atom.charge /
-//                    distSqr(atom.coords, gridContracted_(i, 0), gridContracted_(i, 1), gridContracted_(i, 2));
-
+//            cout << "j=" << j << endl;
+            // each 'atom' in frame, actually cg bead
+            for(int k=0; k<3; k++) {
+                // vector from point dipole to grid point
+                vec_a[k] = gridContracted_(i, k) - frame->atoms_[j].coords[k];
+                // copy of dipole vector
+                vec_b[k] = dipoles_(j, k);
+            }
+            abs_a = abs(vec_a);
+            cos_dip_angle = dot(vec_a, vec_b) / (dipoles_(j, 5) * abs_a);
+            fieldDipoleContracted_[i] += dipoles_(j, 5) / (abs_a*abs_a);
+            // Do I need to include the field from the charge on the bead?
+            fieldDipoleContracted_[i] += frame->atoms_[j].charge /
+                    distSqr(frame->atoms_[j].coords, gridContracted_(i, 0), gridContracted_(i, 1), gridContracted_(i, 2));
         }
     }
 }
@@ -212,7 +247,8 @@ void FieldMap::calcFieldDipoles(const Frame *frame) {
     float inveps = 1. / (4 * M_PI * 8.854187817e-12);
     //float inveps = 8.9875517873681e9;
     float x, y, z;
-    float cos_dip_angle = 0;
+    float vec_a[3], vec_b[3];
+    float cos_dip_angle;
     #pragma omp parallel for
     for(int i=0; i < gridDims_[0]; i++){
         x = gridCoords_(i, 0);
@@ -224,7 +260,7 @@ void FieldMap::calcFieldDipoles(const Frame *frame) {
                 int ii = 0;
                 //TODO dot product: cos(theta) = A.B / |A||B|
                 for(Atom atom : frame->atoms_){
-                    
+//                    vec_a[0] =
 //                    cos_dip_angle = dot()
                     fieldDipole_(i, j, k) += dipoles_(ii, 5) * cos_dip_angle /
                             distSqr(atom.coords, x, y, z);
@@ -234,10 +270,6 @@ void FieldMap::calcFieldDipoles(const Frame *frame) {
             }
         }
     }
-}
-
-inline float dot(const float *A, const float* B){
-    return A[0]*B[0] + A[1]*B[1] + A[2]*B[2];
 }
 
 /*

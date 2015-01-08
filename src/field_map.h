@@ -64,9 +64,13 @@ public:
     void calcDipolesDirect(const CGMap *cgmap, const Frame *frame, Frame *aa_frame);
     /** Print the dipole array */
     void printDipoles();
+    /** Print the electric fields */
+    void printFields();
 };
 
 /** 3d vector dot product */
 inline float dot(const float *A, const float *B);
+/** 3d vector magnitude */
+inline float abs(const float* vec);
 
 #endif

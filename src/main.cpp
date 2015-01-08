@@ -139,6 +139,7 @@ int main(int argc, char *argv[]){
 //            field.calcFieldMonopoles(&frame);
             field.calcFieldMonopolesContracted(&frame);
             field.calcDipolesDirect(&mapping, &cg_frame, &frame);
+            field.calcFieldDipolesContracted(&cg_frame);
         }
 //        tmp = bond_set.calcBondLens(&frame);
         tmp = bond_set.calcBondLens(&cg_frame);
@@ -159,6 +160,7 @@ int main(int argc, char *argv[]){
     cout << "Read " << i << " frames" << endl;
     cg_frame.printAtoms();
     field.printDipoles();
+    field.printFields();
 
     /* close remaining files */
     file_len.close();

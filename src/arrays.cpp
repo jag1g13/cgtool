@@ -104,6 +104,20 @@ float& ArrayFloat::operator()(int x){
     return array_[x];
 }
 
+//float* ArrayFloat::operator()(int x){
+//    if(!fast_) {
+//        assert(allocated_);
+//        assert(dimensions_ >= 1);
+//        if(x < 0) x = size_[0] + x;
+//        assert(x < size_[0] && x >= 0);
+//        /* if 2d array return ref to a row */
+//        if(dimensions_ == 2){
+//            return array_ + (x * size_[1]);
+//        }
+//    }
+//    return array_ + x;
+//}
+
 float& ArrayFloat::operator()(int x, int y) {
     //return array_[x * size_[1] + y];
     if(fast_){
