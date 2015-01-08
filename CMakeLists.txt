@@ -4,8 +4,8 @@ project(traj_process2)
 #set(CMAKE_C_COMPILER "/usr/bin/clang")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Og -g -Wall -fopenmp -Wno-sign-compare -Wno-unused-variable")
 
-include_directories ("/usr/local/gromacs/include"
-                     "/usr/local/gromacs/lib/x86_64-linux-gnu")
+include_directories ("/usr/local/gromacs/include")
+link_directories("/usr/local/lib")
 
 set (EXTRA_LIBS ${EXTRA_LIBS} gromacs)
 
