@@ -146,6 +146,7 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
         }
         for(int i=0; i<numAtomsTrack_; i++){
             // read data from topology file for each atom we care about (not solvent)
+            // check that we're reading the right residue and the atoms are in the same order
             assert(substrs[3] == "1");
             assert(substrs[5] == atoms_[i].atom_type);
             atoms_[i].charge = atof(substrs[7].c_str());

@@ -7,7 +7,7 @@ void csv_bond_test();
 void csv_angle_test();
 void csv_dihedral_test();
 
-int src_csv_test(int argc, char* argv[]){
+int src_tests_csv_test(int argc, char* argv[]){
     int defaultchoice = 1;
     int choice = defaultchoice;
 
