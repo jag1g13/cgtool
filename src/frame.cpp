@@ -10,8 +10,6 @@
 
 #include "parser.h"
 
-#define RES_INTERESTING 1
-
 using std::string;
 using std::vector;
 using std::cout;
@@ -76,7 +74,7 @@ float Frame::bondAngle(BondStruct *bond){
     }
 }
 
-bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
+bool Frame::setupFrame(const char *groname, const char *topname, const char *cfgname, t_fileio *xtc){
     char line[40];
     int ok = 0, gro_num_atoms;
     std::ifstream gro;
@@ -84,11 +82,13 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
     if(isSetup_) throw std::runtime_error("Frame has already been setup");
     num_ = 0;
     ok = read_first_xtc(xtc, &numAtoms_, &step_, &time_, box_, &x_, &prec_, &bOK);
+
     gro.open(groname);
     if(gro.is_open()){
         gro.getline(line, 40);              // first line of gro is the run name
         cout << line << endl;
         gro >> gro_num_atoms;               // second line is the number of atoms
+
         if(gro_num_atoms != numAtoms_){
             cout << "XTC num atoms:" << numAtoms_ << endl;
             cout << "GRO num atoms:" << gro_num_atoms << endl;
@@ -98,12 +98,19 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
         }else{
             cout << "Found " << numAtoms_ << " atoms" << endl;
         }
+
+        int res_interesting = 0;
+        Parser parser(cfgname);
+        vector<string> parse_buffer;
+        parser.getLineFromSection("residues", &parse_buffer);
+        res_interesting = std::stoi(parse_buffer[0]);
+        cout << "Mapping first " << res_interesting << " residues" << endl;
+
         string res_name_new="", res_name_last="";
         int res_loc = -1;
         int res_num_atoms = 0;
         atoms_.resize(numAtoms_);
         for(int i = 0; i < numAtoms_; i++){       // now we can read the atoms
-//            atoms_.push_back(Atom(i));
             atoms_[i] = Atom(i);
             string tmp_atom_type;
             gro >> res_name_new >> tmp_atom_type >> atoms_[i].atom_num;
@@ -125,11 +132,10 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
 //                cout << "pushed" << endl;
 
                 // Print names of interesting residues
-                //TODO un-hardcode this, put it in the config file
-                int res_interesting = RES_INTERESTING;
                 if(res_loc < res_interesting+1 && res_loc != 0){
-                    cout << "res: " << res_loc-1 << " resname: "<< residues_[res_loc-1].res_name;
-                    cout << " size: " << residues_[res_loc-1].atoms.size() << endl;
+                    //TODO tidy up these - I want to print them, but nicely
+//                    cout << "res: " << res_loc-1 << " resname: "<< residues_[res_loc-1].res_name;
+//                    cout << " size: " << residues_[res_loc-1].atoms.size() << endl;
                     residues_[res_loc-1].num_atoms = res_num_atoms;
                     numAtomsTrack_ += residues_[res_loc-1].atoms.size();
                     cout << numAtomsTrack_ << endl;
@@ -152,8 +158,6 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
 //            cout << i << " ";
         }
 //        cout << "Out of i loop" << endl;
-        // How many atoms are we interested in?
-//        numAtomsTrack_ = residues_[0].atoms.size();
 
         // Process topology file
         string section;

@@ -127,7 +127,7 @@ public:
     * GROMACS read_first_xtc() gets data from the XTC file about the system.
     * This function uses this data to create a Frame object to process this data
     */
-    bool setupFrame(const char *groname, const char *topname, t_fileio *xtc);
+    bool setupFrame(const char *groname, const char *topname, const char *cfgname, t_fileio *xtc);
 
     /**
     * \brief Read next frame from the open XTC file

@@ -54,5 +54,12 @@ bool Parser::getLineFromSection(const string find, vector<string> *tokens){
 //        std::cout << "section: " << section_buffer << std::endl;
         if(section_ == find) return true;
     }
+    rewind();
     return false;
+}
+
+void Parser::rewind(){
+    // clear eof and rewind
+    file_.clear();
+    file_.seekg(0, std::ios::beg);
 }

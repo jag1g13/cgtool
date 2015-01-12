@@ -65,12 +65,12 @@ int main(int argc, char *argv[]){
     /* Where does the user want us to look for input files? */
     split_text_output("Identifying files", start, num_threads);
     cout << "Running with " << num_threads << " threads" << endl;
-    char groname[40], xtcname[40], mapname[40], topname[40], bndname[40];
+    char groname[40], xtcname[40], topname[40], cfgname[40];
     if(argc < 2){
         cout << "Using current directory" << endl;
         strcpy(groname, "npt.gro");
         strcpy(xtcname, "md.xtc");
-        strcpy(mapname, "sacc.map");
+        strcpy(cfgname, "tp.config");
         strcpy(topname, "topol.top");
     } else if(argc == 2){
         cout << "Using directory provided" << endl;
@@ -78,43 +78,40 @@ int main(int argc, char *argv[]){
         strcat(groname, "/npt.gro");
         strcpy(xtcname, argv[1]);
         strcat(xtcname, "/npt.xtc");
-        strcpy(mapname, argv[1]);
-        strcat(mapname, "/tp.config");
         strcpy(topname, argv[1]);
         strcat(topname, "/topol.top");
-        strcpy(bndname, argv[1]);
-        strcat(bndname, "/bonds.in");
+        strcpy(cfgname, argv[1]);
+        strcat(cfgname, "/tp.config");
     } else if(argc == 5){
         cout << "Using filenames provided" << endl;
         strcpy(groname, argv[1]);
         strcpy(xtcname, argv[2]);
-        strcpy(mapname, argv[3]);
+        strcpy(cfgname, argv[3]);
         strcpy(topname, argv[4]);
     } else{
         cout << "Wrong number of arguments given" << endl;
         throw std::runtime_error("Wrong number of arguments");
     }
-    if(!file_exists(groname) || !file_exists(xtcname) || !file_exists(mapname)){
+    if(!file_exists(groname) || !file_exists(xtcname) || !file_exists(cfgname)){
         cout << "Input file does not exist" << endl;
         throw std::runtime_error("File doesn't exist");
     }
     cout << "GRO file: " << groname << endl;
     cout << "XTC file: " << xtcname << endl;
     cout << "TOP file: " << topname << endl;
-    cout << "MAP file: " << mapname << endl;
-    cout << "BND file: " << bndname << endl;
+    cout << "CFG file: " << cfgname << endl;
 
     /* Open files and do setup */
     split_text_output("Frame setup", start, num_threads);
     Frame frame = Frame(0, 0, "");
     xtc = open_xtc(xtcname, &mode[0]);
     if(output) xtc_out = open_xtc("out.xtc", &mode[1]);
-    frame.setupFrame(groname, topname, xtc);
+    frame.setupFrame(groname, topname, cfgname, xtc);
     Frame cg_frame = Frame(&frame);
-    CGMap mapping(mapname);
+    CGMap mapping(cfgname);
     mapping.initFrame(&frame, &cg_frame);
     BondSet bond_set;
-    bond_set.fromFile(bndname);
+    bond_set.fromFile(cfgname);
     FieldMap field(25, 25, 25, 6);
 //    FieldMap field(10, 10, 10, mapping.num_beads);
 //    FieldMap field(5, 5, 5, mapping.num_beads);

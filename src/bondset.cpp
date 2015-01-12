@@ -27,19 +27,22 @@ void BondSet::fromFile(string filename){
     vector<string> substrs;
     string section;
     Parser parser(filename);
-    while(parser.getLine(&section, &substrs)){
+    while(parser.getLineFromSection("length", &substrs)) {
         BondStruct bond_tmp = BondStruct(4);
         bond_tmp.atom_names = substrs;
-        if(section == "length") {
-            bonds_.push_back(bond_tmp);
-        }else if(section == "angle") {
-            angles_.push_back(bond_tmp);
-        }else if(section == "dihedral"){
-            dihedrals_.push_back(bond_tmp);
-        }else{
-            cout << "Error in bond sections" << endl;
-        }
+        bonds_.push_back(bond_tmp);
     }
+    while(parser.getLineFromSection("angle", &substrs)) {
+        BondStruct bond_tmp = BondStruct(4);
+        bond_tmp.atom_names = substrs;
+        angles_.push_back(bond_tmp);
+    }
+    while(parser.getLineFromSection("dihedral", &substrs)) {
+        BondStruct bond_tmp = BondStruct(4);
+        bond_tmp.atom_names = substrs;
+        dihedrals_.push_back(bond_tmp);
+    }
+
     if(DEBUG){
         for(auto &i : dihedrals_){
             for(auto &j : i.atom_names){
