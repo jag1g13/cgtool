@@ -75,8 +75,21 @@ public:
     /** Linspace a line of a 1d array */
     void linspace(const int n, const float min, const float max);
 
-    // operators
+    // operators and friends
     friend bool operator==(ArrayFloat &a, ArrayFloat &b);
+    /** RMS difference between two arrays */
+    friend float rms(const ArrayFloat *a, const ArrayFloat *b);
 };
+
+struct StatsBox{
+    float rms = 0.f;
+    float stdev = 0.f;
+    float mean = 0.f;
+};
+
+float vector_rms(const std::vector<float> *a, const std::vector<float> *b);
+StatsBox vector_stats(const std::vector<float> *a, const std::vector<float> *b);
+
+
 
 #endif

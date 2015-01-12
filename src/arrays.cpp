@@ -3,6 +3,8 @@
 #include <cassert>
 //#include <exception>
 
+#include <math.h>
+
 #include "arrays.h"
 
 using std::vector;
@@ -226,4 +228,50 @@ void ArrayFloat::free(){
 bool operator==(ArrayFloat &a, ArrayFloat &b){
     throw std::runtime_error("Not implemented");
     return false;
+}
+
+float rms(const ArrayFloat *a, const ArrayFloat *b){
+    // Both arrays need to be allocated and the same size
+    assert(a->allocated_);
+    assert(b->allocated_);
+    assert(a->elems_ == b->elems_);
+    float sum = 0.f;
+    for(int i=0; i<a->elems_; i++){
+        sum += (a->array_[i] - b->array_[i]) * (a->array_[i] - b->array_[i]);
+    }
+    return float(sqrt(sum / a->elems_));
+}
+
+float vector_rms(const vector<float> *a, const vector<float> *b){
+    assert(a->size() == b->size());
+    assert(a->size() != 0);
+    assert(b->size() != 0);
+//    cout << "a " << a->size() << "\tb " << b->size() << endl;
+    float sum = 0.f;
+    for(int i=0; i<a->size(); i++){
+        sum += ((*a)[i] - (*b)[i]) * ((*a)[i] - (*b)[i]);
+    }
+    return float(sqrt(sum / a->size()));
+}
+
+StatsBox vector_stats(const vector<float> *a, const vector<float> *b){
+    assert(a->size() == b->size());
+    assert(a->size() != 0);
+    assert(b->size() != 0);
+    StatsBox result;
+//    cout << "a " << a->size() << "\tb " << b->size() << endl;
+    float sumsqr = 0.f;
+    float diff = 0.f;
+    for(int i=0; i<a->size(); i++){
+        sumsqr += ((*a)[i] - (*b)[i]) * ((*a)[i] - (*b)[i]);
+        diff += (*a)[i] - (*b)[i];
+    }
+    result.rms = float((sqrt(sumsqr / a->size())));
+    result.mean = diff / a->size();
+    float stdev_tmp = 0.f;
+    for(int i=0; i<a->size(); i++){
+        stdev_tmp += ((*a)[i] - (*b)[i] - result.mean) * ((*a)[i] - (*b)[i] - result.mean);
+    }
+    result.stdev = float(sqrt(stdev_tmp / a->size()));
+    return result;
 }

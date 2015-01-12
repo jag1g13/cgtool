@@ -22,8 +22,9 @@ private:
     ArrayFloat fieldMonopole_;
     /** Array to hold electric field calculated from dipoles */
     ArrayFloat fieldDipole_;
-    /** Border to leave around molecule in field grid */
-    float border_ = 2.f;    // 10A - 1nm
+    /** \brief Border to leave around molecule in field grid
+    * Also the radius of selection for the CHELPG style grid */
+    float border_ = 2.f;    // 2nm
     /** Dipole of each atom, coords, vector, magnitude */
     ArrayFloat dipoles_;
     /** Array to hold grid bounds; needs to be reset each frame (or often) */
