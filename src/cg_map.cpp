@@ -52,7 +52,7 @@ void CGMap::initFrame(const Frame *aa_frame, Frame *cg_frame){
     int i = 0;
     for(auto &bead : mapping_) {
         cg_frame->atoms_.push_back(Atom(i));
-        cg_frame->atoms_[i].atom_type_string = bead.cg_bead;
+        cg_frame->atoms_[i].atom_type = bead.cg_bead;
         cg_frame->atoms_[i].coords[0] = 0.f;
         cg_frame->atoms_[i].coords[1] = 0.f;
         cg_frame->atoms_[i].coords[2] = 0.f;
@@ -83,19 +83,24 @@ void CGMap::initFrame(const Frame *aa_frame, Frame *cg_frame){
 
 //    for(auto &atom : aa_frame->atoms_){
     for(int i=0; i<aa_frame->numAtomsTrack_; i++){
+//        cout << "starting atom " << i << endl;
         // for atom in aa_frame that we care about
-        const Atom *atom = &aa_frame->atoms_[i];
+        const Atom *atom = &(aa_frame->atoms_[i]);
+//        cout << atom->atom_type << "\t";
 //        if(atom->atom_num < 20) cout << atomname_to_bead_[atom->atom_type] << endl;
         BeadMap *inbead = atomname_to_bead_[atom->atom_type];
 //        if(atom->atom_num < 20) cout << &inbead << endl;
+//        cout << inbead->cg_bead << endl;
         inbead->mass += atom->mass;
         inbead->charge += atom->charge;
 //        cout << inbead->mass << "\t" << inbead->charge << endl;
 //        inbead->atom_nums.push_back(atom.atom_num);
 //        this won't put them in the right order
+//        cout << "finishing atom" << endl;
     }
 
     cg_frame->isSetup_ = true;
+    apply(aa_frame, cg_frame);
     cout << "CG Frame" << endl;
     cg_frame->printAtoms();
     cout << "Done init cg_frame" << endl;

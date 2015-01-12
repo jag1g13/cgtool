@@ -48,6 +48,11 @@ public:
     * Parses the next data line and fills a vector<string> of tokens
     */
     bool getLine(std::string *section, std::vector<std::string> *tokens);
+
+    /** \brief Search through a config file for a particular section
+    * Returns false if section cannot be found
+    */
+    bool findSection(const std::string find);
 };
 
 #endif

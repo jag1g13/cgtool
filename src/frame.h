@@ -23,10 +23,11 @@ struct Atom{
     /** Residue number and name in the GRO file */
     //char resid[10];
     std::string resid;
-    /** A three character atom type specifier; e.g. "OH1"; Should replace with a string */
-    char atom_type[4];
+    // Being removed in favour of strings
+//    /** A three character atom type specifier; e.g. "OH1"; Should replace with a string */
+//    char atom_type[4];
     /** Atomtype as a string.  I don't want to be dealing with *char */
-    std::string atom_type_string;
+    std::string atom_type;
     /** Atomic coordinates in x, y, z */
     float coords[3];
     /** Atomic charge from the force field */
@@ -59,10 +60,10 @@ struct Residue{
     /** Atoms contained within this residue */
     std::vector<int> atoms;
     /** Atoms contained within this residue */
-    //std::vector<std::string> atom_names;
-    std::vector<char *> atom_names;
+    std::vector<std::string> atom_names;
+    /** The number of atoms in the residue */
+    int num_atoms;
     /** Constructor to set res_name */
-    //Residue(const char* tmp){strcpy(res_name, tmp);};
     Residue(const std::string tmp){res_name = tmp;};
     /** Blank constructor */
     Residue();
@@ -86,7 +87,7 @@ public:
     /** The number of atoms stored in this frame */
     int num_atoms_;
     /** The number of atoms stored in this frame that we find interesting */
-    int numAtomsTrack_;
+    int numAtomsTrack_ = 0;
     /** Vector of Atoms; Each Atom contains position and type data */
     std::vector<Atom> atoms_;
     /** Vector of Residues; Each Residue contains pointers to atoms */
@@ -122,9 +123,10 @@ public:
     Frame(const Frame*);
 
     /**
-    * \brief Sets up Frame from XTC and GRO files
+    * \brief Create Frame, allocate atoms and read in data from start of XTC file
     *
-    * Reads in first frame of XTC and allocates atoms
+    * GROMACS read_first_xtc() gets data from the XTC file about the system.
+    * This function uses this data to create a Frame object to process this data
     */
     bool setupFrame(const char *groname, const char *topname, t_fileio *xtc);
 

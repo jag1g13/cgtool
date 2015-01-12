@@ -75,20 +75,12 @@ float Frame::bondAngle(BondStruct *bond){
 }
 
 bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
-    /**
-    * \brief Create Frame, allocate atoms and read in data from start of XTC file
-    *
-    * GROMACS read_first_xtc() gets data from the XTC file about the system.
-    * This function uses this data to create a Frame object to process this data
-    */
     char line[40];
     int ok = 0, gro_num_atoms;
-//    float atom_charge, atom_mass;
     std::ifstream gro;
     gmx_bool bOK = 0;
     if(isSetup_) throw std::runtime_error("Frame has already been setup");
     num_ = 0;
-//    Atom *atom;
     ok = read_first_xtc(xtc, &num_atoms_, &step_, &time_, box_, &x_, &prec_, &bOK);
     gro.open(groname);
     if(gro.is_open()){
@@ -104,63 +96,90 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
         }else{
             cout << "Found " << num_atoms_ << " atoms" << endl;
         }
-//        Residue *res;
-        string res_name_new, res_name_last;
+        string res_name_new="", res_name_last="";
         int res_loc = -1;
+        int res_num_atoms = 0;
+        atoms_.resize(num_atoms_);
         for(int i = 0; i < num_atoms_; i++){       // now we can read the atoms
-            atoms_.push_back(Atom(i));
-            gro >> res_name_new >> atoms_[i].atom_type >> atoms_[i].atom_num;
-            atoms_[i].atom_type[3] = '\0';
-            atoms_[i].atom_type_string = atoms_[i].atom_type;
+//            atoms_.push_back(Atom(i));
+            atoms_[i] = Atom(i);
+            string tmp_atom_type;
+            gro >> res_name_new >> tmp_atom_type >> atoms_[i].atom_num;
+            int tmp_int;
+            sscanf(res_name_new.c_str(), "%d", &tmp_int);
+            atoms_[i].atom_type = std::to_string(tmp_int) + tmp_atom_type;
+            // skip rest of line
             gro.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
             atoms_[i].atom_num--;
             atoms_[i].resid = res_name_new;
-            if(res_name_new.compare(res_name_last) != 0){
-                residues_.push_back(Residue(res_name_new));
+
+            // found a new residue
+            if(res_name_new != res_name_last){
+//                cout << "Found new residue" << endl;
                 res_loc++;
-                if(res_loc == 1){
-//                if(res_loc < 10 && res_loc > 0){
+                residues_.push_back(Residue(res_name_new));
+                res_num_atoms = 0;
+//                cout << "pushed" << endl;
+
+                // Print names of interesting residues
+                //TODO un-hardcode this, put it in the config file
+                int res_interesting = 1;
+                if(res_loc < res_interesting+1 && res_loc != 0){
                     cout << "res: " << res_loc-1 << " resname: "<< residues_[res_loc-1].res_name;
                     cout << " size: " << residues_[res_loc-1].atoms.size() << endl;
+                    residues_[res_loc-1].num_atoms = res_num_atoms;
+                    numAtomsTrack_ += residues_[res_loc-1].atoms.size();
+                    cout << numAtomsTrack_ << endl;
                 }
+//                cout << "Done new res" << endl;
             }
-            /*
-            * assume we only really care about the first residue
-            * this is the one that will be CG mapped
-            */
-            numAtomsTrack_ = residues_[0].atoms.size();
+
             residues_[res_loc].atoms.push_back(atoms_[i].atom_num);
             residues_[res_loc].atom_names.push_back(atoms_[i].atom_type);
-            memcpy(atoms_[i].coords, x_[i], 3 * sizeof(float));
-            atoms_[i].charge = 0.f;
-            atoms_[i].mass = 1.f;
             name_to_num_.emplace(atoms_[i].atom_type, i);
             num_to_name_.emplace(i, atoms_[i].atom_type);
+            memcpy(atoms_[i].coords, x_[i], 3 * sizeof(float));
+
+            // default values
+            atoms_[i].charge = 0.f;
+            atoms_[i].mass = 1.f;
+
             res_name_last = res_name_new;
+            res_num_atoms++;
+//            cout << i << " ";
         }
+//        cout << "Out of i loop" << endl;
+        // How many atoms are we interested in?
+//        numAtomsTrack_ = residues_[0].atoms.size();
+
+        // Process topology file
         string section;
         vector<string> substrs;
         Parser top_parser(topname);
+        // skip over any other sections
         while(section != "atoms"){
             top_parser.getLine(&section, &substrs);
         }
         for(int i=0; i<numAtomsTrack_; i++){
             // read data from topology file for each atom we care about (not solvent)
-            // check that we're reading the right residue and the atoms are in the same order
-            assert(substrs[3] == "1");
-            assert(substrs[5] == atoms_[i].atom_type);
-            atoms_[i].charge = atof(substrs[7].c_str());
-            atoms_[i].mass = atof(substrs[8].c_str());
+            // check that we're reading the atoms are in the same order
+            // internal atom name is the res # and atom name from top/gro
+            string tmp_string = substrs[3] + substrs[5];
+//            cout << "top: " << tmp_string << "\tgro: " << atoms_[i].atom_type << endl;
+            assert(tmp_string == atoms_[i].atom_type);
+            atoms_[i].charge = float(atof(substrs[7].c_str()));
+            atoms_[i].mass = float(atof(substrs[8].c_str()));
             top_parser.getLine(&section, &substrs);
         }
         gro.close();
-    } else{
+    }else{
         cout << "GRO file cannot be opened" << endl;
         throw std::runtime_error("Could not open GRO file");
     }
     if(ok && bOK) isSetup_ = true;
     printAtoms(numAtomsTrack_);
-    return isSetup_;                           // return True if it worked
+    return isSetup_;
 }
 
 bool Frame::readNext(t_fileio *xtc){
@@ -171,26 +190,24 @@ bool Frame::readNext(t_fileio *xtc){
     * The same Frame object should be used for each frame to save time in allocation.
     */
     int ok = 0, bOK = 0;
-//    if(!isSetup_) throw std::runtime_error("Frame has already been setup");
     assert(isSetup_);
-    //ok_out = write_xtc(xtc_out, *natoms, *step, *time, box, *x, *prec);
     ok = read_next_xtc(xtc, num_atoms_, &step_, &time_, box_, x_, &prec_, &bOK);
     for(int i = 0; i < num_atoms_; i++){
-        memcpy(atoms_[i].coords, x_[i], 3 * sizeof(float)); // copy coordinates into an existing Atom
+        // overwrite coords of atoms stored in the current Frame
+        memcpy(atoms_[i].coords, x_[i], 3 * sizeof(float));
     }
     num_++;
-    return ok && bOK;     //return True if it worked
+    return ok && bOK;
 }
 
 void Frame::printAtoms(const int n){
     assert(isSetup_);
-//    cout.setf(std::ios::scientific);
     cout.setf(std::ios::fixed);
     cout.precision(4);
     int i = 0;
     cout << "Name\tMass\tChrg\tPosx\tPosy\tPosz" << endl;
     for(Atom &atom : atoms_){
-        cout << atom.atom_type_string << "\t" << atom.mass << "\t" << atom.charge << "\t";
+        cout << atom.atom_type << "\t" << atom.mass << "\t" << atom.charge << "\t";
         cout << atom.coords[0] << "\t" << atom.coords[1] << "\t" << atom.coords[2];
         cout << endl;
         i++;

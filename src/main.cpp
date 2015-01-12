@@ -170,11 +170,11 @@ int main(int argc, char *argv[]){
     close_xtc(xtc);
 
     /* Post processing */
-//    split_text_output("Post processing", start, num_threads);
-//    start = std::clock();
-//    calc_avg(bond_lens);
-//    calc_avg(bond_angles);
-//    calc_avg(bond_dihedrals);
+    split_text_output("Post processing", start, num_threads);
+    start = std::clock();
+    calc_avg(bond_lens);
+    calc_avg(bond_angles);
+    calc_avg(bond_dihedrals);
 
     /* Final timer */
 //    split_text_output("Finished", start, num_threads);

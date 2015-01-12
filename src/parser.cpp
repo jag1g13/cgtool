@@ -37,3 +37,13 @@ bool Parser::getLine(string *section, vector <string> *tokens){
     *section = section_;
     return !eof_;       // return true if there is still file to read
 }
+
+//TODO combine config files into one
+bool Parser::findSection(const string find){
+    vector<string> token_buffer;
+    string section_buffer;
+    while(getLine(&section_buffer, &token_buffer)){
+        if(section_ == find) return true;
+    }
+    return false;
+}
