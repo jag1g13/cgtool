@@ -20,10 +20,9 @@ CGMap::CGMap(string filename){
 }
 
 void CGMap::fromFile(string filename){
-    string section;
     vector<string> substrs;
     Parser parser(filename);
-    while(parser.getLine(&section, &substrs)){
+    while(parser.getLineFromSection("mapping", &substrs)){
         BeadMap new_bead;
         new_bead.cg_bead = substrs[0];
         new_bead.atoms = vector<string>(substrs.begin() + 1, substrs.end());
@@ -56,8 +55,8 @@ void CGMap::initFrame(const Frame *aa_frame, Frame *cg_frame){
         cg_frame->atoms_[i].coords[0] = 0.f;
         cg_frame->atoms_[i].coords[1] = 0.f;
         cg_frame->atoms_[i].coords[2] = 0.f;
-        cg_frame->name_to_num_.emplace(bead.cg_bead, i);
-        cg_frame->num_to_name_.emplace(i, bead.cg_bead);
+        cg_frame->nameToNum_.emplace(bead.cg_bead, i);
+        cg_frame->numToName_.emplace(i, bead.cg_bead);
         for(auto &atomname : bead.atoms) {
             atomname_to_bead_.emplace(atomname, &bead);  // dictionary of atomnames to bead pointers
             //cout << bead->cg_bead << " contains " << *atomname << endl;
@@ -78,7 +77,7 @@ void CGMap::initFrame(const Frame *aa_frame, Frame *cg_frame){
         }
         i++;
     }
-    cg_frame->num_atoms_ = i;
+    cg_frame->numAtoms_ = i;
     cg_frame->numAtomsTrack_ = i;
 
 //    for(auto &atom : aa_frame->atoms_){
@@ -106,7 +105,6 @@ void CGMap::initFrame(const Frame *aa_frame, Frame *cg_frame){
     cout << "Done init cg_frame" << endl;
 }
 
-//TODO why is this a bool?
 bool CGMap::apply(const Frame *aa_frame, Frame *cg_frame){
 //    throw std::logic_error("Not implemented");
     bool status = true;

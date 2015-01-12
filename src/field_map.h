@@ -33,7 +33,6 @@ private:
     ArrayFloat gridCoords_;
     /** Centre of grid */
     std::vector<float> gridCentre_;
-    /*TODO Experimental things */
     ArrayFloat gridContracted_;
     int numGridPoints_;
     std::vector<float> fieldMonopoleContracted_;
@@ -53,7 +52,6 @@ public:
     /** \brief Calculate the square of the distance between two points */
     float distSqr(const float *coords, const float x, const float y, const float z);
 
-    /*TODO Experimental things */
     /** Create a CHELPG style grid using only points in a shell around the molecule */
     void setupGridContracted(const Frame *frame);
     /** Calculate the electric field from point charges using the CHELPG style grid */

@@ -254,6 +254,7 @@ float vector_rms(const vector<float> *a, const vector<float> *b){
     return float(sqrt(sum / a->size()));
 }
 
+//TODO fix this with openmp - currently shows -nan
 StatsBox vector_stats(const vector<float> *a, const vector<float> *b){
     assert(a->size() == b->size());
     assert(a->size() != 0);

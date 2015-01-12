@@ -25,7 +25,7 @@
 
 #define DEBUG true
 #define UPDATE_PROGRESS true
-#define PROGRESS_UPDATE_FREQ 10
+#define PROGRESS_UPDATE_FREQ 50
 #define ELECTRIC_FIELD_FREQ 50
 
 /* things from std that get used a lot */
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]){
         strcpy(xtcname, argv[1]);
         strcat(xtcname, "/npt.xtc");
         strcpy(mapname, argv[1]);
-        strcat(mapname, "/map.in");
+        strcat(mapname, "/tp.config");
         strcpy(topname, argv[1]);
         strcat(topname, "/topol.top");
         strcpy(bndname, argv[1]);

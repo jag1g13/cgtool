@@ -53,6 +53,8 @@ public:
     * Returns false if section cannot be found
     */
     bool findSection(const std::string find);
+    /** \brief Search throuch config file for a particular section and pass back lines */
+    bool getLineFromSection(const std::string find, std::vector<std::string> *tokens);
 };
 
 #endif

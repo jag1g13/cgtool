@@ -251,6 +251,7 @@ void FieldMap::calcFieldDipolesContracted(const Frame *frame){
 }
 
 void FieldMap::calcFieldDipoles(const Frame *frame) {
+    throw std::runtime_error("Not implemented");
     float inveps = 1. / (4 * M_PI * 8.854187817e-12);
     //float inveps = 8.9875517873681e9;
     float x, y, z;
@@ -265,7 +266,6 @@ void FieldMap::calcFieldDipoles(const Frame *frame) {
                 z = gridCoords_(k, 2);
                 fieldDipole_(i, j, k) = 0.f;
                 int ii = 0;
-                //TODO dot product: cos(theta) = A.B / |A||B|
                 for(Atom atom : frame->atoms_){
 //                    vec_a[0] =
 //                    cos_dip_angle = dot()

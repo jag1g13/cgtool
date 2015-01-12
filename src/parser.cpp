@@ -38,11 +38,20 @@ bool Parser::getLine(string *section, vector <string> *tokens){
     return !eof_;       // return true if there is still file to read
 }
 
-//TODO combine config files into one
 bool Parser::findSection(const string find){
     vector<string> token_buffer;
     string section_buffer;
     while(getLine(&section_buffer, &token_buffer)){
+        if(section_ == find) return true;
+    }
+    return false;
+}
+
+//TODO combine config files into one - almost done
+bool Parser::getLineFromSection(const string find, vector<string> *tokens){
+    string section_buffer;
+    while(getLine(&section_buffer, tokens)){
+//        std::cout << "section: " << section_buffer << std::endl;
         if(section_ == find) return true;
     }
     return false;

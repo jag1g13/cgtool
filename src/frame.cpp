@@ -10,6 +10,8 @@
 
 #include "parser.h"
 
+#define RES_INTERESTING 1
+
 using std::string;
 using std::vector;
 using std::cout;
@@ -18,7 +20,7 @@ using std::endl;
 Frame::Frame(int num, int num_atoms, string name){
     name_ = name;
     step_ = num;
-    num_atoms_ = num_atoms;
+    numAtoms_ = num_atoms;
     atoms_.reserve(num_atoms);
 }
 
@@ -28,13 +30,13 @@ Frame::Frame(const Frame* base_frame){
 }
 
 int Frame::allocateAtoms(int num_atoms){
-    num_atoms_ = num_atoms;
-    atoms_.reserve(num_atoms_);
+    numAtoms_ = num_atoms;
+    atoms_.reserve(numAtoms_);
     return (int)atoms_.size();
 }
 
 bool Frame::writeToXtc(t_fileio *xtc){
-    return (bool)write_xtc(xtc, num_atoms_, step_, time_, box_, x_, prec_);
+    return (bool)write_xtc(xtc, numAtoms_, step_, time_, box_, x_, prec_);
 }
 
 float Frame::bondLength(int a, int b){
@@ -44,8 +46,8 @@ float Frame::bondLength(int a, int b){
 }
 
 float Frame::bondLength(BondStruct *bond) {
-    int a = name_to_num_[bond->atom_names[0]];
-    int b = name_to_num_[bond->atom_names[1]];
+    int a = nameToNum_[bond->atom_names[0]];
+    int b = nameToNum_[bond->atom_names[1]];
     return bondLength(a, b);
 }
 
@@ -63,11 +65,11 @@ float Frame::bondAngle(int a, int b, int c, int d){
 }
 
 float Frame::bondAngle(BondStruct *bond){
-    int a = name_to_num_[bond->atom_names[0]];
-    int b = name_to_num_[bond->atom_names[1]];
-    int c = name_to_num_[bond->atom_names[2]];
+    int a = nameToNum_[bond->atom_names[0]];
+    int b = nameToNum_[bond->atom_names[1]];
+    int c = nameToNum_[bond->atom_names[2]];
     if(bond->atom_names.size() == 4){
-        int d = name_to_num_[bond->atom_names[3]];
+        int d = nameToNum_[bond->atom_names[3]];
         return bondAngle(a, b, c, d);
     }else{
         return bondAngle(a, b, b, c);
@@ -81,26 +83,26 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
     gmx_bool bOK = 0;
     if(isSetup_) throw std::runtime_error("Frame has already been setup");
     num_ = 0;
-    ok = read_first_xtc(xtc, &num_atoms_, &step_, &time_, box_, &x_, &prec_, &bOK);
+    ok = read_first_xtc(xtc, &numAtoms_, &step_, &time_, box_, &x_, &prec_, &bOK);
     gro.open(groname);
     if(gro.is_open()){
         gro.getline(line, 40);              // first line of gro is the run name
         cout << line << endl;
         gro >> gro_num_atoms;               // second line is the number of atoms
-        if(gro_num_atoms != num_atoms_){
-            cout << "XTC num atoms:" << num_atoms_ << endl;
+        if(gro_num_atoms != numAtoms_){
+            cout << "XTC num atoms:" << numAtoms_ << endl;
             cout << "GRO num atoms:" << gro_num_atoms << endl;
             cout << "Number of atoms declared in XTC file "
                     "is not the same as declared in GRO file" << endl;
             throw std::runtime_error("Number of atoms does not match");
         }else{
-            cout << "Found " << num_atoms_ << " atoms" << endl;
+            cout << "Found " << numAtoms_ << " atoms" << endl;
         }
         string res_name_new="", res_name_last="";
         int res_loc = -1;
         int res_num_atoms = 0;
-        atoms_.resize(num_atoms_);
-        for(int i = 0; i < num_atoms_; i++){       // now we can read the atoms
+        atoms_.resize(numAtoms_);
+        for(int i = 0; i < numAtoms_; i++){       // now we can read the atoms
 //            atoms_.push_back(Atom(i));
             atoms_[i] = Atom(i);
             string tmp_atom_type;
@@ -124,7 +126,7 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
 
                 // Print names of interesting residues
                 //TODO un-hardcode this, put it in the config file
-                int res_interesting = 1;
+                int res_interesting = RES_INTERESTING;
                 if(res_loc < res_interesting+1 && res_loc != 0){
                     cout << "res: " << res_loc-1 << " resname: "<< residues_[res_loc-1].res_name;
                     cout << " size: " << residues_[res_loc-1].atoms.size() << endl;
@@ -137,8 +139,8 @@ bool Frame::setupFrame(const char *groname, const char *topname, t_fileio *xtc){
 
             residues_[res_loc].atoms.push_back(atoms_[i].atom_num);
             residues_[res_loc].atom_names.push_back(atoms_[i].atom_type);
-            name_to_num_.emplace(atoms_[i].atom_type, i);
-            num_to_name_.emplace(i, atoms_[i].atom_type);
+            nameToNum_.emplace(atoms_[i].atom_type, i);
+            numToName_.emplace(i, atoms_[i].atom_type);
             memcpy(atoms_[i].coords, x_[i], 3 * sizeof(float));
 
             // default values
@@ -191,8 +193,8 @@ bool Frame::readNext(t_fileio *xtc){
     */
     int ok = 0, bOK = 0;
     assert(isSetup_);
-    ok = read_next_xtc(xtc, num_atoms_, &step_, &time_, box_, x_, &prec_, &bOK);
-    for(int i = 0; i < num_atoms_; i++){
+    ok = read_next_xtc(xtc, numAtoms_, &step_, &time_, box_, x_, &prec_, &bOK);
+    for(int i = 0; i < numAtoms_; i++){
         // overwrite coords of atoms stored in the current Frame
         memcpy(atoms_[i].coords, x_[i], 3 * sizeof(float));
     }

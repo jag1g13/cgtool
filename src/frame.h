@@ -83,9 +83,8 @@ public:
     int num_;
     /** The simulation step corresponding to this frame */
     int step_;
-    //TODO refactor these names to match the new style
     /** The number of atoms stored in this frame */
-    int num_atoms_;
+    int numAtoms_;
     /** The number of atoms stored in this frame that we find interesting */
     int numAtomsTrack_ = 0;
     /** Vector of Atoms; Each Atom contains position and type data */
@@ -103,9 +102,9 @@ public:
     /** Name of the Frame; taken from comment in the GRO file */
     std::string name_;
     /** Dictionary mapping atom numbers to atom names */
-    std::map<int, std::string> num_to_name_;
+    std::map<int, std::string> numToName_;
     /** Dictionary mapping atom names to numbers */
-    std::map<std::string, int> name_to_num_;
+    std::map<std::string, int> nameToNum_;
 
     /**
     * \brief Create Frame passing frame number, number of atoms to store and the frame name
