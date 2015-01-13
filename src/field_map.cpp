@@ -26,9 +26,14 @@ FieldMap::FieldMap(const int a, const int b, const int c, const int ndipoles){
 //    cout << "Coords" << endl;
     gridCoords_.init(3, max(a, max(b, c)), 1, false);
 //    cout << "Dipoles" << endl;
+    numDipoles_ = ndipoles;
+    //TODO init this later
     dipoles_.init(ndipoles, 6, 1, false);
 //    cout << "Grid contracted" << endl;
+    //TODO try out Boost arrays, are they faster/better?
     gridContracted_.init(a*b*c, 4, 1, true);
+    totalDipole_.init(6, 1, 1, false);
+    sumDipoles_.init(6, 1, 1, false);
 }
 
 void FieldMap::setupGrid(const Frame *frame){
@@ -239,7 +244,7 @@ void FieldMap::calcFieldDipolesContracted(const Frame *frame){
 //            cout << dipoles_(j, 5) << "\t" << abs_a << endl;
             float cos_dip_angle = dot(vec_a, vec_b) / (dipoles_(j, 5) * abs_a);
             // If it's NaN, there's no dipole - don't add anything to the field
-            if(cos_dip_angle != cos_dip_angle) cos_dip_angle = 0;
+            if(cos_dip_angle != cos_dip_angle) cos_dip_angle = 0.f;
             fieldDipoleContracted_[i] += dipoles_(j, 5) * cos_dip_angle / (abs_a*abs_a);
             // Do I need to include the field from the charge on the bead?
 //            fieldDipoleContracted_[i] += frame->atoms_[j].charge /
@@ -359,7 +364,97 @@ void FieldMap::calcDipolesDirect(const CGMap *cgmap, const Frame *cg_frame, Fram
 //        dipoles_(i, 2) *= 10.f;
 //        dipoles_(i, 5) *= 10.f;
     }
+//    printDipoles();
+}
+
+void FieldMap::calcDipolesFit(const CGMap *cgmap, const Frame *cg_frame, const Frame *aa_frame){
+    dipoles_.zero();
+    // keep track of which dipoles we know
+    vector<int> dipoles_calculated;
+    // calculate dipoles on all uncharged beads
+    for(int i = 0; i < cgmap->num_beads; i++){
+        const BeadMap &bead_type = cgmap->mapping_[i];
+        // skip beads that are charged
+        if(bead_type.charge > 0.01f || bead_type.charge < -0.01f) continue;
+
+        const Atom &cg_atom = cg_frame->atoms_[i];
+        // for each bead in the CG frame
+        for(const int &j : bead_type.atom_nums){
+            // for each atom inside the bead
+            float charge = aa_frame->atoms_[j].charge;
+            dipoles_(i, 0) += aa_frame->atoms_[j].coords[0] * charge;
+            dipoles_(i, 1) += aa_frame->atoms_[j].coords[1] * charge;
+            dipoles_(i, 2) += aa_frame->atoms_[j].coords[2] * charge;
+        }
+        dipoles_calculated.push_back(i);
+    }
+    int num_remaining = cgmap->num_beads - int(dipoles_calculated.size());
+
+    // calculate residual molecular dipole
+    calcTotalDipole(aa_frame);
+    calcSumDipole(dipoles_calculated);
+    // keep residual dipole in place
+    totalDipole_ -= sumDipoles_;
+
+    // divide residual between remaining beads
+    for(int i = 0; i < cgmap->num_beads; i++){
+        const BeadMap &bead_type = cgmap->mapping_[i];
+        // skip beads that are NOT charged
+        if(bead_type.charge < 0.01f && bead_type.charge > -0.01f) continue;
+
+        for(int j = 0; j < 3; j++){
+            dipoles_(i, j) = totalDipole_(j) / num_remaining;
+        }
+    }
+
+    // calculate magnitudes
+    for(int i = 0; i < cgmap->num_beads; i++){
+        dipoles_(i, 5) = float(sqrt(dipoles_(i, 0) * dipoles_(i, 0) +
+                dipoles_(i, 1) * dipoles_(i, 1) +
+                dipoles_(i, 2) * dipoles_(i, 2)));
+    }
     printDipoles();
+}
+
+//TODO get fit dipoles to match total dipole
+void FieldMap::calcTotalDipole(const Frame *aa_frame, int num_atoms){
+    if(num_atoms == 0) num_atoms = aa_frame->numAtomsTrack_;
+    totalDipole_.zero();
+    for(int i=0; i < num_atoms; i++){
+    // only add dipoles we're confident of
+//    for(int i=0; i < 9; i++){
+        float charge = aa_frame->atoms_[i].charge;
+        totalDipole_(0) += aa_frame->atoms_[i].coords[0] * charge;
+        totalDipole_(1) += aa_frame->atoms_[i].coords[1] * charge;
+        totalDipole_(2) += aa_frame->atoms_[i].coords[2] * charge;
+    }
+    totalDipole_(5) = float(sqrt(totalDipole_(0)*totalDipole_(0) +
+            totalDipole_(1)*totalDipole_(1) +
+            totalDipole_(2)*totalDipole_(2)));
+
+    cout << "Total molecular dipole" << endl;
+    cout << "Sum of bead dipoles" << endl;
+    for(int i=0; i < 6; i++){
+        cout << totalDipole_(i) << "\t";
+    }
+    cout << endl;
+}
+
+void FieldMap::calcSumDipole(const vector<int> nums){
+    sumDipoles_.zero();
+    for(const int &i : nums){
+        sumDipoles_(0) += dipoles_(i, 0);
+        sumDipoles_(1) += dipoles_(i, 1);
+        sumDipoles_(2) += dipoles_(i, 2);
+    }
+    sumDipoles_(5) = float(sqrt(sumDipoles_(0)*sumDipoles_(0) +
+            sumDipoles_(1)*sumDipoles_(1) +
+            sumDipoles_(2)*sumDipoles_(2)));
+
+    for(int i=0; i < 6; i++){
+        cout << sumDipoles_(i) << "\t";
+    }
+    cout << endl;
 }
 
 void FieldMap::printDipoles(){
@@ -367,6 +462,7 @@ void FieldMap::printDipoles(){
     dipoles_.print();
 }
 
+//TODO move this outside the class - it doesn't need to be here
 /**
 * Originally used cmath pow - this version is much faster.
 */
@@ -378,5 +474,9 @@ float FieldMap::distSqr(const float *coords, const float x, const float y, const
     float tmpy = coords[1] - y;
     float tmpz = coords[2] - z;
     return tmpx*tmpx + tmpy*tmpy + tmpz*tmpz;
+}
+
+void polar(const float *cart, float *polar){
+
 }
 

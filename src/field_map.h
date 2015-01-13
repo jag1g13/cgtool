@@ -8,6 +8,7 @@
 #include "cg_map.h"
 //#include "boost/multi_array.hpp"
 
+//TODO tidy up this monster
 /**
 * \brief Class to hold and operate on electric field maps
 *
@@ -25,8 +26,6 @@ private:
     /** \brief Border to leave around molecule in field grid
     * Also the radius of selection for the CHELPG style grid */
     float border_ = 2.f;    // 2nm
-    /** Dipole of each atom, coords, vector, magnitude */
-    ArrayFloat dipoles_;
     /** Array to hold grid bounds; needs to be reset each frame (or often) */
     ArrayFloat gridBounds_;
     /** Coordinates of each grid point */
@@ -37,6 +36,11 @@ private:
     int numGridPoints_;
     std::vector<float> fieldMonopoleContracted_;
     std::vector<float> fieldDipoleContracted_;
+    int numDipoles_;
+    /** Dipole of each atom, coords, vector, magnitude */
+    ArrayFloat dipoles_;
+    ArrayFloat totalDipole_;
+    ArrayFloat sumDipoles_;
 
 public:
     /** Constructor for a blank instance of an electric field map */
@@ -60,7 +64,18 @@ public:
     void calcFieldDipolesContracted(const Frame *frame);
     /** \brief Calculate dipoles on beads directly from frame
     * Modifies charges in atomistic Frame */
-    void calcDipolesDirect(const CGMap *cgmap, const Frame *frame, Frame *aa_frame);
+    void calcDipolesDirect(const CGMap *cgmap, const Frame *cg_frame, Frame *aa_frame);
+
+    /** \brief Calculate dipoles on CG beads from an atomistic Frame
+    * Calculates bead dipoles directly for uncharged beads.
+    * The residual molecular dipole is calculated and divided between the
+    * remaining charged beads.  Weighting is determined by fitting to the electric field.
+    */
+    void calcDipolesFit(const CGMap *cgmap, const Frame *cg_frame, const Frame *aa_frame);
+    /** Calculate the total dipole of the system/residue */
+    void calcTotalDipole(const Frame *aa_frame, int num_atoms=0);
+    /** Calculate the sum of calculated dipoles */
+    void calcSumDipole(const std::vector<int> nums);
     /** Print the dipole array */
     void printDipoles();
     /** Print the electric fields */
@@ -71,5 +86,7 @@ public:
 inline float dot(const float *A, const float *B);
 /** 3d vector magnitude */
 inline float abs(const float* vec);
+/** 3d polar coordinate conversion */
+void polar(const float *cart, float *polar);
 
 #endif

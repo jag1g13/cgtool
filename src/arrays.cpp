@@ -254,6 +254,22 @@ float vector_rms(const vector<float> *a, const vector<float> *b){
     return float(sqrt(sum / a->size()));
 }
 
+ArrayFloat& ArrayFloat::operator-=(const ArrayFloat &other){
+    assert(elems_ == other.elems_);
+    assert(dimensions_ == other.dimensions_);
+    // could assert that it's the same shape, but might be useful in the future
+    for(int i=0; i<elems_; i++) array_[i] -= other.array_[i];
+    return (*this);
+}
+
+ArrayFloat& ArrayFloat::operator+=(const ArrayFloat &other){
+    assert(elems_ == other.elems_);
+    assert(dimensions_ == other.dimensions_);
+    // could assert that it's the same shape, but might be useful in the future
+    for(int i=0; i<elems_; i++) array_[i] += other.array_[i];
+    return (*this);
+}
+
 //TODO fix this with openmp - currently shows -nan
 StatsBox vector_stats(const vector<float> *a, const vector<float> *b){
     assert(a->size() == b->size());
@@ -269,10 +285,11 @@ StatsBox vector_stats(const vector<float> *a, const vector<float> *b){
     }
     result.rms = float((sqrt(sumsqr / a->size())));
     result.mean = diff / a->size();
+    // don't calculate stdev, it's expensive and almost the same as RMS anyway
     float stdev_tmp = 0.f;
-    for(int i=0; i<a->size(); i++){
-        stdev_tmp += ((*a)[i] - (*b)[i] - result.mean) * ((*a)[i] - (*b)[i] - result.mean);
-    }
+//    for(int i=0; i<a->size(); i++){
+//        stdev_tmp += ((*a)[i] - (*b)[i] - result.mean) * ((*a)[i] - (*b)[i] - result.mean);
+//    }
     result.stdev = float(sqrt(stdev_tmp / a->size()));
     return result;
 }

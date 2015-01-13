@@ -122,6 +122,7 @@ int main(int argc, char *argv[]){
     int i = 0;
     vector<vector<float>> bond_lens, bond_angles, bond_dihedrals;
     vector<float> tmp;
+    vector<int> show_dipoles{0, 1, 2, 3, 4, 5};
     tmp.reserve(6);
     ofstream file_len("length.csv"), file_angle("angle.csv"), file_dih("dihedral.csv");
     while(frame.readNext(xtc)){
@@ -136,8 +137,11 @@ int main(int argc, char *argv[]){
             field.setupGridContracted(&frame);
 //            field.calcFieldMonopoles(&frame);
             field.calcFieldMonopolesContracted(&frame);
-            field.calcDipolesDirect(&mapping, &cg_frame, &frame);
+//            field.calcDipolesDirect(&mapping, &cg_frame, &frame);
+            field.calcDipolesFit(&mapping, &cg_frame, &frame);
             field.calcFieldDipolesContracted(&cg_frame);
+            field.calcTotalDipole(&frame);
+            field.calcSumDipole(show_dipoles);
         }
 //        tmp = bond_set.calcBondLens(&frame);
         tmp = bond_set.calcBondLens(&cg_frame);

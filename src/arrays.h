@@ -76,7 +76,9 @@ public:
     void linspace(const int n, const float min, const float max);
 
     // operators and friends
-    friend bool operator==(ArrayFloat &a, ArrayFloat &b);
+    friend bool operator==(const ArrayFloat &a, const ArrayFloat &b);
+    ArrayFloat& operator-=(const ArrayFloat &other);
+    ArrayFloat& operator+=(const ArrayFloat &other);
     /** RMS difference between two arrays */
     friend float rms(const ArrayFloat *a, const ArrayFloat *b);
 };
