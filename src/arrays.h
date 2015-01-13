@@ -65,7 +65,7 @@ public:
     /** Set all elements to 0.f */
     void zero();
     /** Print all elements of the array */
-    void print();
+    void print(const int width=8, const int prec=4);
     /** Free the array and mark as unallocated */
     void free();
     /** Linspace a line of a 3d array */

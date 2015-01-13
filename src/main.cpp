@@ -112,8 +112,8 @@ int main(int argc, char *argv[]){
     mapping.initFrame(&frame, &cg_frame);
     BondSet bond_set;
     bond_set.fromFile(cfgname);
-    FieldMap field(25, 25, 25, 6);
-//    FieldMap field(10, 10, 10, mapping.num_beads);
+//    FieldMap field(25, 25, 25, mapping.num_beads);
+    FieldMap field(10, 10, 10, mapping.num_beads);
 //    FieldMap field(5, 5, 5, mapping.num_beads);
 
     /* Keep reading frames until something goes wrong (run out of frames) */
@@ -178,7 +178,6 @@ int main(int argc, char *argv[]){
     calc_avg(bond_dihedrals);
 
     /* Final timer */
-//    split_text_output("Finished", start, num_threads);
     split_text_output("Total time", start_time, num_threads);
     return 0;
 }
@@ -208,8 +207,10 @@ vector<float> calc_avg(vector<vector<float>> bond_lens){
     cout << "Bonds" << endl;
     for(int i = 0; i < width; i++){
         mean[i] = sum[i] / length;
-        cout << mean[i] << endl;
+//        cout << mean[i] << "\t";
+        printf("%8.3f", mean[i]);
     }
+    cout << endl;
     return mean;
 }
 

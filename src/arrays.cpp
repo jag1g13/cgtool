@@ -190,19 +190,21 @@ void ArrayFloat::zero(){
     }
 }
 
-void ArrayFloat::print(){
+void ArrayFloat::print(const int width, const int prec){
     assert(allocated_);
     if(dimensions_ == 3) throw std::runtime_error("Not implemented");
     if(dimensions_ == 1){
         for(int i=0; i<sizex_; i++){
-            cout << array_[i] << "\t";
+//            cout << array_[i] << "\t";
+            printf("%*.*f", width, prec, array_[i]);
         }
         cout << endl;
     }else if(dimensions_ == 2){
 //        cout << sizex_ << "\t" << sizey_ << endl;
         for(int i=0; i<sizex_; i++){
             for(int j=0; j<sizey_; j++){
-                cout << array_[i * sizey_ + j] << "\t";
+//                cout << array_[i * sizey_ + j] << "\t";
+                printf("%*.*f", width, prec, array_[i*sizey_ + j]);
             }
             cout << endl;
         }

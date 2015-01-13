@@ -434,10 +434,7 @@ void FieldMap::calcTotalDipole(const Frame *aa_frame, int num_atoms){
 
     cout << "Total molecular dipole" << endl;
     cout << "Sum of bead dipoles" << endl;
-    for(int i=0; i < 6; i++){
-        cout << totalDipole_(i) << "\t";
-    }
-    cout << endl;
+    totalDipole_.print();
 }
 
 void FieldMap::calcSumDipole(const vector<int> nums){
@@ -451,10 +448,7 @@ void FieldMap::calcSumDipole(const vector<int> nums){
             sumDipoles_(1)*sumDipoles_(1) +
             sumDipoles_(2)*sumDipoles_(2)));
 
-    for(int i=0; i < 6; i++){
-        cout << sumDipoles_(i) << "\t";
-    }
-    cout << endl;
+    sumDipoles_.print();
 }
 
 void FieldMap::printDipoles(){
