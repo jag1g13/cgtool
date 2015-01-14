@@ -146,6 +146,12 @@ public:
     */
     bool writeToXtc(t_fileio *);
 
+    /** \brief Recentre simulation box on an atom
+    * Avoids problems where a residue is split by the periodic boundary,
+    * causing bond lengths to be calculated incorrectly
+    */
+    void recentreBox(const int atom_num);
+
     /** Print info for all atoms up to n.  Default print all. */
     void printAtoms(const int n=-1);
 

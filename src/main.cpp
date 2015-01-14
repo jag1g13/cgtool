@@ -26,7 +26,7 @@
 #define DEBUG true
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 50
-#define ELECTRIC_FIELD_FREQ 50
+#define ELECTRIC_FIELD_FREQ 1
 
 /* things from std that get used a lot */
 using std::ifstream;
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]){
     /* Where does the user want us to look for input files? */
     split_text_output("Identifying files", start, num_threads);
     cout << "Running with " << num_threads << " threads" << endl;
-    char groname[40], xtcname[40], topname[40], cfgname[40];
+    char groname[80], xtcname[80], topname[80], cfgname[80];
     if(argc < 2){
         cout << "Using current directory" << endl;
         strcpy(groname, "npt.gro");
@@ -132,16 +132,17 @@ int main(int argc, char *argv[]){
             std::flush(cout);
         }
         mapping.apply(&frame, &cg_frame);
+        // calculate electric field/dipole
         if(i % ELECTRIC_FIELD_FREQ == 0){
             field.setupGrid(&frame);
             field.setupGridContracted(&frame);
 //            field.calcFieldMonopoles(&frame);
             field.calcFieldMonopolesContracted(&frame);
-//            field.calcDipolesDirect(&mapping, &cg_frame, &frame);
-            field.calcDipolesFit(&mapping, &cg_frame, &frame);
+            field.calcDipolesDirect(&mapping, &cg_frame, &frame);
+//            field.calcDipolesFit(&mapping, &cg_frame, &frame);
             field.calcFieldDipolesContracted(&cg_frame);
-            field.calcTotalDipole(&frame);
-            field.calcSumDipole(show_dipoles);
+//            field.calcTotalDipole(&frame);
+//            field.calcSumDipole(show_dipoles);
         }
 //        tmp = bond_set.calcBondLens(&frame);
         tmp = bond_set.calcBondLens(&cg_frame);

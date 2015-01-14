@@ -7,7 +7,7 @@
 
 #include "parser.h"
 
-#define DEBUG true
+#define DEBUG false
 
 using std::cout;
 using std::endl;
@@ -32,11 +32,14 @@ void CGMap::fromFile(string filename){
     num_beads = mapping_.size();
     if(DEBUG){
         for(auto &bead : mapping_){
-            std::cout << bead.cg_bead << " contains";
+//            std::cout << bead.cg_bead << " contains";
+            printf("%s\n", bead.cg_bead.c_str());
             for(auto &atom : bead.atoms){
-                std::cout << " " << atom;
+//                std::cout << " " << atom;
+                printf("%6s", atom.c_str());
             }
-            std::cout << std::endl;
+            printf("\n");
+//            std::cout << std::endl;
         }
     }
 }

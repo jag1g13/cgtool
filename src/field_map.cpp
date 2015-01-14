@@ -251,8 +251,12 @@ void FieldMap::calcFieldDipolesContracted(const Frame *frame){
 //                    distSqr(frame->atoms_[j].coords, gridContracted_(i, 0), gridContracted_(i, 1), gridContracted_(i, 2));
         }
     }
-    StatsBox sb = vector_stats(&fieldMonopoleContracted_, &fieldDipoleContracted_);
-    cout << "MEAN: " << sb.mean << "\tRMS: " << sb.rms << "\tSTDEV: " << sb.stdev << endl;
+
+    #pragma omp master
+    {
+        StatsBox sb = vector_stats(&fieldMonopoleContracted_, &fieldDipoleContracted_);
+        cout << "\tRMS: " << sb.rms << "\tRRMS: " << sb.rrms << endl;
+    }
 }
 
 void FieldMap::calcFieldDipoles(const Frame *frame) {
@@ -364,7 +368,7 @@ void FieldMap::calcDipolesDirect(const CGMap *cgmap, const Frame *cg_frame, Fram
 //        dipoles_(i, 2) *= 10.f;
 //        dipoles_(i, 5) *= 10.f;
     }
-//    printDipoles();
+    printDipoles();
 }
 
 void FieldMap::calcDipolesFit(const CGMap *cgmap, const Frame *cg_frame, const Frame *aa_frame){
@@ -434,7 +438,7 @@ void FieldMap::calcTotalDipole(const Frame *aa_frame, int num_atoms){
 
     cout << "Total molecular dipole" << endl;
     cout << "Sum of bead dipoles" << endl;
-    totalDipole_.print();
+    totalDipole_.print(8, 4, constants::ENM2DEBYE);
 }
 
 void FieldMap::calcSumDipole(const vector<int> nums){
@@ -448,12 +452,12 @@ void FieldMap::calcSumDipole(const vector<int> nums){
             sumDipoles_(1)*sumDipoles_(1) +
             sumDipoles_(2)*sumDipoles_(2)));
 
-    sumDipoles_.print();
+    sumDipoles_.print(8, 4, constants::ENM2DEBYE);
 }
 
 void FieldMap::printDipoles(){
     cout << "Dipx\tDipy\tDipz\tPolt\tPolp\tPolm" << endl;
-    dipoles_.print();
+    dipoles_.print(8, 4, constants::ENM2DEBYE);
 }
 
 //TODO move this outside the class - it doesn't need to be here

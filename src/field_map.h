@@ -8,6 +8,10 @@
 #include "cg_map.h"
 //#include "boost/multi_array.hpp"
 
+namespace constants{
+    const float ENM2DEBYE = 2.0819434f;
+}
+
 //TODO tidy up this monster
 /**
 * \brief Class to hold and operate on electric field maps

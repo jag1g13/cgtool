@@ -4,6 +4,7 @@
 //#include <cstdlib>
 #include <vector>
 
+
 /**
 * \brief Array of floats with safety features.
 *
@@ -65,7 +66,7 @@ public:
     /** Set all elements to 0.f */
     void zero();
     /** Print all elements of the array */
-    void print(const int width=8, const int prec=4);
+    void print(const int width=8, const int prec=4, const float scale=1);
     /** Free the array and mark as unallocated */
     void free();
     /** Linspace a line of a 3d array */
@@ -85,8 +86,10 @@ public:
 
 struct StatsBox{
     float rms = 0.f;
-    float stdev = 0.f;
-    float mean = 0.f;
+    float rrms = 0.f;
+    float mean_diff = 0.f;
+    float mean_a = 0.f;
+    float mean_b = 0.f;
 };
 
 float vector_rms(const std::vector<float> *a, const std::vector<float> *b);

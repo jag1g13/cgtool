@@ -82,6 +82,21 @@ bool Frame::setupFrame(const char *groname, const char *topname, const char *cfg
     if(isSetup_) throw std::runtime_error("Frame has already been setup");
     num_ = 0;
     ok = read_first_xtc(xtc, &numAtoms_, &step_, &time_, box_, &x_, &prec_, &bOK);
+    // print first 50 coords
+//    for(int i=0; i<50; i++){
+//        printf("%8.4f%8.4f%8.4f\n", x_[i][0], x_[i][1], x_[i][2]);
+//    }
+    // recentre on first atom
+    recentreBox(0);
+
+    // print box vectors
+    cout << "Box vectors" << endl;
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            printf("%8.4f", box_[i][j]);
+        }
+        cout << endl;
+    }
 
     gro.open(groname);
     if(gro.is_open()){
@@ -131,6 +146,7 @@ bool Frame::setupFrame(const char *groname, const char *topname, const char *cfg
                 res_num_atoms = 0;
 //                cout << "pushed" << endl;
 
+                //TODO what if the residues we want aren't at the beginning
                 // Print names of interesting residues
                 if(res_loc < res_interesting+1 && res_loc != 0){
                     //TODO tidy up these - I want to print them, but nicely
@@ -138,7 +154,6 @@ bool Frame::setupFrame(const char *groname, const char *topname, const char *cfg
 //                    cout << " size: " << residues_[res_loc-1].atoms.size() << endl;
                     residues_[res_loc-1].num_atoms = res_num_atoms;
                     numAtomsTrack_ += residues_[res_loc-1].atoms.size();
-                    cout << numAtomsTrack_ << endl;
                 }
 //                cout << "Done new res" << endl;
             }
@@ -158,25 +173,27 @@ bool Frame::setupFrame(const char *groname, const char *topname, const char *cfg
 //            cout << i << " ";
         }
 //        cout << "Out of i loop" << endl;
+        cout << "Mapping first " << numAtomsTrack_ << " atoms" << endl;
 
         // Process topology file
         string section;
         vector<string> substrs;
         Parser top_parser(topname);
         // skip over any other sections
-        while(section != "atoms"){
-            top_parser.getLine(&section, &substrs);
-        }
+//        while(section != "atoms"){
+//            top_parser.getLine(&section, &substrs);
+//        }
         for(int i=0; i<numAtomsTrack_; i++){
             // read data from topology file for each atom we care about (not solvent)
             // check that we're reading the atoms are in the same order
             // internal atom name is the res # and atom name from top/gro
+            top_parser.getLineFromSection("atoms", &substrs);
             string tmp_string = substrs[3] + substrs[5];
 //            cout << "top: " << tmp_string << "\tgro: " << atoms_[i].atom_type << endl;
             assert(tmp_string == atoms_[i].atom_type);
             atoms_[i].charge = float(atof(substrs[7].c_str()));
             atoms_[i].mass = float(atof(substrs[8].c_str()));
-            top_parser.getLine(&section, &substrs);
+//            top_parser.getLine(&section, &substrs);
         }
         gro.close();
     }else{
@@ -198,12 +215,31 @@ bool Frame::readNext(t_fileio *xtc){
     int ok = 0, bOK = 0;
     assert(isSetup_);
     ok = read_next_xtc(xtc, numAtoms_, &step_, &time_, box_, x_, &prec_, &bOK);
+//    recentreBox(0);
     for(int i = 0; i < numAtoms_; i++){
         // overwrite coords of atoms stored in the current Frame
         memcpy(atoms_[i].coords, x_[i], 3 * sizeof(float));
     }
     num_++;
     return ok && bOK;
+}
+
+void Frame::recentreBox(const int atom_num){
+    float box_centre[3];
+    float res_centre[3];
+    float offset[3];
+
+    assert(atom_num < numAtoms_);
+    res_centre[0] = x_[atom_num][0];
+    res_centre[1] = x_[atom_num][1];
+    res_centre[2] = x_[atom_num][2];
+//    printf("res_centre: %8.4f%8.4f%8.4f\n", res_centre[0], res_centre[1], res_centre[2]);
+    for(int i=0; i<numAtoms_; i++){
+        for(int j=0; j<3; j++){
+            x_[i][j] -= res_centre[j] - box_[2][0];
+            if(x_[i][j] < -box_[2][0]) x_[i][j] += box_[0][0];
+        }
+    }
 }
 
 void Frame::printAtoms(const int n){
