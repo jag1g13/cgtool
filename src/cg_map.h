@@ -43,8 +43,8 @@ public:
     std::map<string, BeadMap*> atomname_to_bead_;
     /** Number of beads defined */
     int num_beads;
-    //TODO implement more mapping types
-    /** What type of mapping are we going to apply?  CM, GC, or atom centred */
+    /** \brief What type of mapping are we going to apply?  CM, GC, or atom centred
+    * Default is mapping on first atom in bead. */
     MapType mapType_ = MapType::ATOM;
 
     /**
@@ -69,7 +69,8 @@ public:
     *
     * Allocates space for each bead and copies over constant data from the atomistic Frame
     */
-    void initFrame(const Frame *aa_frame, Frame *cg_frame);
+//    void initFrame(const Frame *aa_frame, Frame *cg_frame);
+    Frame initFrame(const Frame &aa_frame);
 
     /**
     * \brief Apply CG mapping to an atomistic Frame
@@ -77,7 +78,7 @@ public:
     * Requires that initFrame has already been called to setup the CG Frame.
     * Will throw std::runtime_error if Frame hasn't been setup.
     */
-    bool apply(const Frame *aa_frame, Frame *cg_frame);
+    bool apply(const Frame &aa_frame, Frame &cg_frame);
 };
 
 #endif

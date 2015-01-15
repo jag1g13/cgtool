@@ -22,14 +22,58 @@ Frame::Frame(int num, int natoms, string name){
     atoms_.reserve(natoms);
 }
 
-Frame::Frame(const Frame* base_frame){
-    name_ = base_frame->name_;
-    step_ = base_frame->step_;
+Frame::Frame(const Frame &frame){
+    num_ = frame.num_;
+    name_ = frame.name_;
+    prec_ = frame.prec_;
+    time_ = frame.time_;
+    step_ = frame.step_;
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            box_[i][j] = frame.box_[i][j];
+        }
+    }
 }
+
+//Frame &Frame::operator=(const Frame &frame){
+//    num_ = frame.num_;
+//    name_ = frame.name_;
+//    prec_ = frame.prec_;
+//    time_ = frame.time_;
+//    step_ = frame.step_;
+//    for(int i=0; i<3; i++){
+//        for(int j=0; j<3; j++){
+//            box_[i][j] = frame.box_[i][j];
+//        }
+//    }
+//    return *this;
+//}
 
 Frame::Frame(const char *groname, const char *topname, const char *cfgname, const char *xtcname){
-
+    char mode[2] = {'r', 'w'};
+    xtcInput_ = open_xtc(xtcname, &mode[0]);
+//    if(output) xtc_out = open_xtc("out.xtc", &mode[1]);
+    setupFrame(groname, topname, cfgname, xtcInput_);
 }
+
+//TODO finish move constructor
+//Frame::Frame(Frame&& frame){
+//    isSetup_ = frame.isSetup_;
+//    xtcInput_ = frame.xtcInput_;
+//    num_ = frame.num_;
+//    step_ = frame.step_;
+//    numAtoms_ = frame.numAtoms_;
+//    numAtomsTrack_ = frame.numAtomsTrack_;
+//    atoms_ = frame.atoms_;
+//    residues_ = frame.residues_;
+//    time_ = frame.time_;
+//    prec_ = frame.prec_;
+////    box_ = frame.box_;
+//    x_ = frame.x_;
+//    name_ = frame.name_;
+//    numToName_ = frame.numToName_;
+//    nameToNum_ = frame.nameToNum_;
+//}
 
 int Frame::allocateAtoms(int num_atoms){
     numAtoms_ = num_atoms;
@@ -79,34 +123,22 @@ float Frame::bondAngle(BondStruct *bond){
 }
 
 bool Frame::setupFrame(const char *groname, const char *topname, const char *cfgname, t_fileio *xtc){
-    char line[40];
-    int ok = 0, gro_num_atoms;
-    std::ifstream gro;
-    gmx_bool bOK = 0;
     if(isSetup_) throw std::runtime_error("Frame has already been setup");
     num_ = 0;
-    ok = read_first_xtc(xtc, &numAtoms_, &step_, &time_, box_, &x_, &prec_, &bOK);
-    // print first 50 coords
-//    for(int i=0; i<50; i++){
-//        printf("%8.4f%8.4f%8.4f\n", x_[i][0], x_[i][1], x_[i][2]);
-//    }
+    gmx_bool bOK = 0;
+    int ok = read_first_xtc(xtc, &numAtoms_, &step_, &time_, box_, &x_, &prec_, &bOK);
     // recentre on first atom
     recentreBox(0);
 
-    // print box vectors
-    cout << "Box vectors" << endl;
-    for(int i=0; i<3; i++){
-        for(int j=0; j<3; j++){
-            printf("%8.4f", box_[i][j]);
-        }
-        cout << endl;
-    }
-
-    gro.open(groname);
+    std::ifstream gro(groname);
     if(gro.is_open()){
-        gro.getline(line, 40);              // first line of gro is the run name
+        // first line of GRO is the system name
+        char line[40];
+        gro.getline(line, 40);
         cout << line << endl;
-        gro >> gro_num_atoms;               // second line is the number of atoms
+        // second line is the number of atoms
+        int gro_num_atoms;
+        gro >> gro_num_atoms;
 
         if(gro_num_atoms != numAtoms_){
             cout << "XTC num atoms:" << numAtoms_ << endl;
@@ -116,6 +148,15 @@ bool Frame::setupFrame(const char *groname, const char *topname, const char *cfg
             throw std::runtime_error("Number of atoms does not match");
         }else{
             cout << "Found " << numAtoms_ << " atoms" << endl;
+        }
+
+        // print box vectors
+        cout << "Box vectors" << endl;
+        for(int i=0; i<3; i++){
+            for(int j=0; j<3; j++){
+                printf("%8.4f", box_[i][j]);
+            }
+            cout << endl;
         }
 
         int res_interesting = 0;
@@ -129,7 +170,8 @@ bool Frame::setupFrame(const char *groname, const char *topname, const char *cfg
         int res_loc = -1;
         int res_num_atoms = 0;
         atoms_.resize(numAtoms_);
-        for(int i = 0; i < numAtoms_; i++){       // now we can read the atoms
+        // setup done, start reading in atoms from GRO
+        for(int i = 0; i < numAtoms_; i++){
             atoms_[i] = Atom(i);
             string tmp_atom_type;
             gro >> res_name_new >> tmp_atom_type >> atoms_[i].atom_num;
@@ -144,22 +186,17 @@ bool Frame::setupFrame(const char *groname, const char *topname, const char *cfg
 
             // found a new residue
             if(res_name_new != res_name_last){
-//                cout << "Found new residue" << endl;
                 res_loc++;
                 residues_.push_back(Residue(res_name_new));
                 res_num_atoms = 0;
-//                cout << "pushed" << endl;
 
                 //TODO what if the residues we want aren't at the beginning
                 // Print names of interesting residues
                 if(res_loc < res_interesting+1 && res_loc != 0){
                     //TODO tidy up these - I want to print them, but nicely
-//                    cout << "res: " << res_loc-1 << " resname: "<< residues_[res_loc-1].res_name;
-//                    cout << " size: " << residues_[res_loc-1].atoms.size() << endl;
                     residues_[res_loc-1].num_atoms = res_num_atoms;
                     numAtomsTrack_ += residues_[res_loc-1].atoms.size();
                 }
-//                cout << "Done new res" << endl;
             }
 
             residues_[res_loc].atoms.push_back(atoms_[i].atom_num);
@@ -174,30 +211,22 @@ bool Frame::setupFrame(const char *groname, const char *topname, const char *cfg
 
             res_name_last = res_name_new;
             res_num_atoms++;
-//            cout << i << " ";
         }
-//        cout << "Out of i loop" << endl;
         cout << "Mapping first " << numAtomsTrack_ << " atoms" << endl;
 
         // Process topology file
         string section;
         vector<string> substrs;
         Parser top_parser(topname);
-        // skip over any other sections
-//        while(section != "atoms"){
-//            top_parser.getLine(&section, &substrs);
-//        }
         for(int i=0; i<numAtomsTrack_; i++){
             // read data from topology file for each atom we care about (not solvent)
             // check that we're reading the atoms are in the same order
             // internal atom name is the res # and atom name from top/gro
             top_parser.getLineFromSection("atoms", &substrs);
             string tmp_string = substrs[3] + substrs[5];
-//            cout << "top: " << tmp_string << "\tgro: " << atoms_[i].atom_type << endl;
             assert(tmp_string == atoms_[i].atom_type);
             atoms_[i].charge = float(atof(substrs[7].c_str()));
             atoms_[i].mass = float(atof(substrs[8].c_str()));
-//            top_parser.getLine(&section, &substrs);
         }
         gro.close();
     }else{
@@ -209,7 +238,8 @@ bool Frame::setupFrame(const char *groname, const char *topname, const char *cfg
     return isSetup_;
 }
 
-bool Frame::readNext(t_fileio *xtc){
+//bool Frame::readNext(t_fileio *xtc){
+bool Frame::readNext(){
     /**
     * \brief Read a frame from the XTC file into an existing Frame object
     *
@@ -218,16 +248,18 @@ bool Frame::readNext(t_fileio *xtc){
     */
     int ok = 0, bOK = 0;
     assert(isSetup_);
-    ok = read_next_xtc(xtc, numAtoms_, &step_, &time_, box_, x_, &prec_, &bOK);
+    ok = read_next_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_, &bOK);
 //    recentreBox(0);
     for(int i = 0; i < numAtoms_; i++){
         // overwrite coords of atoms stored in the current Frame
         memcpy(atoms_[i].coords, x_[i], 3 * sizeof(float));
     }
     num_++;
+    if(!ok || !bOK) close_xtc(xtcInput_);
     return ok && bOK;
 }
 
+//TODO check this works consistently
 void Frame::recentreBox(const int atom_num){
     float box_centre[3];
     float res_centre[3];

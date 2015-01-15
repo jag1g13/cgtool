@@ -79,6 +79,8 @@ class Frame{
 public:
     /** Has the Frame been properly setup yet */
     bool isSetup_ = false;
+    /** GROMACS xtc file */
+    t_fileio *xtcInput_;
     /** The number of this Frame, starting at 0 */
     int num_ = 0;
     /** The simulation step corresponding to this frame */
@@ -96,8 +98,8 @@ public:
     /** XTC precision; not used internally, just for XTC input/output */
     float prec_;
     /** Size of the simulation box */
-//    matrix box_;
     float box_[3][3];
+//    matrix box_;
     /** Holds atomic coordinates for GROMACS */
     rvec *x_;
     /** Name of the Frame; taken from comment in the GRO file */
@@ -123,15 +125,26 @@ public:
     Frame(const char *groname, const char *topname, const char *cfgname, const char *xtcname);
 
     /**
-    * \brief Create Frame by copying name and step from another Frame
+    * \brief Create Frame by copying data from another Frame
     *
-    * Intended for creating a CG Frame from an atomistic one
+    * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied.
     */
-    Frame(const Frame* frame);
+    Frame(const Frame &frame);
+
+//    /**
+//    * \brief Move constructor
+//    */
+//    Frame(Frame&& frame);
+
+//    /** \brief Assignment operator
+//    * Doesn't copy atoms.
+//    */
+//    Frame &operator=(const Frame &frame);
 
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file
-    * \throws runtime_error is Frame has already been setup
+    * \throws runtime_error if Frame has already been setup
+    * \throws runtime_error if the number of atoms found in GRO and XTC is not the same
     *
     * GROMACS read_first_xtc() gets data from the XTC file about the system.
     * This function uses this data to create a Frame object to process this data
@@ -141,7 +154,8 @@ public:
     /**
     * \brief Read next frame from the open XTC file
     */
-    bool readNext(t_fileio *xtc);
+//    bool readNext(t_fileio *xtc);
+    bool readNext();
 
     /**
     * \brief Allocate space for a number of atoms

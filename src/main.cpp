@@ -11,12 +11,10 @@
 #include <sys/stat.h>
 #include <omp.h>
 
-#ifndef INCLUDE_GMXFIO
-#define INCLUDE_GMXFIO
-
-#include <gromacs/fileio/xtcio.h>
-
-#endif
+//#ifndef INCLUDE_GMXFIO
+//#define INCLUDE_GMXFIO
+//#include <gromacs/fileio/xtcio.h>
+//#endif
 
 #include "frame.h"
 #include "cg_map.h"
@@ -26,7 +24,7 @@
 #define DEBUG true
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 50
-#define ELECTRIC_FIELD_FREQ 1
+#define ELECTRIC_FIELD_FREQ 50
 
 /* things from std that get used a lot */
 using std::ifstream;
@@ -50,20 +48,19 @@ bool file_exists(const char *);
 
 int main(int argc, char *argv[]){
     bool output = false;
-    t_fileio *xtc, *xtc_out;
-    char mode[2] = {'r', 'w'};
+//    t_fileio *xtc, *xtc_out;
+//    char mode[2] = {'r', 'w'};
     int num_threads = 0;
     clock_t start = std::clock();
     clock_t start_time = std::clock();
 
-//    #pragma omp parallel
-//    #pragma omp master
-//    {
-//        num_threads = omp_get_num_threads();
-//    }
-    num_threads = 0;
+    #pragma omp parallel
+    #pragma omp master
+    {
+        num_threads = omp_get_num_threads();
+    }
 
-    /* Where does the user want us to look for input files? */
+    // Where does the user want us to look for input files?
     split_text_output("Identifying files", start, num_threads);
     cout << "Running with " << num_threads << " threads" << endl;
     char groname[80], xtcname[80], topname[80], cfgname[80];
@@ -102,15 +99,12 @@ int main(int argc, char *argv[]){
     cout << "TOP file: " << topname << endl;
     cout << "CFG file: " << cfgname << endl;
 
-    /* Open files and do setup */
+    // Open files and do setup
     split_text_output("Frame setup", start, num_threads);
-    Frame frame = Frame(0, 0, "");
-    xtc = open_xtc(xtcname, &mode[0]);
-    if(output) xtc_out = open_xtc("out.xtc", &mode[1]);
-    frame.setupFrame(groname, topname, cfgname, xtc);
-    Frame cg_frame = Frame(&frame);
+    Frame frame = Frame(groname, topname, cfgname, xtcname);
+//    Frame cg_frame = Frame(frame);
     CGMap mapping(cfgname);
-    mapping.initFrame(&frame, &cg_frame);
+    Frame cg_frame = mapping.initFrame(frame);
 //    Frame cg_frame = mapping.initFrame(&frame);
     BondSet bond_set;
     bond_set.fromFile(cfgname);
@@ -127,13 +121,14 @@ int main(int argc, char *argv[]){
     tmp.reserve(6);
     ofstream file_len("length.csv"), file_angle("angle.csv"), file_dih("dihedral.csv");
     // Keep reading frames until something goes wrong (run out of frames)
-    while(frame.readNext(xtc)){
+//    while(frame.readNext(xtc)){
+    while(frame.readNext()){
         // Process each frame as we read it, frames are not retained
         if(i % PROGRESS_UPDATE_FREQ == 0 && UPDATE_PROGRESS){
             cout << "Read " << i << " frames\r";
             std::flush(cout);
         }
-        mapping.apply(&frame, &cg_frame);
+        mapping.apply(frame, cg_frame);
         // calculate electric field/dipole
         if(i % ELECTRIC_FIELD_FREQ == 0){
             field.setupGrid(&frame);
@@ -158,7 +153,7 @@ int main(int argc, char *argv[]){
         tmp = bond_set.calcBondDihedrals(&cg_frame);
         bond_dihedrals.push_back(tmp);
         printToCSV(&file_dih, &tmp);
-        if(output) frame.writeToXtc(xtc_out);
+//        if(output) frame.writeToXtc(xtc_out);
         //usleep(1000);
         i++;
     }
@@ -171,7 +166,7 @@ int main(int argc, char *argv[]){
     file_len.close();
     file_angle.close();
     file_dih.close();
-    close_xtc(xtc);
+//    close_xtc(xtc);
 
     /* Post processing */
     split_text_output("Post processing", start, num_threads);
