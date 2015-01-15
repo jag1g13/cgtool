@@ -36,25 +36,29 @@ protected:
 public:
     /** How many rows have been appended to the array? */
     int appendedRows_ = 0;
-    //ArrayFloat(const std::vector<int> size, const bool fast=false);
+
     /** \brief Constructor which allocates the array automatically.
     * The array is zeroed after allocation. */
     ArrayFloat(const int a, const int b, const int c, const bool fast=false);
+
     /** Default constructor which doesn't allocate the array automatically */
     ArrayFloat();
+
     //TODO Destructor doesn't work??  Fix this
     //~ArrayFloat();
+
     /** \brief Initialise the array after calling the default blank constructor.
     * The array is zeroed after allocation. */
     void init(const int a, const int b=1, const int c=1, const bool fast=false);
-    //unsigned long operator ()(int i, int j=0, int k=0) const;
-    //unsigned long & operator ()(int i, int j=0, int k=0);
+
     /** \brief Append a row to the array into the next blank row.
     * Doesn't have to fill the row. */
     void append(std::vector<float> vec);
+
     /** \brief Append a row to the array into the next blank row.
     * Copies len floats from *vec.  Doesn't have to fill the row.*/
     void append(const float *vec, const int len);
+
     /** 1 dimensional access to the array */
     float& operator()(int x);
 //    /** 1 dimensional access to the array allowing slicing */
@@ -63,12 +67,16 @@ public:
     float& operator()(int x, int y);
     /** 3 dimensional access to the array */
     float& operator()(int x, int y, int z);
+
     /** Set all elements to 0.f */
     void zero();
+
     /** Print all elements of the array */
     void print(const int width=8, const int prec=4, const float scale=1);
+
     /** Free the array and mark as unallocated */
     void free();
+
     /** Linspace a line of a 3d array */
     void linspace(const int a, const int b, const int n, const float min, const float max);
     /** Linspace a line of a 2d array */
@@ -80,6 +88,7 @@ public:
     friend bool operator==(const ArrayFloat &a, const ArrayFloat &b);
     ArrayFloat& operator-=(const ArrayFloat &other);
     ArrayFloat& operator+=(const ArrayFloat &other);
+
     /** RMS difference between two arrays */
     friend float rms(const ArrayFloat *a, const ArrayFloat *b);
 };
@@ -94,7 +103,5 @@ struct StatsBox{
 
 float vector_rms(const std::vector<float> *a, const std::vector<float> *b);
 StatsBox vector_stats(const std::vector<float> *a, const std::vector<float> *b);
-
-
 
 #endif

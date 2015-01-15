@@ -79,7 +79,7 @@ class Frame{
 public:
     /** Has the Frame been properly setup yet */
     bool isSetup_ = false;
-    /** GROMACS xtc file */
+    /** GROMACS xtc file  to read frames from */
     t_fileio *xtcInput_;
     /** The number of this Frame, starting at 0 */
     int num_ = 0;
@@ -122,7 +122,7 @@ public:
     *
     * Replaces calls to the function Frame::setupFrame()
     */
-    Frame(const char *groname, const char *topname, const char *cfgname, const char *xtcname);
+    Frame(const std::string groname, const std::string topname, const std::string cfgname, const std::string xtcname);
 
     /**
     * \brief Create Frame by copying data from another Frame
@@ -149,7 +149,7 @@ public:
     * GROMACS read_first_xtc() gets data from the XTC file about the system.
     * This function uses this data to create a Frame object to process this data
     */
-    bool setupFrame(const char *groname, const char *topname, const char *cfgname, t_fileio *xtc);
+    bool setupFrame(const std::string groname, const std::string topname, const std::string cfgname, t_fileio *xtc);
 
     /**
     * \brief Read next frame from the open XTC file

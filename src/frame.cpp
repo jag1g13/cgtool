@@ -49,9 +49,9 @@ Frame::Frame(const Frame &frame){
 //    return *this;
 //}
 
-Frame::Frame(const char *groname, const char *topname, const char *cfgname, const char *xtcname){
+Frame::Frame(const std::string groname, const std::string topname, const std::string cfgname, const std::string xtcname){
     char mode[2] = {'r', 'w'};
-    xtcInput_ = open_xtc(xtcname, &mode[0]);
+    xtcInput_ = open_xtc(xtcname.c_str(), &mode[0]);
 //    if(output) xtc_out = open_xtc("out.xtc", &mode[1]);
     setupFrame(groname, topname, cfgname, xtcInput_);
 }
@@ -122,7 +122,7 @@ float Frame::bondAngle(BondStruct *bond){
     }
 }
 
-bool Frame::setupFrame(const char *groname, const char *topname, const char *cfgname, t_fileio *xtc){
+bool Frame::setupFrame(const std::string groname, const std::string topname, const std::string cfgname, t_fileio *xtc){
     if(isSetup_) throw std::runtime_error("Frame has already been setup");
     num_ = 0;
     gmx_bool bOK = 0;

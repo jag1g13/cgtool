@@ -29,17 +29,11 @@ ArrayFloat::ArrayFloat(const int a, const int b, const int c, const bool fast){
     if(c > 1) dimensions_++;
     size_.reserve(3);
     size_[0] = a; size_[1] = b; size_[2] = c;
-//    cout << size_[0] << "x" << size_[1] << "x" << size_[2] << endl;
     elems_ = a*b*c;
-//    for(int i : size_) elems_ *= i;
     array_ = new float[elems_];
     if(array_ == NULL) throw std::runtime_error("Array alloc failed");
     allocated_ = true;
-//    if(!fast) zero();
     zero();
-//    cout << dimensions_ << "d array\t";
-//    for(int i : size_) cout << i << "x";
-//    cout << elems_ << " elements" << endl;
 }
 
 void ArrayFloat::init(const int a, const int b, const int c, const bool fast){
@@ -55,17 +49,11 @@ void ArrayFloat::init(const int a, const int b, const int c, const bool fast){
     size_.reserve(3);
     size_[0] = a; size_[1] = b; size_[2] = c;
     sizex_ = a; sizey_ = b; sizez_ = c;
-//    cout << size_[0] << "x" << size_[1] << "x" << size_[2] << endl;
     elems_ = a*b*c;
-//    for(int i : size_) elems_ *= i;
     array_ = new float[elems_];
     if(array_ == NULL) throw std::runtime_error("Array alloc failed");
     allocated_ = true;
-//    if(!fast) zero();
     zero();
-//    cout << dimensions_ << "d array\t";
-//    for(int i : size_) cout << i << "x";
-//    cout << elems_ << " elements" << endl;
 }
 
 void ArrayFloat::append(vector<float> vec){
@@ -123,7 +111,6 @@ float& ArrayFloat::operator()(int x){
 //}
 
 float& ArrayFloat::operator()(int x, int y) {
-    //return array_[x * size_[1] + y];
     if(fast_){
         return array_[x * sizey_ + y];
     }else{
@@ -152,7 +139,6 @@ float& ArrayFloat::operator()(int x, int y, int z){
         assert(y < size_[1] && y >= 0);
         assert(z < size_[2] && z >= 0);
     }
-    //return array_[x * size_[1] * size_[2] + y * size_[2] + z];
     return array_[x * sizey_ * sizez_ + y * sizez_ + z];
 }
 
@@ -197,15 +183,12 @@ void ArrayFloat::print(const int width, const int prec, const float scale){
     if(dimensions_ == 3) throw std::runtime_error("Not implemented");
     if(dimensions_ == 1){
         for(int i=0; i<sizex_; i++){
-//            cout << array_[i] << "\t";
             printf("%*.*f", width, prec, scale*array_[i]);
         }
         cout << endl;
     }else if(dimensions_ == 2){
-//        cout << sizex_ << "\t" << sizey_ << endl;
         for(int i=0; i<sizex_; i++){
             for(int j=0; j<sizey_; j++){
-//                cout << array_[i * sizey_ + j] << "\t";
                 printf("%*.*f", width, prec, scale*array_[i*sizey_ + j]);
             }
             cout << endl;
@@ -250,7 +233,6 @@ float vector_rms(const vector<float> *a, const vector<float> *b){
     assert(a->size() == b->size());
     assert(a->size() != 0);
     assert(b->size() != 0);
-//    cout << "a " << a->size() << "\tb " << b->size() << endl;
     float sum = 0.f;
     for(int i=0; i<a->size(); i++){
         sum += ((*a)[i] - (*b)[i]) * ((*a)[i] - (*b)[i]);
@@ -281,25 +263,16 @@ StatsBox vector_stats(const vector<float> *a, const vector<float> *b){
     assert(a->size() != 0);
     assert(b->size() != 0);
     StatsBox result;
-//    cout << "a " << a->size() << "\tb " << b->size() << endl;
     float sumsqr = 0.f;
     for(int i=0; i<a->size(); i++){
         sumsqr += ((*a)[i] - (*b)[i]) * ((*a)[i] - (*b)[i]);
         result.mean_a += (*a)[i];
         result.mean_b += (*b)[i];
-//        result.mean_diff += (*a)[i] - (*b)[i];
     }
     result.mean_a /= N;
     result.mean_b /= N;
-//    result.mean_diff /= N;
     result.mean_diff = float(fabs(result.mean_a - result.mean_b));
     result.rms = float((sqrt(sumsqr / N)));
     result.rrms = float(fabs(result.rms / (result.mean_a)));
-    // don't calculate stdev, it's expensive and almost the same as RMS anyway
-//    float stdev_tmp = 0.f;
-//    for(int i=0; i<a->size(); i++){
-//        stdev_tmp += ((*a)[i] - (*b)[i] - result.mean) * ((*a)[i] - (*b)[i] - result.mean);
-//    }
-//    result.stdev = float(sqrt(stdev_tmp / a->size()));
     return result;
 }

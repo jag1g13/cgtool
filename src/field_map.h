@@ -6,13 +6,12 @@
 #include "arrays.h"
 #include "frame.h"
 #include "cg_map.h"
-//#include "boost/multi_array.hpp"
 
 namespace constants{
     const float ENM2DEBYE = 2.0819434f;
 }
 
-//TODO tidy up this monster
+//TODO tidy up this monster - partially done
 /**
 * \brief Class to hold and operate on electric field maps
 *
@@ -53,10 +52,6 @@ public:
     FieldMap(const int a, const int b, const int c, const int natoms=0);
     /** Determine grid bounds from a Frame object and do setup each time */
     void setupGrid(const Frame *frame);
-    /** Calculate the electric field from point charges */
-    void calcFieldMonopoles(const Frame *frame);
-    /** Calculate the electric field from point dipoles */
-    void calcFieldDipoles(const Frame *frame);
     /** \brief Calculate the square of the distance between two points */
     float distSqr(const float *coords, const float x, const float y, const float z);
 
