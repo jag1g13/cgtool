@@ -115,20 +115,47 @@ bool CGMap::apply(const Frame *aa_frame, Frame *cg_frame){
     cg_frame->num_ = aa_frame->num_;
     cg_frame->time_ = aa_frame->time_;
 //    cout << "Frame " << cg_frame->num_ << endl;
-    if(mapType_ == MapType::ATOM){
-        // if putting beads directly on the first atom in a bead
-        int i = 0;
-        for(auto &bead : mapping_){
-//            int aa_num = aa_frame->name_to_num_[bead.atoms[0]];
-            for(int j=0; j<3; j++){
-                cg_frame->atoms_[i].coords[j] = aa_frame->atoms_[bead.atom_nums[0]].coords[j];
-//                cout << cg_frame->atoms_[i].coords[j] << "\t";
+    switch(mapType_){
+        case MapType::ATOM:
+            // if putting beads directly on the first atom in a bead
+            for(int i = 0; i < mapping_.size(); i++){
+                for(int j = 0; j < 3; j++){
+                    cg_frame->atoms_[i].coords[j] =
+                            aa_frame->atoms_[mapping_[i].atom_nums[0]].coords[j];
+                }
             }
-//            cout << endl;
-            i++;
-        }
-    }else{
-        throw std::runtime_error("Not implemented");
+            break;
+
+        case MapType::GC:
+            // put bead at geometric centre of atoms
+            for(int i = 0; i < mapping_.size(); i++){
+                for(int j = 0; j < mapping_[i].num_atoms; j++){
+                    for(int k = 0; k < 3; k++){
+                        cg_frame->atoms_[i].coords[k] +=
+                                aa_frame->atoms_[mapping_[i].atom_nums[j]].coords[k];
+                    }
+                }
+                for(int k=0; k < 3; k++){
+                    cg_frame->atoms_[i].coords[k] /= mapping_[i].num_atoms;
+                }
+            }
+            break;
+
+        case MapType::CM:
+            // put bead at centre of mass of atoms
+            for(int i = 0; i < mapping_.size(); i++){
+                for(int j = 0; j < mapping_[i].num_atoms; j++){
+                    for(int k = 0; k < 3; k++){
+                        cg_frame->atoms_[i].coords[k] +=
+                                aa_frame->atoms_[mapping_[i].atom_nums[j]].coords[k] *
+                                aa_frame->atoms_[mapping_[i].atom_nums[j]].mass;
+                    }
+                }
+                for(int k=0; k < 3; k++){
+                    cg_frame->atoms_[i].coords[k] /= mapping_[i].mass;
+                }
+            }
+            break;
     }
     return status;
 }

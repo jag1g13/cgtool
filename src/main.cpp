@@ -26,7 +26,7 @@
 #define DEBUG true
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 50
-#define ELECTRIC_FIELD_FREQ 1
+#define ELECTRIC_FIELD_FREQ 50
 
 /* things from std that get used a lot */
 using std::ifstream;
@@ -110,13 +110,13 @@ int main(int argc, char *argv[]){
     Frame cg_frame = Frame(&frame);
     CGMap mapping(cfgname);
     mapping.initFrame(&frame, &cg_frame);
+//    Frame cg_frame = mapping.initFrame(&frame);
     BondSet bond_set;
     bond_set.fromFile(cfgname);
 //    FieldMap field(25, 25, 25, mapping.num_beads);
     FieldMap field(10, 10, 10, mapping.num_beads);
 //    FieldMap field(5, 5, 5, mapping.num_beads);
 
-    /* Keep reading frames until something goes wrong (run out of frames) */
     split_text_output("Reading frames", start, num_threads);
     start = std::clock();
     int i = 0;
@@ -125,8 +125,9 @@ int main(int argc, char *argv[]){
     vector<int> show_dipoles{0, 1, 2, 3, 4, 5};
     tmp.reserve(6);
     ofstream file_len("length.csv"), file_angle("angle.csv"), file_dih("dihedral.csv");
+    // Keep reading frames until something goes wrong (run out of frames)
     while(frame.readNext(xtc)){
-        /* Process each frame as we read it, frames are not retained */
+        // Process each frame as we read it, frames are not retained
         if(i % PROGRESS_UPDATE_FREQ == 0 && UPDATE_PROGRESS){
             cout << "Read " << i << " frames\r";
             std::flush(cout);
