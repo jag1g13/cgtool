@@ -15,16 +15,20 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-Frame::Frame(int num, int num_atoms, string name){
+Frame::Frame(int num, int natoms, string name){
     name_ = name;
     step_ = num;
-    numAtoms_ = num_atoms;
-    atoms_.reserve(num_atoms);
+    numAtoms_ = natoms;
+    atoms_.reserve(natoms);
 }
 
 Frame::Frame(const Frame* base_frame){
     name_ = base_frame->name_;
     step_ = base_frame->step_;
+}
+
+Frame::Frame(const char *groname, const char *topname, const char *cfgname, const char *xtcname){
+
 }
 
 int Frame::allocateAtoms(int num_atoms){

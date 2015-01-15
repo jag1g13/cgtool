@@ -26,7 +26,7 @@
 #define DEBUG true
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 50
-#define ELECTRIC_FIELD_FREQ 50
+#define ELECTRIC_FIELD_FREQ 1
 
 /* things from std that get used a lot */
 using std::ifstream;
@@ -56,11 +56,12 @@ int main(int argc, char *argv[]){
     clock_t start = std::clock();
     clock_t start_time = std::clock();
 
-    #pragma omp parallel
-    #pragma omp master
-    {
-        num_threads = omp_get_num_threads();
-    }
+//    #pragma omp parallel
+//    #pragma omp master
+//    {
+//        num_threads = omp_get_num_threads();
+//    }
+    num_threads = 0;
 
     /* Where does the user want us to look for input files? */
     split_text_output("Identifying files", start, num_threads);

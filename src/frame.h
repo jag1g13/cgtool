@@ -80,11 +80,11 @@ public:
     /** Has the Frame been properly setup yet */
     bool isSetup_ = false;
     /** The number of this Frame, starting at 0 */
-    int num_;
+    int num_ = 0;
     /** The simulation step corresponding to this frame */
-    int step_;
+    int step_ = 0;
     /** The number of atoms stored in this frame */
-    int numAtoms_;
+    int numAtoms_ = 0;
     /** The number of atoms stored in this frame that we find interesting */
     int numAtomsTrack_ = 0;
     /** Vector of Atoms; Each Atom contains position and type data */
@@ -92,11 +92,12 @@ public:
     /** Vector of Residues; Each Residue contains pointers to atoms */
     std::vector<Residue> residues_;
     /** The simulation time of this frame, in picoseconds */
-    float time_;
+    float time_ = 0.f;
     /** XTC precision; not used internally, just for XTC input/output */
     float prec_;
     /** Size of the simulation box */
-    matrix box_;
+//    matrix box_;
+    float box_[3][3];
     /** Holds atomic coordinates for GROMACS */
     rvec *x_;
     /** Name of the Frame; taken from comment in the GRO file */
@@ -112,17 +113,25 @@ public:
     * If we don't know the number of atoms at creation
     * this can be set later using Frame::allocateAtoms()
     */
-    Frame(int, int, std::string);
+    Frame(int num, int natoms, std::string name);
+
+    /**
+    * \brief Create Frame passing config files.
+    *
+    * Replaces calls to the function Frame::setupFrame()
+    */
+    Frame(const char *groname, const char *topname, const char *cfgname, const char *xtcname);
 
     /**
     * \brief Create Frame by copying name and step from another Frame
     *
     * Intended for creating a CG Frame from an atomistic one
     */
-    Frame(const Frame*);
+    Frame(const Frame* frame);
 
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file
+    * \throws runtime_error is Frame has already been setup
     *
     * GROMACS read_first_xtc() gets data from the XTC file about the system.
     * This function uses this data to create a Frame object to process this data

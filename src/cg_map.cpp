@@ -45,12 +45,18 @@ void CGMap::fromFile(string filename){
 }
 
 void CGMap::initFrame(const Frame *aa_frame, Frame *cg_frame){
-    cg_frame->num_ = aa_frame->num_;
     cg_frame->name_ = aa_frame->name_;
     cg_frame->prec_ = aa_frame->prec_;
+    cg_frame->num_ = aa_frame->num_;
     cg_frame->time_ = aa_frame->time_;
     //TODO finish copying values over
 //    cg_frame->box_ = aa_frame->box_;
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            cg_frame->box_[i][j] = aa_frame->box_[i][j];
+        }
+    }
+
     int i = 0;
     for(auto &bead : mapping_) {
         cg_frame->atoms_.push_back(Atom(i));
