@@ -32,6 +32,7 @@ set(SOURCE_FILES
     src/bondset.cpp
     src/cg_map.cpp
     src/parser.cpp
+    src/cmd.cpp
     src/main.cpp)
 
 # add a target to generate API documentation with Doxygen
