@@ -4,6 +4,7 @@
 //#include <exception>
 
 #include <math.h>
+#include <stdio.h>
 
 #include "arrays.h"
 

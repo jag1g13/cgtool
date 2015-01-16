@@ -50,13 +50,14 @@ int main(int argc, char *argv[]){
     clock_t start = std::clock();
     clock_t start_time = std::clock();
 
-    int num_threads = 0;
-    #pragma omp parallel
-    #pragma omp master
-    {
-        num_threads = omp_get_num_threads();
-    }
-    cout << "Running with " << num_threads << " threads" << endl;
+    // clang doesn't like this - it doesn't seem to do OpenMP
+    int num_threads = 1;
+//    #pragma omp parallel
+//    #pragma omp master
+//    {
+//        num_threads = omp_get_num_threads();
+//    }
+//    cout << "Running with " << num_threads << " threads" << endl;
 
     // Where does the user want us to look for input files?
     split_text_output("Identifying files", start, num_threads);

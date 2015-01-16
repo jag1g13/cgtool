@@ -2,7 +2,13 @@ cmake_minimum_required(VERSION 2.8.4)
 project(traj_process2)
 
 #set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Og -g -Wall -fopenmp -Wno-sign-compare -Wno-unused-variable")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-sign-compare -Wno-unused-variable")
+
+if(CMAKE_CXX_COMPILER STREQUAL "/usr/bin/clang++")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -openmp")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Og -g -fopenmp")
+endif()
 
 include_directories ("/usr/local/gromacs/include")
 link_directories("/usr/local/lib")
