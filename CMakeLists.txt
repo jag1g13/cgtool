@@ -4,6 +4,9 @@ project(traj_process2)
 #set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-sign-compare -Wno-unused-variable")
 
+MESSAGE("${CMAKE_CXX_COMPILER}")
+MESSAGE("${CMAKE_CXX_COMPILER_ID}")
+
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -openmp")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
