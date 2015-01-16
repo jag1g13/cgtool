@@ -81,8 +81,26 @@ int Frame::allocateAtoms(int num_atoms){
     return (int)atoms_.size();
 }
 
-bool Frame::writeToXtc(t_fileio *xtc){
-    return (bool)write_xtc(xtc, numAtoms_, step_, time_, box_, x_, prec_);
+void Frame::setupOutput(const string xtcname, const string topname){
+    throw std::runtime_error("Not implemented");
+    char mode[2] = {'r', 'w'};
+    if(xtcOutput_ == NULL) xtcOutput_ = open_xtc(xtcname.c_str(), &mode[1]);
+    if(x_ == NULL) x_ = (rvec*)malloc(numAtoms_ * sizeof(rvec));
+    if(x_ == NULL) throw std::runtime_error("Couldn't allocate memory");
+
+    std::ofstream top(topname);
+    if(!top.is_open()) throw std::runtime_error("Could not open output TOP file");
+}
+
+bool Frame::writeToXtc(){
+    throw std::runtime_error("Not implemented");
+    if(!outputSetup_) throw std::runtime_error("Output has not been setup");
+    // need to put atomic coordinates back into x_
+    // either it's a CG frame and x_ is empty, or it's atomistic but may have been recentred
+    for(int i=0; i<numAtoms_; i++){
+        memcpy(&(x_[i][0]), atoms_[i].coords, 3);
+    }
+    return (bool)write_xtc(xtcOutput_, numAtoms_, step_, time_, box_, x_, prec_);
 }
 
 float Frame::bondLength(int a, int b){

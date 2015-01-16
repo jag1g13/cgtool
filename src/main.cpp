@@ -119,7 +119,9 @@ int main(int argc, char *argv[]){
             std::flush(cout);
         }
         mapping.apply(frame, cg_frame);
+//        cg_frame.writeToXtc("xtcout.xtc");
         // calculate electric field/dipole
+
         if(i % ELECTRIC_FIELD_FREQ == 0){
             field.setupGrid(&frame);
             field.setupGridContracted(&frame);

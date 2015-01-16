@@ -79,8 +79,11 @@ class Frame{
 public:
     /** Has the Frame been properly setup yet */
     bool isSetup_ = false;
-    /** GROMACS xtc file  to read frames from */
-    t_fileio *xtcInput_;
+    bool outputSetup_ = false;
+    /** GROMACS xtc filei to import frames */
+    t_fileio *xtcInput_ = NULL;
+    /** GROMACS xtc file to export frames */
+    t_fileio *xtcOutput_ = NULL;
     /** The number of this Frame, starting at 0 */
     int num_ = 0;
     /** The simulation step corresponding to this frame */
@@ -101,7 +104,7 @@ public:
     float box_[3][3];
 //    matrix box_;
     /** Holds atomic coordinates for GROMACS */
-    rvec *x_;
+    rvec *x_ = NULL;
     /** Name of the Frame; taken from comment in the GRO file */
     std::string name_;
     /** Dictionary mapping atom numbers to atom names */
@@ -165,9 +168,17 @@ public:
     int allocateAtoms(int);
 
     /**
+    * \brief Prepare to write XTC output.
+    * \throws std::runtime_error if memory cannot be allocated for atom array
+    * \throws std::runtime_error if output TOP file cannot be opened
+    * Allocate necessary atom array and create TOP file.
+    */
+    void setupOutput(const std::string xtcnameout, const std::string topnameout);
+
+    /**
     * \brief Write Frame to XTC output file
     */
-    bool writeToXtc(t_fileio *);
+    bool writeToXtc();
 
     /** \brief Recentre simulation box on an atom
     * Avoids problems where a residue is split by the periodic boundary,
