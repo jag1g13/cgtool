@@ -51,6 +51,15 @@ int main(const int argc, const char *argv[]){
     clock_t start = std::clock();
     clock_t start_time = std::clock();
 
+    const string help_string =
+            "traj_process2\n\n"
+            "Requires GROMACS .gro .xtc and .top files.\n"
+            "Uses a config file to set beads and measure parameters\n\n"
+            "Usage:\n"
+            "tp2\t; Runs using GROMACS files in the current directory\n"
+            "tp2 <directory>\t; Runs using GROMACS files in the specified directory\n"
+            "tp2 <gro> <xtc> <cfg> <top>\t; Runs using specified files";
+
     // clang doesn't like this - it doesn't seem to do OpenMP
     int num_threads = 1;
 //    #pragma omp parallel
@@ -72,6 +81,11 @@ int main(const int argc, const char *argv[]){
         cfgname = "tp.config";
         topname = "topol.top";
     } else if(argc == 2){
+        string arg_tmp = argv[1];
+        if(arg_tmp == "-h" || arg_tmp == "--help"){
+            cout << help_string << endl;
+            exit(0);
+        }
         cout << "Using directory provided" << endl;
         string dir = string(argv[1]);
         groname = dir + "/npt.gro";

@@ -24,7 +24,16 @@ void CGMap::fromFile(string filename){
     Parser parser(filename);
     // which mapping type was requested - defaults to MapType::ATOM if not found
     while(parser.getLineFromSection("maptype", &substrs)){
-
+        if(substrs[0] == "CM"){
+            mapType_ = MapType::CM;
+            cout << "Using CM mapping" << endl;
+        }else if(substrs[0] == "GC"){
+            mapType_ = MapType::GC;
+            cout << "Using GC mapping" << endl;
+        }else if(substrs[0] == "ATOM"){
+            mapType_ = MapType::ATOM;
+            cout << "Using ATOM mapping" << endl;
+        }
     }
     // read in the bead mappings
     while(parser.getLineFromSection("mapping", &substrs)){

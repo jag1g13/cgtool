@@ -29,6 +29,7 @@ struct BeadMap{
 
 enum class MapType{CM, GC, ATOM};
 
+
 /**
 * \brief Contains data and functions related to the CG mapping
 *
