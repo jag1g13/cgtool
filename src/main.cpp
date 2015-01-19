@@ -16,6 +16,7 @@
 //#include <gromacs/fileio/xtcio.h>
 //#endif
 
+#include "cmd.h"
 #include "frame.h"
 #include "cg_map.h"
 #include "bondset.h"
@@ -46,7 +47,7 @@ void split_text_output(const string, const clock_t, const int num_threads);
 bool file_exists(const string name);
 
 
-int main(int argc, char *argv[]){
+int main(const int argc, const char *argv[]){
     clock_t start = std::clock();
     clock_t start_time = std::clock();
 
@@ -60,6 +61,8 @@ int main(int argc, char *argv[]){
 //    cout << "Running with " << num_threads << " threads" << endl;
 
     // Where does the user want us to look for input files?
+//    CMD cmd_parser;
+//    cmd_parser.parseArguments(argc, argv);
     split_text_output("Identifying files", start, num_threads);
     string groname, xtcname, topname, cfgname;
     if(argc < 2){
@@ -85,7 +88,7 @@ int main(int argc, char *argv[]){
         cout << "Wrong number of arguments given" << endl;
         throw std::runtime_error("Wrong number of arguments");
     }
-    if(!file_exists(groname) || !file_exists(xtcname) || !file_exists(cfgname)){
+    if(!file_exists(groname) || !file_exists(xtcname) || !file_exists(cfgname) || !file_exists(topname)){
         cout << "Input file does not exist" << endl;
         throw std::runtime_error("File doesn't exist");
     }

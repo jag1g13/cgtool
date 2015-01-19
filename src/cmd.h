@@ -4,12 +4,15 @@
 #include <string>
 #include <map>
 
+enum class ArgType{STRING, INT, FLOAT, BOOL};
+
 /**
 * \brief Object to handle input to programs from the command line
 * Parses the help text of the program to extract command line arguments.
 * Parses the command line input of the program and stores all arguments into a dictionary.
 * The program can query these dictionaries for the presence and values of arguments.
 * Passing unknown arguments to the program will NOT cause it to fail.
+*
 */
 class CMD{
 protected:
@@ -17,12 +20,21 @@ protected:
     std::map<std::string, int> intArgs_;
     std::map<std::string, float> floatArgs_;
     std::map<std::string, bool> boolArgs_;
+    std::map<std::string, ArgType> argTypes_;
+    std::string helpString_;
+
 public:
     /** \brief Constructor to parse the program help text */
     CMD(std::string help_string);
 
+    /** \brief Empty constructor, does nothing */
+    CMD();
+
     /** \brief Parses arguments from the command line input */
     bool parseArguments(const int argc, const char* argv[]);
+
+    /** Print the help text */
+    void help();
 
     /** \brief Return the value of named argument.
     * If argument was not provided by the user the default value will be used.
