@@ -23,7 +23,7 @@
 #include "field_map.h"
 
 #define DEBUG true
-#define UPDATE_PROGRESS true
+#define UPDATE_PROGRESS false
 #define PROGRESS_UPDATE_FREQ 50
 #define ELECTRIC_FIELD_FREQ 50
 
@@ -127,6 +127,7 @@ int main(const int argc, const char *argv[]){
     tmp.reserve(6);
 //    vector<int> show_dipoles{0, 1, 2, 3, 4, 5};
     ofstream file_len("length.csv"), file_angle("angle.csv"), file_dih("dihedral.csv");
+    ofstream file_avg("average.csv");
     int i = 0;
     // Keep reading frames until something goes wrong (run out of frames)
     while(frame.readNext()){
@@ -139,7 +140,7 @@ int main(const int argc, const char *argv[]){
 //        cg_frame.writeToXtc("xtcout.xtc");
         // calculate electric field/dipole
 
-        if(i % ELECTRIC_FIELD_FREQ == 0){
+        if(i % ELECTRIC_FIELD_FREQ == 0 && UPDATE_PROGRESS){
             field.setupGrid(&frame);
             field.setupGridContracted(&frame);
 //            field.calcFieldMonopoles(&frame);
@@ -177,9 +178,11 @@ int main(const int argc, const char *argv[]){
     // Post processing
     split_text_output("Post processing", start, num_threads);
     start = std::clock();
-    calc_avg(bond_lens);
-    calc_avg(bond_angles);
-    calc_avg(bond_dihedrals);
+    printToCSV(&file_avg, calc_avg(bond_lens));
+    printToCSV(&file_avg, calc_avg(bond_angles));
+    printToCSV(&file_avg, calc_avg(bond_dihedrals));
+//    calc_avg(bond_angles);
+//    calc_avg(bond_dihedrals);
 
     // Final timer
     split_text_output("Total time", start_time, num_threads);
