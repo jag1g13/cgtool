@@ -7,7 +7,7 @@ CMD::CMD(string help_string){
 
 }
 
-bool CMD::parseArguments(const int argc, char const *[] argv){
+bool CMD::parseArguments(const int argc, const char *argv[]){
     throw std::runtime_error("Not implemented");
 
 }

@@ -2,6 +2,7 @@
 #define CMD_H_
 
 #include <string>
+#include <map>
 
 /**
 * \brief Object to handle input to programs from the command line
@@ -10,7 +11,7 @@
 * The program can query these dictionaries for the presence and values of arguments.
 * Passing unknown arguments to the program will NOT cause it to fail.
 */
-static class CMD{
+class CMD{
 protected:
     std::map<std::string, std::string> stringArgs_;
     std::map<std::string, int> intArgs_;
