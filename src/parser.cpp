@@ -15,6 +15,7 @@ Parser::Parser(string filename) {
 }
 
 bool Parser::openFile(string filename){
+    //TODO preprocess file to include ITPs
     file_.open(filename);
     return file_.is_open();
 }

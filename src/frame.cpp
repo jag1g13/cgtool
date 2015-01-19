@@ -125,6 +125,10 @@ float Frame::bondAngle(int a, int b, int c, int d){
     mag1 = (float)sqrt(pow(vec1[0], 2) + pow(vec1[1], 2) + pow(vec1[2], 2));
     mag2 = (float)sqrt(pow(vec2[0], 2) + pow(vec2[1], 2) + pow(vec2[2], 2));
     angle = (float)acos(dot / (mag1 * mag2));
+    if(angle != angle){
+        printf("%d %d %d %d\n", a, b, c, d);
+        return 0.f;
+    }
     return (180.f - (angle * 180.f / (float)M_PI));
 }
 
@@ -210,10 +214,10 @@ bool Frame::setupFrame(const std::string groname, const std::string topname, con
 
                 //TODO what if the residues we want aren't at the beginning
                 // Print names of interesting residues
-                if(res_loc < res_interesting+1 && res_loc != 0){
+                if(res_loc < res_interesting + 1 && res_loc != 0){
                     //TODO tidy up these - I want to print them, but nicely
-                    residues_[res_loc-1].num_atoms = res_num_atoms;
-                    numAtomsTrack_ += residues_[res_loc-1].atoms.size();
+                    residues_[res_loc - 1].num_atoms = res_num_atoms;
+                    numAtomsTrack_ += residues_[res_loc - 1].atoms.size();
                 }
             }
 

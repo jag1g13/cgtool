@@ -52,7 +52,8 @@ int main(const int argc, const char *argv[]){
     clock_t start_time = std::clock();
 
     const string help_string =
-            "traj_process2\n\n"
+            "traj_process2\n"
+            "0.1.89.1d150189083e\n\n"
             "Requires GROMACS .gro .xtc and .top files.\n"
             "Uses a config file to set beads and measure parameters\n\n"
             "Usage:\n"
@@ -208,6 +209,8 @@ vector<float> calc_avg(const vector<vector<float>> &bond_lens){
     vector<float> mean(width);
     for(auto &row : bond_lens){
         for(int i = 0; i < width; i++){
+            // if NaN ignore it
+            if(row[i] != row[i]) continue;
             sum[i] += row[i];
         }
     }
