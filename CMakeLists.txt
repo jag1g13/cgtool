@@ -8,16 +8,19 @@ MESSAGE("${CMAKE_CXX_COMPILER}")
 MESSAGE("${CMAKE_CXX_COMPILER_ID}")
 MESSAGE("${CMAKE_SYSTEM_NAME}")
 
-if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-    # Apple OSX
-endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -openmp")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Og -g -fopenmp")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Og -g")
 else()
     MESSAGE("Not using GNU or Clang")
+endif()
+
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+    # Apple OSX
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 endif()
 
 include_directories ("/usr/local/gromacs/include")
