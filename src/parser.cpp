@@ -33,6 +33,7 @@ bool Parser::getLine(string *section, vector <string> *tokens){
         }
         break;                                              // line isn't empty, accept it
     }
+    boost::trim(line_);
     boost::split(*tokens, line_, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
     for(string tok : *tokens) boost::trim(tok);
     *section = section_;
