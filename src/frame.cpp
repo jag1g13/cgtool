@@ -245,10 +245,10 @@ bool Frame::setupFrame(const std::string groname, const std::string topname, con
             // check that we're reading the atoms are in the same order
             // internal atom name is the res # and atom name from top/gro
             top_parser.getLineFromSection("atoms", &substrs);
-            string tmp_string = substrs[3] + substrs[5];
+            string tmp_string = substrs[2] + substrs[4];
             assert(tmp_string == atoms_[i].atom_type);
-            atoms_[i].charge = float(atof(substrs[7].c_str()));
-            atoms_[i].mass = float(atof(substrs[8].c_str()));
+            atoms_[i].charge = float(atof(substrs[6].c_str()));
+            atoms_[i].mass = float(atof(substrs[7].c_str()));
         }
         gro.close();
     }else{

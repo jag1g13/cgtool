@@ -1,9 +1,13 @@
 #include "parser.h"
 
+#include <iostream>
+
 #include <boost/algorithm/string.hpp>
 
 using std::string;
 using std::vector;
+using std::cout;
+using std::endl;
 
 Parser::Parser() {
 
