@@ -1,29 +1,34 @@
 # README #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+The aim of this project is to create a tool to aid in parametrising coarse-grained molecular mechanics models.  The program currently extracts bond parameters from atomistic simulations in GROMACS and performs some initial dipole calculations.  The final aim is to be able to export force field data files directly.
 
-### What is this repository for? ###
-
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+This program is very much work-in-progress and is not yet extensively tested.
 
 ### How do I get set up? ###
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+Required to compile:
 
-### Contribution guidelines ###
+* Boost C++ libraries
+* Gromacs 5.0.x libraries
+* CMake 2.8.4 or newer
+* GCC or Clang compiler supporting the C++11 standard
+* Google Test to compile tests
 
-* Writing tests
-* Code review
-* Other guidelines
+The CMake file has been tested on Ubuntu 14.04.1 (GCC/Clang) and Mac OSX 10.6 (GCC) and should work on similar systems.
+I intend to make executables for common OSes available once the project is more complete.
 
-### Who do I talk to? ###
+To compile the program:
 
-* Repo owner or admin
-* Other community or team contact
+* Create a new directory 'build' within the main distribution directory
+* From the build directory 'cmake ..'
+* 'make'
+
+To use the program:
+
+* Usage text is available with 'cgtool -h' or 'cgtool --help'
+* The program should be called using 'cgtool <path to xtc> <path to gro> <path to cfg> <path to top>'
+* A config file is required which specifies the mapping to be applied, in the format seen in the test_data directory
+
+### Contact ###
+
+* James Graham: <J.A.Graham@soton.ac.uk>
