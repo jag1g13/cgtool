@@ -111,6 +111,8 @@ public:
     std::map<int, std::string> numToName_;
     /** Dictionary mapping atom names to numbers */
     std::map<std::string, int> nameToNum_;
+    /** Is frame invalid for some reason - molecule lies on pbc */
+    bool invalid_ = false;
 
     /**
     * \brief Create Frame passing frame number, number of atoms to store and the frame name

@@ -155,15 +155,20 @@ int main(const int argc, const char *argv[]){
 
         // calculate bonds
         tmp = bond_set.calcBondLens(&cg_frame);
-        bond_lens.push_back(tmp);
-        printToCSV(&file_len, tmp);
+        if(tmp.size() > 0){
+            bond_lens.push_back(tmp);
+            printToCSV(&file_len, tmp);
+        }
         tmp = bond_set.calcBondAngles(&cg_frame);
-        bond_angles.push_back(tmp);
-        printToCSV(&file_angle, tmp);
+        if(tmp.size() > 0){
+            bond_angles.push_back(tmp);
+            printToCSV(&file_angle, tmp);
+        }
         tmp = bond_set.calcBondDihedrals(&cg_frame);
-        bond_dihedrals.push_back(tmp);
-
-        printToCSV(&file_dih, tmp);
+        if(tmp.size() > 0){
+            bond_dihedrals.push_back(tmp);
+            printToCSV(&file_dih, tmp);
+        }
         i++;
     }
     cout << "Read " << i << " frames" << endl;
@@ -192,7 +197,9 @@ int main(const int argc, const char *argv[]){
 
 void printToCSV(ofstream *file, const vector<float> &vec){
     for(const auto &item : vec){
-        *file << item << ',';
+        // so we don't end up with leading/trailing commas
+        if(item != vec.front()) *file << ",";
+        *file << item;
     }
     *file << endl;
 }

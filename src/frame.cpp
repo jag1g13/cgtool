@@ -270,6 +270,7 @@ bool Frame::readNext(){
     */
     int ok = 0, bOK = 0;
     assert(isSetup_);
+    invalid_ = false;
     ok = read_next_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_, &bOK);
 //    recentreBox(0);
     for(int i = 0; i < numAtoms_; i++){

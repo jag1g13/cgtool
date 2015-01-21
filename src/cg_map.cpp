@@ -105,6 +105,7 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
     if(!cg_frame.isSetup_) throw std::runtime_error("CG frame isn't setup");
     cg_frame.num_ = aa_frame.num_;
     cg_frame.time_ = aa_frame.time_;
+    cg_frame.invalid_ = false;
 
     // which mapping are we using?
     switch(mapType_){

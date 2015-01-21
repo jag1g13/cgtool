@@ -53,11 +53,11 @@ if(DOXYGEN_FOUND)
 	)
 endif(DOXYGEN_FOUND)
 
-add_executable(tp2 ${SOURCE_FILES})
-target_link_libraries (tp2 ${EXTRA_LIBS})
+add_executable(cgtool ${SOURCE_FILES})
+target_link_libraries (cgtool ${EXTRA_LIBS})
 
 # manual test - does it run
-add_test(tp_runs_1_arg tp2 ../test_data/ALLA)
+add_test(runs_1_arg cgtool ../test_data/ALLA)
 
 # names of the tests
 set(cpptests

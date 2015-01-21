@@ -55,14 +55,22 @@ void BondSet::fromFile(string filename){
 
 vector<float> BondSet::calcBondLens(Frame *frame){
     vector<float> bonds;
+    vector<float> empty;
     for(auto &bond : bonds_){
         bonds.push_back(frame->bondLength(&bond));
+        // does the structure cross a pbc - will break bond lengths
+        if(*bonds.end() > 0.8f * frame->box_[0][0]){
+            frame->invalid_ = true;
+            return empty;
+        }
     }
     return bonds;
 }
 
 vector<float> BondSet::calcBondAngles(Frame *frame){
     vector<float> bonds;
+    vector<float> empty;
+    if(frame->invalid_) return empty;
     for(auto &bond : angles_){
         bonds.push_back(frame->bondAngle(&bond));
     }
@@ -71,6 +79,8 @@ vector<float> BondSet::calcBondAngles(Frame *frame){
 
 vector<float> BondSet::calcBondDihedrals(Frame *frame){
     vector<float> bonds;
+    vector<float> empty;
+    if(frame->invalid_) return empty;
     for(auto &bond : dihedrals_){
         bonds.push_back(frame->bondAngle(&bond));
     }
