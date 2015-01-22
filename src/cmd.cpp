@@ -54,7 +54,7 @@ bool CMD::parseArguments(const int argc, const char *argv[]){
             current_arg = argv[i][1];
             }
             if(current_arg == "h" || current_arg == "help") help();
-            if(argTypes_[current_arg] == ArgType::BOOL) boolArgs_[current_arg] == true;
+            if(argTypes_[current_arg] == ArgType::BOOL) boolArgs_[current_arg] = true;
             cout << current_arg << endl;
 
         }else{

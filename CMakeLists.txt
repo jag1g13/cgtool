@@ -16,7 +16,7 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
 else()
     # Not Apple OSX
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -openmp")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -openmp -pthread")
     elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Og -g -fopenmp")
     else()
