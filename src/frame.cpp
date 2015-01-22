@@ -154,111 +154,112 @@ bool Frame::setupFrame(const std::string groname, const std::string topname, con
     recentreBox(0);
 
     std::ifstream gro(groname);
-    if(gro.is_open()){
-        // first line of GRO is the system name
-        char line[40];
-        gro.getline(line, 40);
-        cout << line << endl;
-        // second line is the number of atoms
-        int gro_num_atoms;
-        gro >> gro_num_atoms;
-
-        if(gro_num_atoms != numAtoms_){
-            cout << "XTC num atoms:" << numAtoms_ << endl;
-            cout << "GRO num atoms:" << gro_num_atoms << endl;
-            cout << "Number of atoms declared in XTC file "
-                    "is not the same as declared in GRO file" << endl;
-            throw std::runtime_error("Number of atoms does not match");
-        }else{
-            cout << "Found " << numAtoms_ << " atoms" << endl;
-        }
-
-        // print box vectors
-        cout << "Box vectors" << endl;
-        for(int i=0; i<3; i++){
-            for(int j=0; j<3; j++){
-                printf("%8.4f", box_[i][j]);
-            }
-            cout << endl;
-        }
-
-        int res_interesting = 0;
-        Parser parser(cfgname);
-        vector<string> parse_buffer;
-        parser.getLineFromSection("residues", &parse_buffer);
-        res_interesting = std::stoi(parse_buffer[0]);
-        cout << "Mapping first " << res_interesting << " residues" << endl;
-
-        string res_name_new="", res_name_last="";
-        int res_loc = -1;
-        int res_num_atoms = 0;
-        atoms_.resize(numAtoms_);
-        // setup done, start reading in atoms from GRO
-        for(int i = 0; i < numAtoms_; i++){
-            atoms_[i] = Atom(i);
-            string tmp_atom_type;
-            try{
-                gro >> res_name_new >> tmp_atom_type >> atoms_[i].atom_num;
-            }catch(std::exception &e){
-                cout << "Read from GRO file failed" << endl;
-                exit(-1);
-            }
-            int tmp_int;
-            sscanf(res_name_new.c_str(), "%d", &tmp_int);
-            atoms_[i].atom_type = std::to_string(tmp_int) + tmp_atom_type;
-            // skip rest of line
-            gro.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-            atoms_[i].atom_num--;
-            atoms_[i].resid = res_name_new;
-
-            // found a new residue
-            if(res_name_new != res_name_last){
-                res_loc++;
-                residues_.push_back(Residue(res_name_new));
-                res_num_atoms = 0;
-
-                //TODO what if the residues we want aren't at the beginning
-                if(res_loc < res_interesting + 1 && res_loc != 0){
-                    //TODO tidy up these - I want to print them, but nicely
-                    residues_[res_loc - 1].num_atoms = res_num_atoms;
-                    numAtomsTrack_ += residues_[res_loc - 1].atoms.size();
-                }
-            }
-
-            residues_[res_loc].atoms.push_back(atoms_[i].atom_num);
-            residues_[res_loc].atom_names.push_back(atoms_[i].atom_type);
-            nameToNum_.emplace(atoms_[i].atom_type, i);
-            numToName_.emplace(i, atoms_[i].atom_type);
-            memcpy(atoms_[i].coords, x_[i], 3 * sizeof(float));
-
-            // default values
-            atoms_[i].charge = 0.f;
-            atoms_[i].mass = 1.f;
-
-            res_name_last = res_name_new;
-            res_num_atoms++;
-        }
-        cout << "Mapping first " << numAtomsTrack_ << " atoms" << endl;
-
-        // Process topology file
-        vector<string> substrs;
-        Parser top_parser(topname);
-        for(int i=0; i<numAtomsTrack_; i++){
-            // read data from topology file for each atom we care about (not solvent)
-            // check that we're reading the atoms in the same order
-            // internal atom name is the res # and atom name from top/gro
-            top_parser.getLineFromSection("atoms", &substrs);
-            string tmp_string = substrs[2] + substrs[4];
-            assert(tmp_string == atoms_[i].atom_type);
-            atoms_[i].charge = float(atof(substrs[6].c_str()));
-            atoms_[i].mass = float(atof(substrs[7].c_str()));
-        }
-        gro.close();
-    }else{
-        cout << "GRO file cannot be opened" << endl;
-        throw std::runtime_error("Could not open GRO file");
+    if(!gro.is_open()){
+        cout << "Error opening GRO file" << endl;
+        exit(-1);
     }
+
+    // first line of GRO is the system name
+    char line[40];
+    gro.getline(line, 40);
+    cout << line << endl;
+    // second line is the number of atoms
+    int gro_num_atoms;
+    gro >> gro_num_atoms;
+
+    if(gro_num_atoms != numAtoms_){
+        cout << "XTC num atoms:" << numAtoms_ << endl;
+        cout << "GRO num atoms:" << gro_num_atoms << endl;
+        cout << "Number of atoms declared in XTC file "
+                "is not the same as declared in GRO file" << endl;
+        throw std::runtime_error("Number of atoms does not match");
+    }else{
+        cout << "Found " << numAtoms_ << " atoms" << endl;
+    }
+
+    // print box vectors
+    cout << "Box vectors" << endl;
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            printf("%8.4f", box_[i][j]);
+        }
+        cout << endl;
+    }
+
+    int res_interesting = 0;
+    Parser parser(cfgname);
+    vector<string> parse_buffer;
+    parser.getLineFromSection("residues", &parse_buffer);
+    res_interesting = std::stoi(parse_buffer[0]);
+    cout << "Mapping first " << res_interesting << " residues" << endl;
+
+    string res_name_new="", res_name_last="";
+    int res_loc = -1;
+    int res_num_atoms = 0;
+    atoms_.resize(numAtoms_);
+    // setup done, start reading in atoms from GRO
+    for(int i = 0; i < numAtoms_; i++){
+        atoms_[i] = Atom(i);
+        string tmp_atom_type;
+        try{
+            gro >> res_name_new >> tmp_atom_type >> atoms_[i].atom_num;
+        }catch(std::exception &e){
+            cout << "Read from GRO file failed" << endl;
+            exit(-1);
+        }
+        int tmp_int;
+        sscanf(res_name_new.c_str(), "%d", &tmp_int);
+        atoms_[i].atom_type = std::to_string(tmp_int) + tmp_atom_type;
+        // skip rest of line
+        gro.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        atoms_[i].atom_num--;
+        atoms_[i].resid = res_name_new;
+
+        // found a new residue
+        if(res_name_new != res_name_last){
+            res_loc++;
+            residues_.push_back(Residue(res_name_new));
+            res_num_atoms = 0;
+
+            //TODO what if the residues we want aren't at the beginning
+            if(res_loc < res_interesting + 1 && res_loc != 0){
+                //TODO tidy up these - I want to print them, but nicely
+                residues_[res_loc - 1].num_atoms = res_num_atoms;
+                numAtomsTrack_ += residues_[res_loc - 1].atoms.size();
+            }
+        }
+
+        residues_[res_loc].atoms.push_back(atoms_[i].atom_num);
+        residues_[res_loc].atom_names.push_back(atoms_[i].atom_type);
+        nameToNum_.emplace(atoms_[i].atom_type, i);
+        numToName_.emplace(i, atoms_[i].atom_type);
+        memcpy(atoms_[i].coords, x_[i], 3 * sizeof(float));
+
+        // default values
+        atoms_[i].charge = 0.f;
+        atoms_[i].mass = 1.f;
+
+        res_name_last = res_name_new;
+        res_num_atoms++;
+    }
+    cout << "Mapping first " << numAtomsTrack_ << " atoms" << endl;
+
+    // Process topology file
+    vector<string> substrs;
+    Parser top_parser(topname);
+    for(int i=0; i<numAtomsTrack_; i++){
+        // read data from topology file for each atom we care about (not solvent)
+        // check that we're reading the atoms in the same order
+        // internal atom name is the res # and atom name from top/gro
+        top_parser.getLineFromSection("atoms", &substrs);
+        string tmp_string = substrs[2] + substrs[4];
+        assert(tmp_string == atoms_[i].atom_type);
+        atoms_[i].charge = float(atof(substrs[6].c_str()));
+        atoms_[i].mass = float(atof(substrs[7].c_str()));
+    }
+    gro.close();
+
     if(ok && bOK) isSetup_ = true;
     printAtoms(numAtomsTrack_);
     return isSetup_;

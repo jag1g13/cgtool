@@ -1,6 +1,7 @@
 
 #include "gtest/gtest.h"
 
+using std::fstream;
 using std::string;
 using std::getline;
 
