@@ -53,7 +53,6 @@ bool Parser::findSection(const string find){
     return false;
 }
 
-//TODO combine config files into one - almost done
 bool Parser::getLineFromSection(const string find, vector<string> *tokens){
     string section_buffer;
     while(getLine(&section_buffer, tokens)){

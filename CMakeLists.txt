@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(cgtool)
 
-#set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-sign-compare -Wno-unused-variable")
 
 MESSAGE("${CMAKE_CXX_COMPILER}")
@@ -58,55 +57,21 @@ add_executable(cgtool ${SOURCE_FILES} src/main.cpp)
 target_link_libraries (cgtool ${EXTRA_LIBS})
 
 # gtest
-#if(GTEST_FOUND)
-#message("Found GTest")
 set(GTEST_SOURCE_FILES
-    ${SOURCE_FILES}
-    src/tests/parser_test.cpp)
-    #src/parser.cpp)
-
+    ${SOURCE_FILES})
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/src)
-add_executable(cgtool_gtest ${GTEST_SOURCE_FILES})
-target_link_libraries (cgtool_gtest ${GTEST_BOTH_LIBRARIES} gromacs)
-add_test(GTestParserAll cgtool_gtest)
-#endif()
 
-# manual test - does it run
-add_test(runs_1_arg cgtool ../test_data/ALLA)
+# test parser
+add_executable(gtest_parser ${GTEST_SOURCE_FILES} src/tests/parser_test.cpp)
+target_link_libraries (gtest_parser ${GTEST_BOTH_LIBRARIES} gromacs)
+add_test(GTestParserAll gtest_parser)
+# test bondset
+add_executable(gtest_bondset ${GTEST_SOURCE_FILES} src/tests/bondset_test.cpp)
+target_link_libraries (gtest_bondset ${GTEST_BOTH_LIBRARIES} gromacs)
+add_test(GTestBondSetAll gtest_bondset)
 
-# names of the tests
-set(cpptests
-#    csv
-    frame)
-
-# how many parts does each test have
-set(csv_parts
-    1 2 3)
-set(frame_parts 1 2 3)
-
-# if we didn't say how many parts a test has, assume 1
-foreach(cpptest ${cpptests})
-    if(NOT DEFINED "${cpptest}_parts")
-        set(${cpptest}_parts "1")
-    endif()
-endforeach()
-
-foreach(cpptest ${cpptests})
-    set(cpptestsrc ${cpptestsrc} src/tests/${cpptest}_test.cpp)
-endforeach()
-
-create_test_sourcelist(srclist test_runner.cpp ${cpptestsrc})
-add_executable(test_runner ${srclist})
-target_link_libraries(test_runner ${libs})
-
-foreach(cpptest ${cpptests})
-  foreach(part ${${cpptest}_parts})
-    add_test(test_${cpptest}_${part}
-             ${TEST_PATH}/test_runner src/tests/${cpptest}_test ${part})
-    set_tests_properties(test_${cpptest}_${part} PROPERTIES
-      FAIL_REGULAR_EXPRESSION "ERROR;FAIL;Test failed")
-  endforeach()
-endforeach()
+# integration test - does it run
+add_test(Integration1 cgtool ../test_data/ALLA)
 
 enable_testing()

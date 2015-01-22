@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstring>
 #include <limits>
+#include <exception>
 
 #include <math.h>
 #include <assert.h>
@@ -196,7 +197,12 @@ bool Frame::setupFrame(const std::string groname, const std::string topname, con
         for(int i = 0; i < numAtoms_; i++){
             atoms_[i] = Atom(i);
             string tmp_atom_type;
-            gro >> res_name_new >> tmp_atom_type >> atoms_[i].atom_num;
+            try{
+                gro >> res_name_new >> tmp_atom_type >> atoms_[i].atom_num;
+            }catch(std::exception &e){
+                cout << "Read from GRO file failed" << endl;
+                exit(-1);
+            }
             int tmp_int;
             sscanf(res_name_new.c_str(), "%d", &tmp_int);
             atoms_[i].atom_type = std::to_string(tmp_int) + tmp_atom_type;
@@ -213,7 +219,6 @@ bool Frame::setupFrame(const std::string groname, const std::string topname, con
                 res_num_atoms = 0;
 
                 //TODO what if the residues we want aren't at the beginning
-                // Print names of interesting residues
                 if(res_loc < res_interesting + 1 && res_loc != 0){
                     //TODO tidy up these - I want to print them, but nicely
                     residues_[res_loc - 1].num_atoms = res_num_atoms;
@@ -237,12 +242,11 @@ bool Frame::setupFrame(const std::string groname, const std::string topname, con
         cout << "Mapping first " << numAtomsTrack_ << " atoms" << endl;
 
         // Process topology file
-        string section;
         vector<string> substrs;
         Parser top_parser(topname);
         for(int i=0; i<numAtomsTrack_; i++){
             // read data from topology file for each atom we care about (not solvent)
-            // check that we're reading the atoms are in the same order
+            // check that we're reading the atoms in the same order
             // internal atom name is the res # and atom name from top/gro
             top_parser.getLineFromSection("atoms", &substrs);
             string tmp_string = substrs[2] + substrs[4];
