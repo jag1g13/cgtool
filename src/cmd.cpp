@@ -10,6 +10,8 @@ using std::cout;
 using std::endl;
 using boost::algorithm::trim;
 
+namespace po = boost::program_options;
+
 /*
 * Naval Fate.
 *
@@ -30,16 +32,42 @@ using boost::algorithm::trim;
  */
 
 CMD::CMD(string help_string){
-    std::istringstream stream(help_string);
-    while(!stream.eof()){
-        string line;
-        getline(stream, line);
-        trim(line);
-    }
+    // Declare the supported options.
+//    po::options_description desc_("Allowed options");
+//    desc_.add_options()
+//        ("help", "produce help message")
+//        ("compression", po::value<int>(), "set compression level")
+//    ;
+
 }
 
 CMD::CMD(){
 
+}
+
+bool CMD::boostParse(const int argc, const char *argv[]){
+    po::options_description desc("Allowed options");
+    desc.add_options()
+            ("help", "produce help message")
+            ("compression", po::value<int>(), "set compression level")
+            ;
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
+
+    if (vm.count("help")) {
+        cout << desc << "\n";
+        return 1;
+    }
+
+    if (vm.count("compression")) {
+        cout << "Compression level was set to "
+                << vm["compression"].as<int>() << ".\n";
+    } else {
+        cout << "Compression level was not set.\n";
+    }
+    // stop - just for testing
+    exit(0);
 }
 
 bool CMD::parseArguments(const int argc, const char *argv[]){

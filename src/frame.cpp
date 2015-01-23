@@ -4,7 +4,6 @@
 #include <iostream>
 #include <cstring>
 #include <limits>
-#include <exception>
 
 #include <math.h>
 #include <assert.h>
@@ -76,6 +75,20 @@ Frame::Frame(const std::string groname, const std::string topname, const std::st
 //    nameToNum_ = frame.nameToNum_;
 //}
 
+Frame::~Frame(){
+    assert(isSetup_);
+    isSetup_ = false;
+    if(x_) free(x_);
+    // these lines actually result in less memory being freed
+//    if(xtcInput_ != nullptr) close_xtc(xtcInput_);
+//    xtcInput_ = nullptr;
+//    if(xtcOutput_ != nullptr) close_xtc(xtcOutput_);
+//    xtcOutput_ = nullptr;
+    // don't seem to do anything
+//    vector<Atom>().swap(atoms_);
+//    vector<Residue>().swap(residues_);
+}
+
 int Frame::allocateAtoms(int num_atoms){
     numAtoms_ = num_atoms;
     atoms_.reserve(numAtoms_);
@@ -104,46 +117,6 @@ bool Frame::writeToXtc(){
     return (bool)write_xtc(xtcOutput_, numAtoms_, step_, time_, box_, x_, prec_);
 }
 
-float Frame::bondLength(int a, int b){
-    return (float)sqrt(pow((atoms_[a].coords[0] - atoms_[b].coords[0]), 2) +
-            pow((atoms_[a].coords[1] - atoms_[b].coords[1]), 2) +
-            pow((atoms_[a].coords[2] - atoms_[b].coords[2]), 2));
-}
-
-float Frame::bondLength(BondStruct *bond) {
-    int a = nameToNum_[bond->atom_names[0]];
-    int b = nameToNum_[bond->atom_names[1]];
-    return bondLength(a, b);
-}
-
-float Frame::bondAngle(int a, int b, int c, int d){
-    float vec1[3], vec2[3], mag1, mag2, dot = 0, angle;
-    for(int i = 0; i < 3; i++){
-        vec1[i] = atoms_[b].coords[i] - atoms_[a].coords[i];
-        vec2[i] = atoms_[d].coords[i] - atoms_[c].coords[i];
-        dot += vec1[i] * vec2[i];
-    }
-    mag1 = (float)sqrt(pow(vec1[0], 2) + pow(vec1[1], 2) + pow(vec1[2], 2));
-    mag2 = (float)sqrt(pow(vec2[0], 2) + pow(vec2[1], 2) + pow(vec2[2], 2));
-    angle = (float)acos(dot / (mag1 * mag2));
-    if(angle != angle){
-        printf("%d %d %d %d\n", a, b, c, d);
-        return 0.f;
-    }
-    return (180.f - (angle * 180.f / (float)M_PI));
-}
-
-float Frame::bondAngle(BondStruct *bond){
-    int a = nameToNum_[bond->atom_names[0]];
-    int b = nameToNum_[bond->atom_names[1]];
-    int c = nameToNum_[bond->atom_names[2]];
-    if(bond->atom_names.size() == 4){
-        int d = nameToNum_[bond->atom_names[3]];
-        return bondAngle(a, b, c, d);
-    }else{
-        return bondAngle(a, b, b, c);
-    }
-}
 
 bool Frame::setupFrame(const std::string groname, const std::string topname, const std::string cfgname, t_fileio *xtc){
     if(isSetup_) throw std::runtime_error("Frame has already been setup");
@@ -318,5 +291,47 @@ void Frame::printAtoms(const int n){
         cout << endl;
         i++;
         if(n > 0 && i >= n) break;
+    }
+}
+
+float Frame::bondLength(int a, int b){
+    return (float)sqrt(pow((atoms_[a].coords[0] - atoms_[b].coords[0]), 2) +
+            pow((atoms_[a].coords[1] - atoms_[b].coords[1]), 2) +
+            pow((atoms_[a].coords[2] - atoms_[b].coords[2]), 2));
+}
+
+float Frame::bondLength(BondStruct *bond) {
+    int a = nameToNum_[bond->atom_names[0]];
+    int b = nameToNum_[bond->atom_names[1]];
+    return bondLength(a, b);
+}
+
+float Frame::bondAngle(int a, int b, int c, int d){
+    float vec1[3], vec2[3], mag1=0.f, mag2=0.f, dot = 0.f, angle=0.f;
+    for(int i = 0; i < 3; i++){
+        vec1[i] = atoms_[b].coords[i] - atoms_[a].coords[i];
+        vec2[i] = atoms_[d].coords[i] - atoms_[c].coords[i];
+        dot += vec1[i] * vec2[i];
+    }
+    mag1 = (float)sqrt(pow(vec1[0], 2) + pow(vec1[1], 2) + pow(vec1[2], 2));
+    mag2 = (float)sqrt(pow(vec2[0], 2) + pow(vec2[1], 2) + pow(vec2[2], 2));
+    angle = (float)acos(dot / (mag1 * mag2));
+    // if NaN
+    if(angle != angle){
+        printf("%d %d %d %d\n", a, b, c, d);
+        return 0.f;
+    }
+    return (180.f - (angle * 180.f / (float)M_PI));
+}
+
+float Frame::bondAngle(BondStruct *bond){
+    int a = nameToNum_[bond->atom_names[0]];
+    int b = nameToNum_[bond->atom_names[1]];
+    int c = nameToNum_[bond->atom_names[2]];
+    if(bond->atom_names.size() == 4){
+        int d = nameToNum_[bond->atom_names[3]];
+        return bondAngle(a, b, c, d);
+    }else{
+        return bondAngle(a, b, b, c);
     }
 }

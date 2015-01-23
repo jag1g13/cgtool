@@ -44,8 +44,8 @@ public:
     /** Default constructor which doesn't allocate the array automatically */
     ArrayFloat();
 
-    //TODO Destructor doesn't work??  Fix this
-    //~ArrayFloat();
+    /** \brief Destructor.  Just calls ArrayFloat::free() */
+    ~ArrayFloat();
 
     /** \brief Initialise the array after calling the default blank constructor.
     * The array is zeroed after allocation. */

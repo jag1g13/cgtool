@@ -59,10 +59,10 @@ vector<float> BondSet::calcBondLens(Frame *frame){
     for(auto &bond : bonds_){
         bonds.push_back(frame->bondLength(&bond));
         // does the structure cross a pbc - will break bond lengths
-        if(*bonds.end() > 0.8f * frame->box_[0][0]){
-            frame->invalid_ = true;
-            return empty;
-        }
+//        if(*bonds.end() > 0.8f * frame->box_[0][0]){
+//            frame->invalid_ = true;
+//            return empty;
+//        }
     }
     return bonds;
 }

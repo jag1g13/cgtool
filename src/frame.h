@@ -1,10 +1,7 @@
 #ifndef FRAME_H_
 #define FRAME_H_
 
-#ifndef INCLUDE_GMXFIO
-#define INCLUDE_GMXFIO
 #include <gromacs/fileio/xtcio.h>
-#endif
 
 #include <vector>
 #include <string>
@@ -31,15 +28,15 @@ struct Atom{
     /** Atomic coordinates in x, y, z */
     float coords[3];
     /** Atomic charge from the force field */
-    float charge;
+    float charge = 0.f;
     /** Atomic mass */
-    float mass;
-    /** Vector of pointers to Atom listing all atoms bonded to this one */
-    std::vector<Atom *> neighbours;
-    /** Create an Atom and set its number */
-    Atom(int num){atom_num = num;};
+    float mass = 0.f;
+//    /** Vector of pointers to Atom listing all atoms bonded to this one */
+//    std::vector<Atom *> neighbours;
+    /** \brief Create an Atom, set its number and zero its coordinates */
+    Atom(int num){atom_num = num; coords[0] = 0.f; coords[1] = 0.f; coords[2] = 0.f;};
     /** Create a blank Atom instance */
-    Atom(){};
+    Atom(){coords[0] = 0.f; coords[1] = 0.f; coords[2] = 0.f;};
 };
 
 /**
@@ -80,10 +77,10 @@ public:
     /** Has the Frame been properly setup yet */
     bool isSetup_ = false;
     bool outputSetup_ = false;
-    /** GROMACS xtc filei to import frames */
-    t_fileio *xtcInput_ = NULL;
+    /** GROMACS xtc file to import frames */
+    t_fileio *xtcInput_ = nullptr;
     /** GROMACS xtc file to export frames */
-    t_fileio *xtcOutput_ = NULL;
+    t_fileio *xtcOutput_ = nullptr;
     /** The number of this Frame, starting at 0 */
     int num_ = 0;
     /** The simulation step corresponding to this frame */
@@ -99,7 +96,7 @@ public:
     /** The simulation time of this frame, in picoseconds */
     float time_ = 0.f;
     /** XTC precision; not used internally, just for XTC input/output */
-    float prec_;
+    float prec_ = 0.f;
     /** Size of the simulation box */
     float box_[3][3];
 //    matrix box_;
@@ -135,6 +132,11 @@ public:
     * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied.
     */
     Frame(const Frame &frame);
+
+    /**
+    * \brief Destructor to free memory allocated by GROMACS functions
+    */
+    ~Frame();
 
 //    /**
 //    * \brief Move constructor
@@ -208,7 +210,7 @@ public:
     *
     * To be used for bond angles (b=c) and dihedrals (b=/=c)
     */
-    float bondAngle(int, int, int, int);
+    float bondAngle(int a, int b, int c, int d);
 
 
     /**

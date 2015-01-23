@@ -203,14 +203,9 @@ void ArrayFloat::free(){
     delete[] array_;
 }
 
-//ArrayFloat::~ArrayFloat(){
-//    if(array_!=nullptr){
-//        cout << "Freeing " << this << endl;
-//        //free(array_);
-//        delete[] array_;
-//        array_ = nullptr;
-//    }
-//}
+ArrayFloat::~ArrayFloat(){
+    free();
+}
 
 //TODO implement array equality test
 bool operator==(ArrayFloat &a, ArrayFloat &b){

@@ -7,14 +7,8 @@
 #include <map>
 #include <algorithm>
 
-#include <rpc/rpc.h>
 #include <sys/stat.h>
-#include <omp.h>
-
-//#ifndef INCLUDE_GMXFIO
-//#define INCLUDE_GMXFIO
-//#include <gromacs/fileio/xtcio.h>
-//#endif
+//#include <omp.h>
 
 #include "cmd.h"
 #include "frame.h"
@@ -39,11 +33,8 @@ using std::clock_t;
 
 /* prototype functions */
 vector<float> calc_avg(const vector<vector<float>> &vec);
-
 void printToCSV(ofstream *file, const vector<float> &vec);
-
 void split_text_output(const string, const clock_t, const int num_threads);
-
 bool file_exists(const string name);
 
 
@@ -52,14 +43,14 @@ int main(const int argc, const char *argv[]){
     clock_t start_time = std::clock();
 
     const string help_string =
-            "traj_process2\n"
-            "0.1.89.1d150189083e\n\n"
+            "cgtool\n"
+            "0.1.x.y\n\n"
             "Requires GROMACS .gro .xtc and .top files.\n"
             "Uses a config file to set beads and measure parameters\n\n"
             "Usage:\n"
-            "tp2\t; Runs using GROMACS files in the current directory\n"
-            "tp2 <directory>\t; Runs using GROMACS files in the specified directory\n"
-            "tp2 <gro> <xtc> <cfg> <top>\t; Runs using specified files";
+            "cgtool\t; Runs using GROMACS files in the current directory\n"
+            "cgtool <directory>\t; Runs using GROMACS files in the specified directory\n"
+            "cgtool <gro> <xtc> <cfg> <top>\t; Runs using specified files";
 
     // clang doesn't like this - it doesn't seem to do OpenMP
     int num_threads = 1;
@@ -70,9 +61,11 @@ int main(const int argc, const char *argv[]){
 //    }
 //    cout << "Running with " << num_threads << " threads" << endl;
 
+    // get commands
+//    CMD cmd_parser(help_string);
+//    cmd_parser.boostParse(argc, argv);
+
     // Where does the user want us to look for input files?
-//    CMD cmd_parser;
-//    cmd_parser.parseArguments(argc, argv);
     split_text_output("Identifying files", start, num_threads);
     string groname, xtcname, topname, cfgname;
     if(argc < 2){

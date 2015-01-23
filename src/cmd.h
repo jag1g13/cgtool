@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <boost/program_options.hpp>
 
 enum class ArgType{STRING, INT, FLOAT, BOOL};
 
@@ -22,6 +23,7 @@ protected:
     std::map<std::string, bool> boolArgs_;
     std::map<std::string, ArgType> argTypes_;
     std::string helpString_;
+//    boost::program_options::options_description desc_;
 
 public:
     /** \brief Constructor to parse the program help text */
@@ -32,6 +34,9 @@ public:
 
     /** \brief Parses arguments from the command line input */
     bool parseArguments(const int argc, const char* argv[]);
+
+    /** \brief Parses arguments from the command line input using Boost */
+    bool boostParse(const int argc, const char* argv[]);
 
     /** Print the help text */
     void help();

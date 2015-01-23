@@ -1,18 +1,16 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(cgtool)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-sign-compare -Wno-unused-variable")
-
 MESSAGE("${CMAKE_CXX_COMPILER}")
 MESSAGE("${CMAKE_CXX_COMPILER_ID}")
 MESSAGE("${CMAKE_SYSTEM_NAME}")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-sign-compare -Wno-unused-variable")
 
-
+# Platform
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     # Apple OSX
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-    # doesn't work
 else()
     # Not Apple OSX
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -26,20 +24,17 @@ endif()
 
 message("Using " ${CMAKE_CXX_FLAGS})
 
-#find_package(gromacs REQUIRED)
-include_directories ("/usr/local/gromacs/include")
-link_directories("/usr/local/lib")
+link_directories("/usr/local/lib /usr/lib/x86_64-linux-gnu")
 
+# GROMACS
+#find_package(gromacs REQUIRED)
+include_directories("/usr/local/gromacs/include")
 set (EXTRA_LIBS ${EXTRA_LIBS} gromacs)
 
-set(SOURCE_FILES
-    src/arrays.cpp
-    src/field_map.cpp
-    src/frame.cpp
-    src/bondset.cpp
-    src/cg_map.cpp
-    src/parser.cpp
-    src/cmd.cpp)
+# Boost
+find_package(Boost COMPONENTS program_options REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+set (EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES})
 
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)
@@ -53,6 +48,15 @@ if(DOXYGEN_FOUND)
 	)
 endif(DOXYGEN_FOUND)
 
+set(SOURCE_FILES
+    src/arrays.cpp
+    src/field_map.cpp
+    src/frame.cpp
+    src/bondset.cpp
+    src/cg_map.cpp
+    src/parser.cpp
+    src/cmd.cpp)
+
 add_executable(cgtool ${SOURCE_FILES} src/main.cpp)
 target_link_libraries (cgtool ${EXTRA_LIBS})
 
@@ -64,14 +68,16 @@ include_directories(${GTEST_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/src)
 
 # test parser
 add_executable(gtest_parser ${GTEST_SOURCE_FILES} src/tests/parser_test.cpp)
-target_link_libraries (gtest_parser ${GTEST_BOTH_LIBRARIES} gromacs)
+target_link_libraries (gtest_parser ${GTEST_BOTH_LIBRARIES} ${EXTRA_LIBS})
 add_test(GTestParserAll gtest_parser)
 # test bondset
 add_executable(gtest_bondset ${GTEST_SOURCE_FILES} src/tests/bondset_test.cpp)
-target_link_libraries (gtest_bondset ${GTEST_BOTH_LIBRARIES} gromacs)
+target_link_libraries (gtest_bondset ${GTEST_BOTH_LIBRARIES} ${EXTRA_LIBS})
 add_test(GTestBondSetAll gtest_bondset)
 
 # integration test - does it run
 add_test(Integration1 cgtool ../test_data/ALLA)
 
 enable_testing()
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
+                  DEPENDS gtest_parser gtest_bondset cgtool)
