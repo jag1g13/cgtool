@@ -207,10 +207,18 @@ ArrayFloat::~ArrayFloat(){
     free();
 }
 
-//TODO implement array equality test
-bool operator==(ArrayFloat &a, ArrayFloat &b){
-    throw std::runtime_error("Not implemented");
-    return false;
+bool operator==(const ArrayFloat &a, const ArrayFloat &b){
+    assert(a.allocated_);
+    assert(b.allocated_);
+    assert(a.elems_ == b.elems_);
+    bool equal = true;
+    for(int i=0; i<a.elems_; i++){
+        if(a.array_[i] != b.array_[i]){
+            equal = false;
+            break;
+        }
+    }
+    return equal;
 }
 
 float rms(const ArrayFloat *a, const ArrayFloat *b){
