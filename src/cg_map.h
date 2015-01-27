@@ -70,7 +70,6 @@ public:
     *
     * Allocates space for each bead and copies over constant data from the atomistic Frame
     */
-//    void initFrame(const Frame *aa_frame, Frame *cg_frame);
     Frame initFrame(const Frame &aa_frame);
 
     /**

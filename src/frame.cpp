@@ -133,8 +133,11 @@ bool Frame::setupFrame(const std::string groname, const std::string topname, con
     }
 
     // first line of GRO is the system name
-    char line[40];
-    gro.getline(line, 40);
+    string line;
+    if(!getline(gro, line)){
+        cout << "Error reading GRO file" << endl;
+        exit(-1);
+    }
     cout << line << endl;
     // second line is the number of atoms
     int gro_num_atoms;

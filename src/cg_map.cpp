@@ -41,11 +41,13 @@ void CGMap::fromFile(string filename){
         new_bead.cg_bead = substrs[0];
         new_bead.atoms = vector<string>(substrs.begin() + 1, substrs.end());
         new_bead.num_atoms = int(new_bead.atoms.size());
-//        cout << new_bead.cg_bead << " " << new_bead.num_atoms << " ";
-//        for(auto atom : new_bead.atoms){
-//            cout << atom << " ";
-//        }
-//        cout << endl;
+
+        // print for debugging
+        cout << new_bead.cg_bead << " " << new_bead.num_atoms << " ";
+        for(auto atom : new_bead.atoms){
+            cout << atom << " ";
+        }
+        cout << endl;
         mapping_.push_back(new_bead);
     }
     num_beads = int(mapping_.size());
@@ -84,14 +86,20 @@ Frame CGMap::initFrame(const Frame &aa_frame){
     cg_frame.numAtomsTrack_ = i;
 
     for(int i=0; i<aa_frame.numAtomsTrack_; i++){
+//        cout << "Mapping bead " << i << endl;
         // for atom in aa_frame that we care about
         const Atom *atom = &(aa_frame.atoms_[i]);
-        BeadMap *inbead = atomname_to_bead_[atom->atom_type];
-        inbead->mass += atom->mass;
-        inbead->charge += atom->charge;
+        if(atomname_to_bead_.count(atom->atom_type)){
+            BeadMap *inbead = atomname_to_bead_[atom->atom_type];
+            inbead->mass += atom->mass;
+            inbead->charge += atom->charge;
+        }else{
+            cout << "Ignoring atom " << i << endl;
+        }
     }
 
     cg_frame.isSetup_ = true;
+    cg_frame.printAtoms();
     apply(aa_frame, cg_frame);
     cout << "CG Frame" << endl;
     cg_frame.printAtoms();
@@ -122,12 +130,15 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
         case MapType::GC:
             // put bead at geometric centre of atoms
             for(int i = 0; i < mapping_.size(); i++){
+                cout << "Applying bead " << i << " Atom ";
                 for(int j = 0; j < mapping_[i].num_atoms; j++){
-                    for(int k = 0; k < 3; k++){
-                        cg_frame.atoms_[i].coords[k] +=
-                                aa_frame.atoms_[mapping_[i].atom_nums[j]].coords[k];
-                    }
+                    int num = mapping_[i].atom_nums[j];
+                    cout << num << " ";
+                    cg_frame.atoms_[i].coords[0] += aa_frame.atoms_[num].coords[0];
+                    cg_frame.atoms_[i].coords[1] += aa_frame.atoms_[num].coords[1];
+                    cg_frame.atoms_[i].coords[2] += aa_frame.atoms_[num].coords[2];
                 }
+                cout << endl;
                 for(int k=0; k < 3; k++){
                     cg_frame.atoms_[i].coords[k] /= mapping_[i].num_atoms;
                 }

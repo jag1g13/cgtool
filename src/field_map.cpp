@@ -162,7 +162,7 @@ void FieldMap::calcFieldDipolesContracted(const Frame *frame){
 
     #pragma omp master
     {
-        StatsBox sb = vector_stats(&fieldMonopoleContracted_, &fieldDipoleContracted_);
+//        StatsBox sb = vector_stats(&fieldMonopoleContracted_, &fieldDipoleContracted_);
 //        cout << "\tRMS: " << sb.rms << "\tRRMS: " << sb.rrms << endl;
     }
 }

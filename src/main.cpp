@@ -17,8 +17,9 @@
 #include "field_map.h"
 
 #define DEBUG true
-#define UPDATE_PROGRESS false
+#define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 50
+#define DO_ELECTRIC_FIELD false
 #define ELECTRIC_FIELD_FREQ 50
 
 /* things from std that get used a lot */
@@ -134,7 +135,7 @@ int main(const int argc, const char *argv[]){
 //        cg_frame.writeToXtc("xtcout.xtc");
         // calculate electric field/dipole
 
-        if(i % ELECTRIC_FIELD_FREQ == 0 && UPDATE_PROGRESS){
+        if(i % ELECTRIC_FIELD_FREQ == 0 && DO_ELECTRIC_FIELD){
             field.setupGrid(&frame);
             field.setupGridContracted(&frame);
 //            field.calcFieldMonopoles(&frame);
