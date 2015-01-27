@@ -22,12 +22,17 @@ To compile the program:
 * Create a new directory 'build' within the main distribution directory
 * From the build directory 'cmake ..'
 * 'make'
+* 'make doc' for developer documentation - requires Doxygen
 
 To use the program:
 
 * Usage text is available with 'cgtool -h' or 'cgtool --help'
 * The program should be called using 'cgtool <path to xtc> <path to gro> <path to cfg> <path to top>'
 * A config file is required which specifies the mapping to be applied, in the format seen in the test_data directory
+
+### Testing ###
+The Bitbucket repo is polled every 15 minutes by a Jenkins build server for unit and integration testing.  Builds are tested on Ubuntu Linux and Mac OSX.
+Currently only a few source files have complete unit tests, but this is being fixed.  Integration tests ensure that the program compiles successfully and produces correct output for several test datasets.
 
 ### Contact ###
 
