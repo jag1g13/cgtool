@@ -17,11 +17,17 @@ enum class ArgType{STRING, INT, FLOAT, BOOL};
 */
 class CMD{
 protected:
+    /** Stores string arguments accessed by argument name */
     std::map<std::string, std::string> stringArgs_;
+    /** Stores integer arguments accessed by argument name */
     std::map<std::string, int> intArgs_;
+    /** Stores float arguments accessed by argument name */
     std::map<std::string, float> floatArgs_;
+    /** Stores boolean arguments accessed by argument name */
     std::map<std::string, bool> boolArgs_;
+    /** Stores type of each argument */
     std::map<std::string, ArgType> argTypes_;
+    /** Program help string.  Should be parsed to generate arguments */
     std::string helpString_;
 //    boost::program_options::options_description desc_;
 

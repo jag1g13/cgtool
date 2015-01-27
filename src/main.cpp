@@ -178,6 +178,7 @@ int main(const int argc, const char *argv[]){
     // Post processing
     split_text_output("Post processing", start, num_threads);
     start = std::clock();
+    //TODO print to itp instead
     printToCSV(&file_avg, calc_avg(bond_lens));
     printToCSV(&file_avg, calc_avg(bond_angles));
     printToCSV(&file_avg, calc_avg(bond_dihedrals));

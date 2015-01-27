@@ -85,8 +85,11 @@ public:
     void linspace(const int n, const float min, const float max);
 
     // operators and friends
+    /** Array equality test */
     friend bool operator==(const ArrayFloat &a, const ArrayFloat &b);
+    /** Array in place subtract operator */
     ArrayFloat& operator-=(const ArrayFloat &other);
+    /** Array in place add operator */
     ArrayFloat& operator+=(const ArrayFloat &other);
 
     /** RMS difference between two arrays */
@@ -94,10 +97,15 @@ public:
 };
 
 struct StatsBox{
+    /** RMS difference between items */
     float rms = 0.f;
+    /** RRMS difference between items - RMS / mean value */
     float rrms = 0.f;
+    /** Mean difference between items */
     float mean_diff = 0.f;
+    /** Mean of values in array A */
     float mean_a = 0.f;
+    /** Mean of values in array B */
     float mean_b = 0.f;
 };
 

@@ -94,12 +94,12 @@ Frame CGMap::initFrame(const Frame &aa_frame){
             inbead->mass += atom->mass;
             inbead->charge += atom->charge;
         }else{
-            cout << "Ignoring atom " << i << endl;
+            cout << "Ignoring atom " << i << " " << aa_frame.atoms_[i].atom_type << endl;
         }
     }
 
     cg_frame.isSetup_ = true;
-    cg_frame.printAtoms();
+//    cg_frame.printAtoms();
     apply(aa_frame, cg_frame);
     cout << "CG Frame" << endl;
     cg_frame.printAtoms();
@@ -129,19 +129,22 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
 
         case MapType::GC:
             // put bead at geometric centre of atoms
+//            cout << "Mapping " << mapping_.size() << " beads" << endl;
             for(int i = 0; i < mapping_.size(); i++){
-                cout << "Applying bead " << i << " Atom ";
+//                cout << "Applying bead " << i  << " " << mapping_[i].cg_bead << " Atom ";
+//                std::flush(cout);
                 for(int j = 0; j < mapping_[i].num_atoms; j++){
                     int num = mapping_[i].atom_nums[j];
-                    cout << num << " ";
+//                    cout << num << " ";
+//                    std::flush(cout);
                     cg_frame.atoms_[i].coords[0] += aa_frame.atoms_[num].coords[0];
                     cg_frame.atoms_[i].coords[1] += aa_frame.atoms_[num].coords[1];
                     cg_frame.atoms_[i].coords[2] += aa_frame.atoms_[num].coords[2];
                 }
-                cout << endl;
-                for(int k=0; k < 3; k++){
-                    cg_frame.atoms_[i].coords[k] /= mapping_[i].num_atoms;
-                }
+                cg_frame.atoms_[i].coords[0] /= mapping_[0].num_atoms;
+                cg_frame.atoms_[i].coords[1] /= mapping_[1].num_atoms;
+                cg_frame.atoms_[i].coords[2] /= mapping_[2].num_atoms;
+//                cout << "end" << endl;
             }
             break;
 

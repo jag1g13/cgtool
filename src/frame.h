@@ -74,8 +74,9 @@ struct Residue{
 */
 class Frame{
 public:
-    /** Has the Frame been properly setup yet */
+    /** Has the Frame been properly setup yet? */
     bool isSetup_ = false;
+    /** Has the XTC output been setup yet? */
     bool outputSetup_ = false;
     /** GROMACS xtc file to import frames */
     t_fileio *xtcInput_ = nullptr;
