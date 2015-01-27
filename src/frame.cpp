@@ -148,7 +148,7 @@ bool Frame::setupFrame(const std::string groname, const std::string topname, con
         cout << "GRO num atoms:" << gro_num_atoms << endl;
         cout << "Number of atoms declared in XTC file "
                 "is not the same as declared in GRO file" << endl;
-        throw std::runtime_error("Number of atoms does not match");
+        exit(-1);
     }else{
         cout << "Found " << numAtoms_ << " atoms" << endl;
     }
@@ -222,6 +222,7 @@ bool Frame::setupFrame(const std::string groname, const std::string topname, con
     cout << "Mapping first " << numAtomsTrack_ << " atoms" << endl;
 
     // Process topology file
+    //TODO if I have .top, do I need .gro?
     vector<string> substrs;
     Parser top_parser(topname);
     for(int i=0; i<numAtomsTrack_; i++){

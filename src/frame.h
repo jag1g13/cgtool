@@ -152,7 +152,6 @@ public:
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file
     * \throws runtime_error if Frame has already been setup
-    * \throws runtime_error if the number of atoms found in GRO and XTC is not the same
     *
     * GROMACS read_first_xtc() gets data from the XTC file about the system.
     * This function uses this data to create a Frame object to process this data
@@ -162,7 +161,6 @@ public:
     /**
     * \brief Read next frame from the open XTC file
     */
-//    bool readNext(t_fileio *xtc);
     bool readNext();
 
     /**

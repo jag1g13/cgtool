@@ -45,8 +45,8 @@ public:
     /** Number of beads defined */
     int num_beads;
     /** \brief What type of mapping are we going to apply?  CM, GC, or atom centred
-    * Default is mapping on first atom in bead. */
-    MapType mapType_ = MapType::ATOM;
+    * Default is geometric centre of component atoms. */
+    MapType mapType_ = MapType::GC;
 
     /**
     * \brief Constructor to create a blank instance

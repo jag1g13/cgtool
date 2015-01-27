@@ -12,8 +12,6 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-//using Array::ArrayFloat;
-
 ArrayFloat::ArrayFloat(){
 }
 
@@ -182,12 +180,15 @@ void ArrayFloat::zero(){
 void ArrayFloat::print(const int width, const int prec, const float scale){
     assert(allocated_);
     if(dimensions_ == 3) throw std::runtime_error("Not implemented");
+
     if(dimensions_ == 1){
         for(int i=0; i<sizex_; i++){
             printf("%*.*f", width, prec, scale*array_[i]);
         }
         cout << endl;
-    }else if(dimensions_ == 2){
+    }
+
+    else if(dimensions_ == 2){
         for(int i=0; i<sizex_; i++){
             for(int j=0; j<sizey_; j++){
                 printf("%*.*f", width, prec, scale*array_[i*sizey_ + j]);
@@ -212,6 +213,8 @@ bool operator==(const ArrayFloat &a, const ArrayFloat &b){
     assert(b.allocated_);
     assert(a.elems_ == b.elems_);
     bool equal = true;
+
+    // if any elements are different, arrays are different
     for(int i=0; i<a.elems_; i++){
         if(a.array_[i] != b.array_[i]){
             equal = false;
