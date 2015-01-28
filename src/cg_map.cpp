@@ -36,6 +36,9 @@ void CGMap::fromFile(string filename){
         }else if(substrs[0] == "ATOM"){
             mapType_ = MapType::ATOM;
             cout << "Using ATOM mapping" << endl;
+        }else{
+            cout << "Mapping type not recognised - assuming GC" << endl;
+            mapType_ = MapType::GC;
         }
     }
 
@@ -57,6 +60,7 @@ void CGMap::fromFile(string filename){
     num_beads = int(mapping_.size());
 }
 
+// is this prototype okay?  does it copy/move?
 Frame CGMap::initFrame(const Frame &aa_frame){
     // create Frame and copy copiable data
     Frame cg_frame(aa_frame);
@@ -75,6 +79,7 @@ Frame CGMap::initFrame(const Frame &aa_frame){
         cg_frame.numToName_.emplace(i, bead.cg_bead);
         for(auto &atomname : bead.atoms) {
             // dictionary of atom to bead they're in
+            //TODO does this support an atom being in multiple beads?
             atomname_to_bead_.emplace(atomname, &bead);
         }
 

@@ -123,6 +123,7 @@ int main(const int argc, const char *argv[]){
 //    vector<int> show_dipoles{0, 1, 2, 3, 4, 5};
     ofstream file_len("length.csv"), file_angle("angle.csv"), file_dih("dihedral.csv");
     ofstream file_avg("average.csv");
+
     int i = 0;
     // Keep reading frames until something goes wrong (run out of frames)
     while(frame.readNext()){
@@ -133,12 +134,11 @@ int main(const int argc, const char *argv[]){
         }
         mapping.apply(frame, cg_frame);
 //        cg_frame.writeToXtc("xtcout.xtc");
-        // calculate electric field/dipole
 
+        // calculate electric field/dipole
         if(i % ELECTRIC_FIELD_FREQ == 0 && DO_ELECTRIC_FIELD){
             field.setupGrid(&frame);
             field.setupGridContracted(&frame);
-//            field.calcFieldMonopoles(&frame);
             field.calcFieldMonopolesContracted(&frame);
             field.calcDipolesDirect(&mapping, &cg_frame, &frame);
 //            field.calcDipolesFit(&mapping, &cg_frame, &frame);
@@ -182,8 +182,6 @@ int main(const int argc, const char *argv[]){
     printToCSV(&file_avg, calc_avg(bond_lens));
     printToCSV(&file_avg, calc_avg(bond_angles));
     printToCSV(&file_avg, calc_avg(bond_dihedrals));
-//    calc_avg(bond_angles);
-//    calc_avg(bond_dihedrals);
 
     // Final timer
     split_text_output("Total time", start_time, num_threads);
@@ -230,8 +228,7 @@ void split_text_output(const string name, const clock_t start, const int num_thr
     clock_t now = std::clock();
     if((float) (now - start) / CLOCKS_PER_SEC > 0.1){
         cout << "--------------------" << endl;
-//        cout << (float) (now - start) / (CLOCKS_PER_SEC) << " seconds" << endl;
-        cout << (float) (now - start) / (CLOCKS_PER_SEC * num_threads) << " seconds" << endl;
+        cout << float(now - start) / (CLOCKS_PER_SEC * num_threads) << " seconds" << endl;
     }
     cout << "====================" << endl;
     cout << name << endl;
