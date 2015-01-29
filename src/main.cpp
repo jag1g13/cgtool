@@ -43,15 +43,16 @@ int main(const int argc, const char *argv[]){
     clock_t start = std::clock();
     clock_t start_time = std::clock();
 
+    const string version_string =
+            "CGTOOL v0.1.112:ac6165b03aa1";
+
     const string help_string =
-            "cgtool\n"
-            "0.1.111.59803fd1e721\n\n"
-            "Requires GROMACS .gro .xtc and .top files.\n"
+            "Requires GROMACS .xtc and .top files.\n"
             "Uses a config file to set beads and measure parameters\n\n"
             "Usage:\n"
-            "cgtool\t; Runs using GROMACS files in the current directory\n"
-            "cgtool <directory>\t; Runs using GROMACS files in the specified directory\n"
-            "cgtool <gro> <xtc> <cfg> <top>\t; Runs using specified files";
+            "cgtool\t\t\t\t; Runs using GROMACS files in the current directory\n"
+            "cgtool <directory>\t\t; Runs using GROMACS files in the specified directory\n"
+            "cgtool <xtc> <cfg> <top>\t; Runs using specified files - you want this one\n";
 
     // clang doesn't like this - it doesn't seem to handle OpenMP well?
     int num_threads = 1;
@@ -67,7 +68,7 @@ int main(const int argc, const char *argv[]){
 //    cmd_parser.boostParse(argc, argv);
 
     // Where does the user want us to look for input files?
-    split_text_output("Identifying files", start, num_threads);
+    split_text_output(version_string, start, num_threads);
     string xtcname, topname, cfgname;
     if(argc < 2){
         cout << "Using current directory" << endl;
