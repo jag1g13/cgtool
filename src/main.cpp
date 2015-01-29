@@ -18,9 +18,9 @@
 
 #define DEBUG true
 #define UPDATE_PROGRESS true
-#define PROGRESS_UPDATE_FREQ 50
+#define PROGRESS_UPDATE_FREQ 100
 #define DO_ELECTRIC_FIELD false
-#define ELECTRIC_FIELD_FREQ 50
+#define ELECTRIC_FIELD_FREQ 100
 
 /* things from std that get used a lot */
 using std::ifstream;
@@ -108,7 +108,7 @@ int main(const int argc, const char *argv[]){
 
     // Open files and do setup
     split_text_output("Frame setup", start, num_threads);
-    Frame frame = Frame(groname, topname, cfgname, xtcname);
+    Frame frame = Frame(topname, xtcname);
     CGMap mapping(cfgname);
     Frame cg_frame = mapping.initFrame(frame);
     BondSet bond_set;

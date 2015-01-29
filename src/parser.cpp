@@ -40,6 +40,7 @@ bool Parser::getLine(string *section, vector <string> *tokens){
                     continue;
                 }
                 break;
+
             case ParserFormat::LAMMPS:
                 throw std::runtime_error("Not implemented");
             };
@@ -53,11 +54,39 @@ bool Parser::getLine(string *section, vector <string> *tokens){
 }
 
 bool Parser::findSection(const string find){
+    string section = "";
     vector<string> token_buffer;
-    string section_buffer;
-    while(getLine(&section_buffer, &token_buffer)){
-        if(section_ == find) return true;
+    while(section != find){
+        if(!getLine(&section, &token_buffer)) return false;
     }
+    return true;
+}
+
+bool Parser::findNextSection(){
+    while(true){
+        eof_ = !getline(file_, line_);
+        if(eof_) return false;                              // stop if we hit eof
+        switch(format_){
+            case ParserFormat::GROMACS:
+                if(line_[0] == '['){                        // line is a section header
+                    section_ = line_.substr(line_.find_first_of('[')+1, line_.find_last_of(']')-1);
+                    boost::trim(section_);
+                    return true;
+                }
+                break;
+
+            case ParserFormat::LAMMPS:
+                throw std::runtime_error("Not implemented");
+        }
+    }
+}
+
+bool Parser::getLastLineFromSection(const string find, vector<string> *tokens){
+    string section_buffer;
+    while(getLine(&section_buffer, tokens)){
+        if(section_ == find) break;
+    }
+    rewind();
     return false;
 }
 

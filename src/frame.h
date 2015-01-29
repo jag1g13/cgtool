@@ -18,11 +18,7 @@ struct Atom{
     /** A serial number; no longer needed */
     int atom_num;
     /** Residue number and name in the GRO file */
-    //char resid[10];
-    std::string resid;
-    // Being removed in favour of strings
-//    /** A three character atom type specifier; e.g. "OH1"; Should replace with a string */
-//    char atom_type[4];
+    std::string resname;
     /** Atomtype as a string.  I don't want to be dealing with *char */
     std::string atom_type;
     /** Atomic coordinates in x, y, z */
@@ -31,8 +27,6 @@ struct Atom{
     float charge = 0.f;
     /** Atomic mass */
     float mass = 0.f;
-//    /** Vector of pointers to Atom listing all atoms bonded to this one */
-//    std::vector<Atom *> neighbours;
     /** \brief Create an Atom, set its number and zero its coordinates */
     Atom(int num){atom_num = num; coords[0] = 0.f; coords[1] = 0.f; coords[2] = 0.f;};
     /** Create a blank Atom instance */
@@ -63,7 +57,7 @@ struct Residue{
     /** Constructor to set res_name */
     Residue(const std::string tmp){res_name = tmp;};
     /** Blank constructor */
-    Residue();
+    Residue(){};
 };
 
 
@@ -90,6 +84,7 @@ public:
     int numAtoms_ = 0;
     /** The number of atoms stored in this frame that we find interesting */
     int numAtomsTrack_ = 0;
+    /** The number of residues stored in this frame that we find interesting */
     /** Vector of Atoms; Each Atom contains position and type data */
     std::vector<Atom> atoms_;
     /** Vector of Residues; Each Residue contains pointers to atoms */
@@ -100,7 +95,6 @@ public:
     float prec_ = 0.f;
     /** Size of the simulation box */
     float box_[3][3];
-//    matrix box_;
     /** Holds atomic coordinates for GROMACS */
     rvec *x_ = NULL;
     /** Name of the Frame; taken from comment in the GRO file */
@@ -125,7 +119,7 @@ public:
     *
     * Replaces calls to the function Frame::setupFrame()
     */
-    Frame(const std::string groname, const std::string topname, const std::string cfgname, const std::string xtcname);
+    Frame(const std::string topname, const std::string xtcname);
 
     /**
     * \brief Create Frame by copying data from another Frame
@@ -156,7 +150,7 @@ public:
     * GROMACS read_first_xtc() gets data from the XTC file about the system.
     * This function uses this data to create a Frame object to process this data
     */
-    bool setupFrame(const std::string groname, const std::string topname, const std::string cfgname, t_fileio *xtc);
+    bool setupFrame(const std::string topname, t_fileio *xtc);
 
     /**
     * \brief Read next frame from the open XTC file

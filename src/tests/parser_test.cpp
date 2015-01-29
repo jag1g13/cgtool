@@ -16,6 +16,13 @@ TEST(ParserTest, GetLine){
     ASSERT_EQ(tokens[0], "1");
 }
 
+TEST(ParserTest, FindNextSection){
+    Parser parser("../test_data/ALLA/tp.config");
+    // there are 6 sections in this file
+    for(int i=0; i<6; i++) ASSERT_TRUE(parser.findNextSection());
+    ASSERT_FALSE(parser.findNextSection());
+}
+
 TEST(ParserTest, FindSectionTrue){
     Parser parser("../test_data/ALLA/tp.config");
     ASSERT_TRUE(parser.findSection("mapping"));
@@ -29,7 +36,7 @@ TEST(ParserTest, FindSectionFalse){
 TEST(ParserTest, GetLineFromSectionTrue){
     Parser parser("../test_data/ALLA/tp.config");
     std::vector<std::string> tokens;
-    // can we find the section and does it read the right data
+    // can we find the section and does it read the right data?
     ASSERT_TRUE(parser.getLineFromSection("mapping", &tokens));
     ASSERT_EQ(tokens.size(), 4);
     ASSERT_EQ(tokens[0], "C1");
