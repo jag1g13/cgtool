@@ -162,6 +162,7 @@ bool Frame::setupFrame(const std::string groname, const std::string topname, con
         cout << endl;
     }
 
+    //TODO remove this - it's the only thing cfg file is used for here
     int res_interesting = 0;
     Parser parser(cfgname);
     vector<string> parse_buffer;
@@ -219,12 +220,13 @@ bool Frame::setupFrame(const std::string groname, const std::string topname, con
         res_name_last = res_name_new;
         res_num_atoms++;
     }
+    gro.close();
     cout << "Mapping first " << numAtomsTrack_ << " atoms" << endl;
 
     // Process topology file
     //TODO if I have .top, do I need .gro?
     vector<string> substrs;
-    Parser top_parser(topname);
+    Parser top_parser(topname, ParserFormat::GROMACS);
     for(int i=0; i<numAtomsTrack_; i++){
         // read data from topology file for each atom we care about (not solvent)
         // check that we're reading the atoms in the same order
@@ -235,7 +237,6 @@ bool Frame::setupFrame(const std::string groname, const std::string topname, con
         atoms_[i].charge = float(atof(substrs[6].c_str()));
         atoms_[i].mass = float(atof(substrs[7].c_str()));
     }
-    gro.close();
 
     if(ok && bOK) isSetup_ = true;
     printAtoms(numAtomsTrack_);

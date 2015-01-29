@@ -13,13 +13,15 @@ Parser::Parser() {
 
 }
 
-Parser::Parser(string filename) {
+Parser::Parser(string filename, ParserFormat format) {
+    format_ = format;
     filename_ = filename;
     if (!openFile(filename)) throw std::runtime_error("File " + filename + " could not be opened");
 }
 
 bool Parser::openFile(string filename){
     //TODO preprocess file to include ITPs
+    filename_ = filename;
     file_.open(filename);
     return file_.is_open();
 }
@@ -30,11 +32,17 @@ bool Parser::getLine(string *section, vector <string> *tokens){
         if(eof_) return !eof_;                              // stop if we hit eof
         if(line_[0] == ';' || line_[0] == '#') continue;    // skip comments
         if(line_ == "") continue;                           // line is empty, ignore it
-        if(line_[0] == '['){                                // line is a section header
-            section_ = line_.substr(line_.find_first_of('[')+1, line_.find_last_of(']')-1);
-            boost::trim(section_);
-            continue;
-        }
+        switch(format_){
+            case ParserFormat::GROMACS:
+                if(line_[0] == '['){                        // line is a section header
+                    section_ = line_.substr(line_.find_first_of('[')+1, line_.find_last_of(']')-1);
+                    boost::trim(section_);
+                    continue;
+                }
+                break;
+            case ParserFormat::LAMMPS:
+                throw std::runtime_error("Not implemented");
+            };
         break;                                              // line isn't empty, accept it
     }
     boost::trim(line_);

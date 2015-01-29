@@ -67,11 +67,11 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/src)
 
 # test parser
-add_executable(gtest_parser ${GTEST_SOURCE_FILES} src/tests/parser_test.cpp)
+add_executable(gtest_parser src/parser.cpp src/tests/parser_test.cpp)
 target_link_libraries (gtest_parser ${GTEST_BOTH_LIBRARIES} ${EXTRA_LIBS})
 add_test(GTestParserAll gtest_parser)
 # test bondset
-add_executable(gtest_bondset ${GTEST_SOURCE_FILES} src/tests/bondset_test.cpp)
+add_executable(gtest_bondset src/bondset.cpp src/frame.cpp src/parser.cpp src/tests/bondset_test.cpp)
 target_link_libraries (gtest_bondset ${GTEST_BOTH_LIBRARIES} ${EXTRA_LIBS})
 add_test(GTestBondSetAll gtest_bondset)
 

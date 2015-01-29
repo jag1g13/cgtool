@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+enum class ParserFormat{GROMACS, LAMMPS};
+
 /**
 * \brief Parses input files for comments, section headers and data lines
 */
@@ -21,6 +23,8 @@ public:
     std::string section_ = "";
     /** Is EOF? */
     bool eof_;
+    /** Expected file format - GROMACS style or LAMMPS style */
+    ParserFormat format_ = ParserFormat::GROMACS;
 
     /**
     * \brief Constructor for a blank Parser
@@ -32,7 +36,7 @@ public:
     *
     * Raises an exception if file cannot be opened
     */
-    Parser(std::string filename);
+    Parser(std::string filename, ParserFormat format=ParserFormat::GROMACS);
 
     /**
     * \brief Opens a file if the Parser was constructed without one
