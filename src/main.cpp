@@ -45,7 +45,7 @@ int main(const int argc, const char *argv[]){
 
     const string help_string =
             "cgtool\n"
-            "0.1.x.y\n\n"
+            "0.1.111.59803fd1e721\n\n"
             "Requires GROMACS .gro .xtc and .top files.\n"
             "Uses a config file to set beads and measure parameters\n\n"
             "Usage:\n"
@@ -53,7 +53,7 @@ int main(const int argc, const char *argv[]){
             "cgtool <directory>\t; Runs using GROMACS files in the specified directory\n"
             "cgtool <gro> <xtc> <cfg> <top>\t; Runs using specified files";
 
-    // clang doesn't like this - it doesn't seem to do OpenMP
+    // clang doesn't like this - it doesn't seem to handle OpenMP well?
     int num_threads = 1;
 //    #pragma omp parallel
 //    #pragma omp master
@@ -68,10 +68,9 @@ int main(const int argc, const char *argv[]){
 
     // Where does the user want us to look for input files?
     split_text_output("Identifying files", start, num_threads);
-    string groname, xtcname, topname, cfgname;
+    string xtcname, topname, cfgname;
     if(argc < 2){
         cout << "Using current directory" << endl;
-        groname = "npt.gro";
         xtcname = "md.xtc";
         cfgname = "tp.config";
         topname = "topol.top";
@@ -83,25 +82,22 @@ int main(const int argc, const char *argv[]){
         }
         cout << "Using directory provided" << endl;
         string dir = string(argv[1]);
-        groname = dir + "/npt.gro";
         xtcname = dir + "/md.xtc";
         cfgname = dir + "/tp.config";
         topname = dir + "/topol.top";
-    } else if(argc == 5){
+    } else if(argc == 4){
         cout << "Using filenames provided" << endl;
-        groname = string(argv[1]);
-        xtcname = string(argv[2]);
-        cfgname = string(argv[3]);
-        topname = string(argv[4]);
+        xtcname = string(argv[1]);
+        cfgname = string(argv[2]);
+        topname = string(argv[3]);
     } else{
         cout << "Wrong number of arguments given" << endl;
         throw std::runtime_error("Wrong number of arguments");
     }
-    if(!file_exists(groname) || !file_exists(xtcname) || !file_exists(cfgname) || !file_exists(topname)){
+    if(!file_exists(xtcname) || !file_exists(cfgname) || !file_exists(topname)){
         cout << "Input file does not exist" << endl;
         throw std::runtime_error("File doesn't exist");
     }
-    cout << "GRO file: " << groname << endl;
     cout << "XTC file: " << xtcname << endl;
     cout << "TOP file: " << topname << endl;
     cout << "CFG file: " << cfgname << endl;
@@ -166,9 +162,6 @@ int main(const int argc, const char *argv[]){
         i++;
     }
     cout << "Read " << i << " frames" << endl;
-//    cg_frame.printAtoms();
-//    field.printDipoles();
-//    field.printFields();
 
     // close remaining files
     file_len.close();
@@ -177,7 +170,6 @@ int main(const int argc, const char *argv[]){
 
     // Post processing
     split_text_output("Post processing", start, num_threads);
-    start = std::clock();
     //TODO print to itp instead
     printToCSV(&file_avg, calc_avg(bond_lens));
     printToCSV(&file_avg, calc_avg(bond_angles));
@@ -217,7 +209,6 @@ vector<float> calc_avg(const vector<vector<float>> &bond_lens){
     cout << "Bonds" << endl;
     for(int i = 0; i < width; i++){
         mean[i] = sum[i] / length;
-//        cout << mean[i] << "\t";
         printf("%8.3f", mean[i]);
     }
     cout << endl;

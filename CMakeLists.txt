@@ -55,7 +55,8 @@ set(SOURCE_FILES
     src/bondset.cpp
     src/cg_map.cpp
     src/parser.cpp
-    src/cmd.cpp)
+    src/cmd.cpp
+    src/itp_writer.cpp)
 
 add_executable(cgtool ${SOURCE_FILES} src/main.cpp)
 target_link_libraries (cgtool ${EXTRA_LIBS})
