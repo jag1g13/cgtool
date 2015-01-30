@@ -52,9 +52,11 @@ void CGMap::fromFile(string filename){
         new_bead.num_atoms = int(new_bead.atoms.size());
 
         // print for debugging
-        cout << new_bead.name << " " << new_bead.num_atoms << " ";
+//        cout << new_bead.name << " " << new_bead.num_atoms << " ";
+        std::printf("%6s %3i:", new_bead.name.c_str(), new_bead.num_atoms);
         for(auto atom : new_bead.atoms){
-            cout << atom << " ";
+//            cout << atom << " ";
+            std::printf(" %s", atom.c_str());
         }
         cout << endl;
         mapping_.push_back(new_bead);

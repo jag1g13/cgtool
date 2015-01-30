@@ -4,12 +4,29 @@
 #include <vector>
 #include <string>
 
-#include "frame.h"
-#include "bond_struct.h"
+//#include "frame.h"
 
 using std::vector;
 using std::string;
 
+class Frame;
+
+/**
+* \brief Struct to hold atoms in bonds, angles and dihedrals
+*/
+struct BondStruct{
+    /** Vector of atom names for this bond property; For a bond length will contain two names; three for angle; four for dihedral */
+    std::vector<std::string> atom_names;
+    /** Vector of atom numbers for this bond property; For a bond length will contain two names; three for angle; four for dihedral */
+    std::vector<int> atom_nums;
+    /** The values of the bond parameter (length, angle, dih) for each Frame */
+    std::vector<float> values;
+    /** Average bond parameter */
+    float avg;
+    /** Constructor to set size (bond/angle/dihedral) */
+    BondStruct(int size){atom_names.resize(size); atom_nums.resize(size);};
+    BondStruct(){};
+};
 
 /**
 * \brief Class that holds all bond lengths, angles and dihedrals to be calculated
@@ -23,7 +40,8 @@ public:
     /** Vector of bond dihedral quads */
     vector<BondStruct> dihedrals_;
 
-    BondSet();
+    /** \brief Blank constructor */
+    BondSet(){};
 
     /**
     * \brief Reads in from file all bond properties to be calculated
@@ -33,25 +51,31 @@ public:
     void fromFile(string);
 
     /**
+    * \brief Calculate all bond lengths, angles and dihedrals.
+    * There are stored inside the BondStructs to be passed to averaging functions later.
+    */
+    void calcBondsInternal(Frame &frame);
+
+    /**
     * \brief Calculate all bond lengths that were requested in the input file
     *
     * *Something, something, locality*
     */
-    vector<float> calcBondLens(Frame *frame);
+    vector<float> calcBondLens(Frame &frame);
 
     /**
     * \brief Calculate all bond angles that were requested in the input file
     *
     * *Something, something, locality*
     */
-    vector<float> calcBondAngles(Frame *frame);
+    vector<float> calcBondAngles(Frame &frame);
 
     /**
     * \brief Calculate all bond dihedrals that were requested in the input file
     *
     * *Something, something, locality*
     */
-    vector<float> calcBondDihedrals(Frame *frame);
+    vector<float> calcBondDihedrals(Frame &frame);
 };
 
 #endif

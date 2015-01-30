@@ -44,7 +44,7 @@ int main(const int argc, const char *argv[]){
     clock_t start_time = std::clock();
 
     const string version_string =
-            "CGTOOL v0.1.112:ac6165b03aa1";
+            "CGTOOL v0.1.115:fcec2412d821";
 
     const string help_string =
             "Requires GROMACS .xtc and .top files.\n"
@@ -145,17 +145,19 @@ int main(const int argc, const char *argv[]){
         }
 
         // calculate bonds
-        tmp = bond_set.calcBondLens(&cg_frame);
+        bond_set.calcBondsInternal(cg_frame);
+
+        tmp = bond_set.calcBondLens(cg_frame);
         if(tmp.size() > 0){
             bond_lens.push_back(tmp);
             printToCSV(&file_len, tmp);
         }
-        tmp = bond_set.calcBondAngles(&cg_frame);
+        tmp = bond_set.calcBondAngles(cg_frame);
         if(tmp.size() > 0){
             bond_angles.push_back(tmp);
             printToCSV(&file_angle, tmp);
         }
-        tmp = bond_set.calcBondDihedrals(&cg_frame);
+        tmp = bond_set.calcBondDihedrals(cg_frame);
         if(tmp.size() > 0){
             bond_dihedrals.push_back(tmp);
             printToCSV(&file_dih, tmp);

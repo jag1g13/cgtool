@@ -9,7 +9,7 @@
 
 #include <string.h>
 
-#include "bond_struct.h"
+#include "bondset.h"
 
 /**
 * \brief Struct to hold atom data
@@ -184,7 +184,7 @@ public:
     void recentreBox(const int atom_num);
 
     /** Print info for all atoms up to n.  Default print all. */
-    void printAtoms(const int n=-1);
+    void printAtoms(int n=-1);
 
     /**
     * \brief Calculate distance between two atoms

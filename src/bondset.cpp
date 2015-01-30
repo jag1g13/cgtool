@@ -7,21 +7,12 @@
 #include <boost/algorithm/string.hpp>
 
 #include "parser.h"
-
-#define DEBUG false
+#include "frame.h"
 
 using std::vector;
 using std::string;
 using std::cout;
 using std::endl;
-
-BondStruct::BondStruct(int size){
-    atom_names.resize(size);
-    atom_nums.resize(size);
-}
-
-BondSet::BondSet(){
-}
 
 void BondSet::fromFile(string filename){
     vector<string> substrs;
@@ -42,22 +33,13 @@ void BondSet::fromFile(string filename){
         bond_tmp.atom_names = substrs;
         dihedrals_.push_back(bond_tmp);
     }
-
-    if(DEBUG){
-        for(auto &i : dihedrals_){
-            for(auto &j : i.atom_names){
-                std::cout << " " << j;
-            }
-            std::cout << std::endl;
-        }
-    }
 }
 
-vector<float> BondSet::calcBondLens(Frame *frame){
+vector<float> BondSet::calcBondLens(Frame &frame){
     vector<float> bonds;
     vector<float> empty;
     for(auto &bond : bonds_){
-        bonds.push_back(frame->bondLength(&bond));
+        bonds.push_back(frame.bondLength(&bond));
         // does the structure cross a pbc - will break bond lengths
 //        if(*bonds.end() > 0.8f * frame->box_[0][0]){
 //            frame->invalid_ = true;
@@ -67,22 +49,40 @@ vector<float> BondSet::calcBondLens(Frame *frame){
     return bonds;
 }
 
-vector<float> BondSet::calcBondAngles(Frame *frame){
+vector<float> BondSet::calcBondAngles(Frame &frame){
     vector<float> bonds;
     vector<float> empty;
-    if(frame->invalid_) return empty;
+    if(frame.invalid_) return empty;
     for(auto &bond : angles_){
-        bonds.push_back(frame->bondAngle(&bond));
+        bonds.push_back(frame.bondAngle(&bond));
     }
     return bonds;
 }
 
-vector<float> BondSet::calcBondDihedrals(Frame *frame){
+vector<float> BondSet::calcBondDihedrals(Frame &frame){
     vector<float> bonds;
     vector<float> empty;
-    if(frame->invalid_) return empty;
+    if(frame.invalid_) return empty;
     for(auto &bond : dihedrals_){
-        bonds.push_back(frame->bondAngle(&bond));
+        bonds.push_back(frame.bondAngle(&bond));
     }
     return bonds;
+}
+
+void BondSet::calcBondsInternal(Frame &frame){
+    for(BondStruct &bond : bonds_){
+        // does the structure cross a pbc - will break bond lengths
+        float dist = frame.bondLength(&bond);
+        if(dist > 0.8f * frame.box_[0][0]){
+            frame.invalid_ = true;
+            return;
+        }
+        bond.values.push_back(frame.bondLength(&bond));
+    }
+    for(BondStruct &bond : angles_){
+        bond.values.push_back(frame.bondAngle(&bond));
+    }
+    for(BondStruct &bond : dihedrals_){
+        bond.values.push_back(frame.bondAngle(&bond));
+    }
 }

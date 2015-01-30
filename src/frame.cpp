@@ -12,6 +12,7 @@ using std::vector;
 using std::cout;
 using std::endl;
 using std::stoi;
+using std::printf;
 
 Frame::Frame(int num, int natoms, string name){
     name_ = name;
@@ -213,18 +214,14 @@ void Frame::recentreBox(const int atom_num){
     }
 }
 
-void Frame::printAtoms(const int n){
+void Frame::printAtoms(int n){
     assert(isSetup_);
-    cout.setf(std::ios::fixed);
-    cout.precision(4);
-    int i = 0;
-    cout << "Name\tMass\tChrg\tPosx\tPosy\tPosz" << endl;
-    for(Atom &atom : atoms_){
-        cout << atom.atom_type << "\t" << atom.mass << "\t" << atom.charge << "\t";
-        cout << atom.coords[0] << "\t" << atom.coords[1] << "\t" << atom.coords[2];
-        cout << endl;
-        i++;
-        if(n > 0 && i >= n) break;
+    if(n == -1) n = numAtomsTrack_;
+    printf("  Name   Mass    Charge   Posx    Posy    Posz\n");
+    for(int i=0; i<n; i++){
+        printf("%6s %7.3f %7.3f %7.4f %7.4f %7.4f\n",
+               atoms_[i].atom_type.c_str(), atoms_[i].mass, atoms_[i].charge,
+               atoms_[i].coords[0], atoms_[i].coords[1], atoms_[i].coords[2]);
     }
 }
 
