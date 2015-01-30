@@ -38,11 +38,12 @@ TEST(ParserTest, GetLineFromSectionTrue){
     std::vector<std::string> tokens;
     // can we find the section and does it read the right data?
     ASSERT_TRUE(parser.getLineFromSection("mapping", &tokens));
-    ASSERT_EQ(tokens.size(), 4);
+    ASSERT_EQ(tokens.size(), 5);
     ASSERT_EQ(tokens[0], "C1");
-    ASSERT_EQ(tokens[1], "1C1");
-    ASSERT_EQ(tokens[2], "1O1");
-    ASSERT_EQ(tokens[3], "1HO1");
+    ASSERT_EQ(tokens[1], "P4");
+    ASSERT_EQ(tokens[2], "1C1");
+    ASSERT_EQ(tokens[3], "1O1");
+    ASSERT_EQ(tokens[4], "1HO1");
 }
 
 TEST(ParserTest, GetLineFromSectionFalse){

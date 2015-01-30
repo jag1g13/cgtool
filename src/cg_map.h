@@ -14,7 +14,11 @@ using std::vector;
 */
 struct BeadMap{
     /** The name of this CG bead */
-    string cg_bead;
+    string name;
+    /** The number of the CG bead */
+    int num;
+    /** The particle type of the bead - e.g. MARTINI P4, C2, etc. */
+    string type;
     /** The number of atoms this bead contains */
     int num_atoms;
     /** The atoms which should be mapped into this bead */

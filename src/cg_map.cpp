@@ -6,6 +6,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "parser.h"
+#include "itp_writer.h"
 
 #define DEBUG false
 
@@ -43,14 +44,17 @@ void CGMap::fromFile(string filename){
     }
 
     // read in the bead mappings
+    int i = 0;
     while(parser.getLineFromSection("mapping", &substrs)){
         BeadMap new_bead;
-        new_bead.cg_bead = substrs[0];
-        new_bead.atoms = vector<string>(substrs.begin() + 1, substrs.end());
+        new_bead.name = substrs[0];
+        new_bead.type = substrs[1];
+        new_bead.num = i++;
+        new_bead.atoms = vector<string>(substrs.begin() + 2, substrs.end());
         new_bead.num_atoms = int(new_bead.atoms.size());
 
         // print for debugging
-        cout << new_bead.cg_bead << " " << new_bead.num_atoms << " ";
+        cout << new_bead.name << " " << new_bead.num_atoms << " ";
         for(auto atom : new_bead.atoms){
             cout << atom << " ";
         }
@@ -69,14 +73,14 @@ Frame CGMap::initFrame(const Frame &aa_frame){
     int i = 0;
     for(auto &bead : mapping_) {
         cg_frame.atoms_.push_back(Atom(i));
-        cg_frame.atoms_[i].atom_type = bead.cg_bead;
+        cg_frame.atoms_[i].atom_type = bead.name;
         cg_frame.atoms_[i].coords[0] = 0.f;
         cg_frame.atoms_[i].coords[1] = 0.f;
         cg_frame.atoms_[i].coords[2] = 0.f;
 
         // add bead to dictionaries so we can find it by name
-        cg_frame.nameToNum_.emplace(bead.cg_bead, i);
-        cg_frame.numToName_.emplace(i, bead.cg_bead);
+        cg_frame.nameToNum_.emplace(bead.name, i);
+        cg_frame.numToName_.emplace(i, bead.name);
         for(auto &atomname : bead.atoms) {
             // dictionary of atom to bead they're in
             //TODO does this support an atom being in multiple beads?
@@ -94,8 +98,16 @@ Frame CGMap::initFrame(const Frame &aa_frame){
                 }
             }
         }
+
+        // copy values back into beads
+        mapping_[i].mass = cg_frame.atoms_[i].mass;
+        mapping_[i].charge = cg_frame.atoms_[i].charge;
         i++;
     }
+
+    //TODO move this out into main()
+    ITPWriter itp("out.itp");
+    itp.printAtoms(mapping_);
 
     cg_frame.numAtoms_ = i;
     cg_frame.numAtomsTrack_ = i;
