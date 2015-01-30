@@ -35,6 +35,9 @@ public:
 
     /** Print atoms to itp */
     void printAtoms(const std::vector<BeadMap> &mapping);
+
+//    /** Print bond params to itp */
+//    void printBonds(const std::vector<BeadMap> &mapping);
 };
 
 #endif

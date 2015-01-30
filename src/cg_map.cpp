@@ -1,14 +1,12 @@
 #include "cg_map.h"
 
 #include <fstream>
-#include <iostream>     // only needed for testing, get rid of this when done
+#include <iostream>
 
 #include <boost/algorithm/string.hpp>
 
 #include "parser.h"
 #include "itp_writer.h"
-
-#define DEBUG false
 
 using std::cout;
 using std::endl;
@@ -79,11 +77,11 @@ Frame CGMap::initFrame(const Frame &aa_frame){
         cg_frame.atoms_[i].coords[2] = 0.f;
 
         // add bead to dictionaries so we can find it by name
+        //TODO does this support an atom being in multiple beads?
         cg_frame.nameToNum_.emplace(bead.name, i);
         cg_frame.numToName_.emplace(i, bead.name);
         for(auto &atomname : bead.atoms) {
             // dictionary of atom to bead they're in
-            //TODO does this support an atom being in multiple beads?
             atomname_to_bead_.emplace(atomname, &bead);
         }
 

@@ -31,3 +31,5 @@ void ITPWriter::printAtoms(const vector<BeadMap> &mapping){
                 bead.name.c_str(), bead.num, bead.charge, bead.mass);
     }
 }
+
+//void ITPWriter::printBonds(const vector<> &bonds)

@@ -27,7 +27,7 @@ To compile the program:
 To use the program:
 
 * Usage text is available with 'cgtool -h' or 'cgtool --help'
-* The program should be called using 'cgtool <path to xtc> <path to gro> <path to cfg> <path to top>'
+* The program should be called using 'cgtool <path to xtc> <path to cfg> <path to top>'
 * A config file is required which specifies the mapping to be applied, in the format seen in the test_data directory
 
 ### Testing ###

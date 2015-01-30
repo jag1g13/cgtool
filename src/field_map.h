@@ -48,19 +48,25 @@ private:
 public:
     /** Constructor for a blank instance of an electric field map */
     FieldMap();
+
     /** Constructor for FieldMap to perform setup */
     FieldMap(const int a, const int b, const int c, const int natoms=0);
+
     /** Determine grid bounds from a Frame object and do setup each time */
     void setupGrid(const Frame *frame);
+
     /** \brief Calculate the square of the distance between two points */
     float distSqr(const float *coords, const float x, const float y, const float z);
 
     /** Create a CHELPG style grid using only points in a shell around the molecule */
     void setupGridContracted(const Frame *frame);
+
     /** Calculate the electric field from point charges using the CHELPG style grid */
     void calcFieldMonopolesContracted(const Frame *frame);
+
     /** Calculate the electric field from point dipoles using the CHELPG style grid */
     void calcFieldDipolesContracted(const Frame *frame);
+
     /** \brief Calculate dipoles on beads directly from frame
     * Modifies charges in atomistic Frame */
     void calcDipolesDirect(const CGMap *cgmap, const Frame *cg_frame, Frame *aa_frame);
@@ -71,12 +77,16 @@ public:
     * remaining charged beads.  Weighting is determined by fitting to the electric field.
     */
     void calcDipolesFit(const CGMap *cgmap, const Frame *cg_frame, const Frame *aa_frame);
+
     /** Calculate the total dipole of the system/residue */
     void calcTotalDipole(const Frame *aa_frame, int num_atoms=0);
+
     /** Calculate the sum of calculated dipoles */
     void calcSumDipole(const std::vector<int> nums);
+
     /** Print the dipole array */
     void printDipoles();
+
     /** Print the electric fields */
     void printFields();
 };
