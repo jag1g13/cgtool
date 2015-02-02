@@ -15,6 +15,7 @@
 #include "cg_map.h"
 #include "bondset.h"
 #include "field_map.h"
+#include "itp_writer.h"
 
 #define DEBUG true
 #define UPDATE_PROGRESS true
@@ -144,7 +145,7 @@ int main(const int argc, const char *argv[]){
 //            field.calcSumDipole(show_dipoles);
         }
 
-        // calculate bonds
+        // calculate bonds and store in BondStructs
         bond_set.calcBondsInternal(cg_frame);
 
         tmp = bond_set.calcBondLens(cg_frame);
@@ -164,6 +165,7 @@ int main(const int argc, const char *argv[]){
         }
         i++;
     }
+    bond_set.calcAvgs();
     cout << "Read " << i << " frames" << endl;
 
     // close remaining files
@@ -173,10 +175,14 @@ int main(const int argc, const char *argv[]){
 
     // Post processing
     split_text_output("Post processing", start, num_threads);
-    //TODO print to itp instead
-    printToCSV(&file_avg, calc_avg(bond_lens));
-    printToCSV(&file_avg, calc_avg(bond_angles));
-    printToCSV(&file_avg, calc_avg(bond_dihedrals));
+//    printToCSV(&file_avg, calc_avg(bond_lens));
+//    printToCSV(&file_avg, calc_avg(bond_angles));
+//    printToCSV(&file_avg, calc_avg(bond_dihedrals));
+
+    ITPWriter itp("out.itp");
+    itp.printAtoms(mapping);
+    itp.printBonds(bond_set);
+
 
     // Final timer
     split_text_output("Total time", start_time, num_threads);

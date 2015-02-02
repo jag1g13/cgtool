@@ -4,11 +4,10 @@
 #include <vector>
 #include <string>
 
-//#include "frame.h"
-
 using std::vector;
 using std::string;
 
+// resolve circular dependency
 class Frame;
 
 /**
@@ -76,6 +75,9 @@ public:
     * *Something, something, locality*
     */
     vector<float> calcBondDihedrals(Frame &frame);
+
+    /** \brief Calculate averages of all bond measurements */
+    void calcAvgs();
 };
 
 #endif

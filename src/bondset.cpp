@@ -16,7 +16,6 @@ using std::endl;
 
 void BondSet::fromFile(string filename){
     vector<string> substrs;
-    string section;
     Parser parser(filename);
     while(parser.getLineFromSection("length", &substrs)) {
         BondStruct bond_tmp = BondStruct(4);
@@ -38,7 +37,7 @@ void BondSet::fromFile(string filename){
 vector<float> BondSet::calcBondLens(Frame &frame){
     vector<float> bonds;
     vector<float> empty;
-    for(auto &bond : bonds_){
+    for(BondStruct &bond : bonds_){
         bonds.push_back(frame.bondLength(&bond));
         // does the structure cross a pbc - will break bond lengths
 //        if(*bonds.end() > 0.8f * frame->box_[0][0]){
@@ -53,7 +52,7 @@ vector<float> BondSet::calcBondAngles(Frame &frame){
     vector<float> bonds;
     vector<float> empty;
     if(frame.invalid_) return empty;
-    for(auto &bond : angles_){
+    for(BondStruct &bond : angles_){
         bonds.push_back(frame.bondAngle(&bond));
     }
     return bonds;
@@ -63,7 +62,7 @@ vector<float> BondSet::calcBondDihedrals(Frame &frame){
     vector<float> bonds;
     vector<float> empty;
     if(frame.invalid_) return empty;
-    for(auto &bond : dihedrals_){
+    for(BondStruct &bond : dihedrals_){
         bonds.push_back(frame.bondAngle(&bond));
     }
     return bonds;
@@ -84,5 +83,26 @@ void BondSet::calcBondsInternal(Frame &frame){
     }
     for(BondStruct &bond : dihedrals_){
         bond.values.push_back(frame.bondAngle(&bond));
+    }
+}
+
+void BondSet::calcAvgs(){
+    for(BondStruct &bond : bonds_){
+        for(float &b : bond.values){
+            bond.avg += b;
+        }
+        bond.avg /= bond.values.size();
+    }
+    for(BondStruct &bond : angles_){
+        for(float &b : bond.values){
+            bond.avg += b;
+        }
+        bond.avg /= bond.values.size();
+    }
+    for(BondStruct &bond : dihedrals_){
+        for(float &b : bond.values){
+            bond.avg += b;
+        }
+        bond.avg /= bond.values.size();
     }
 }

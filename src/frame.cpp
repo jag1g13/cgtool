@@ -34,6 +34,7 @@ Frame::Frame(const Frame &frame){
     }
 }
 
+// don't need this?
 //Frame &Frame::operator=(const Frame &frame){
 //    num_ = frame.num_;
 //    name_ = frame.name_;
@@ -56,6 +57,7 @@ Frame::Frame(const std::string topname, const std::string xtcname){
 }
 
 //TODO finish move constructor
+// don't need this?
 //Frame::Frame(Frame&& frame){
 //    isSetup_ = frame.isSetup_;
 //    xtcInput_ = frame.xtcInput_;
@@ -78,14 +80,6 @@ Frame::~Frame(){
     assert(isSetup_);
     isSetup_ = false;
     if(x_) free(x_);
-    // these lines actually result in less memory being freed
-//    if(xtcInput_ != nullptr) close_xtc(xtcInput_);
-//    xtcInput_ = nullptr;
-//    if(xtcOutput_ != nullptr) close_xtc(xtcOutput_);
-//    xtcOutput_ = nullptr;
-    // don't seem to do anything
-//    vector<Atom>().swap(atoms_);
-//    vector<Residue>().swap(residues_);
 }
 
 int Frame::allocateAtoms(int num_atoms){
@@ -247,7 +241,7 @@ float Frame::bondAngle(int a, int b, int c, int d){
     mag1 = (float)sqrt(pow(vec1[0], 2) + pow(vec1[1], 2) + pow(vec1[2], 2));
     mag2 = (float)sqrt(pow(vec2[0], 2) + pow(vec2[1], 2) + pow(vec2[2], 2));
     angle = (float)acos(dot / (mag1 * mag2));
-    // if NaN
+    // if angle is NaN
     if(angle != angle){
         printf("%d %d %d %d\n", a, b, c, d);
         return 0.f;

@@ -6,7 +6,6 @@
 #include <boost/algorithm/string.hpp>
 
 #include "parser.h"
-#include "itp_writer.h"
 
 using std::cout;
 using std::endl;
@@ -104,10 +103,6 @@ Frame CGMap::initFrame(const Frame &aa_frame){
         mapping_[i].charge = cg_frame.atoms_[i].charge;
         i++;
     }
-
-    //TODO move this out into main()
-    ITPWriter itp("out.itp");
-    itp.printAtoms(mapping_);
 
     cg_frame.numAtoms_ = i;
     cg_frame.numAtomsTrack_ = i;
