@@ -109,18 +109,15 @@ int main(const int argc, const char *argv[]){
     Frame frame = Frame(topname, xtcname);
     CGMap mapping(cfgname);
     Frame cg_frame = mapping.initFrame(frame);
-    BondSet bond_set;
-    bond_set.fromFile(cfgname);
+    BondSet bond_set(cfgname);
+//    bond_set.fromFile(cfgname);
     FieldMap field(10, 10, 10, mapping.num_beads);
 
     split_text_output("Reading frames", start, num_threads);
     start = std::clock();
-    vector<vector<float>> bond_lens, bond_angles, bond_dihedrals;
     vector<float> tmp;
     tmp.reserve(6);
 //    vector<int> show_dipoles{0, 1, 2, 3, 4, 5};
-    ofstream file_len("length.csv"), file_angle("angle.csv"), file_dih("dihedral.csv");
-    ofstream file_avg("average.csv");
 
     int i = 0;
     // Keep reading frames until something goes wrong (run out of frames)
@@ -148,81 +145,29 @@ int main(const int argc, const char *argv[]){
         // calculate bonds and store in BondStructs
         bond_set.calcBondsInternal(cg_frame);
 
-        tmp = bond_set.calcBondLens(cg_frame);
-        if(tmp.size() > 0){
-            bond_lens.push_back(tmp);
-            printToCSV(&file_len, tmp);
-        }
-        tmp = bond_set.calcBondAngles(cg_frame);
-        if(tmp.size() > 0){
-            bond_angles.push_back(tmp);
-            printToCSV(&file_angle, tmp);
-        }
-        tmp = bond_set.calcBondDihedrals(cg_frame);
-        if(tmp.size() > 0){
-            bond_dihedrals.push_back(tmp);
-            printToCSV(&file_dih, tmp);
-        }
         i++;
     }
-    bond_set.calcAvgs();
     cout << "Read " << i << " frames" << endl;
-
-    // close remaining files
-    file_len.close();
-    file_angle.close();
-    file_dih.close();
 
     // Post processing
     split_text_output("Post processing", start, num_threads);
-//    printToCSV(&file_avg, calc_avg(bond_lens));
-//    printToCSV(&file_avg, calc_avg(bond_angles));
-//    printToCSV(&file_avg, calc_avg(bond_dihedrals));
+    bond_set.calcAvgs();
 
     ITPWriter itp("out.itp");
     itp.printAtoms(mapping);
     itp.printBonds(bond_set);
 
+    // print something so I can tell it's working - can be removed later
+    for(BondStruct bond : bond_set.bonds_){
+        printf("%8.4f", bond.avg);
+    }
+    cout << endl;
 
     // Final timer
     split_text_output("Total time", start_time, num_threads);
     return 0;
 }
 
-void printToCSV(ofstream *file, const vector<float> &vec){
-    for(const auto &item : vec){
-        // so we don't end up with leading/trailing commas
-        if(item != vec.front()) *file << ",";
-        *file << item;
-    }
-    *file << endl;
-}
-
-vector<float> calc_avg(const vector<vector<float>> &bond_lens){
-    /**
-    * \brief Calculate the average of bond lengths in vector<vector<float>
-    *
-    * This is not cache friendly
-    */
-    int length = bond_lens.size();
-    int width = bond_lens[0].size();
-    vector<float> sum(width);
-    vector<float> mean(width);
-    for(auto &row : bond_lens){
-        for(int i = 0; i < width; i++){
-            // if NaN ignore it
-            if(row[i] != row[i]) continue;
-            sum[i] += row[i];
-        }
-    }
-    cout << "Bonds" << endl;
-    for(int i = 0; i < width; i++){
-        mean[i] = sum[i] / length;
-        printf("%8.3f", mean[i]);
-    }
-    cout << endl;
-    return mean;
-}
 
 void split_text_output(const string name, const clock_t start, const int num_threads){
     clock_t now = std::clock();

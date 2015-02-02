@@ -42,6 +42,9 @@ public:
     /** \brief Blank constructor */
     BondSet(){};
 
+    /** \brief Constructor to read from file */
+    BondSet(std::string cfgname){fromFile(cfgname);};
+
     /**
     * \brief Reads in from file all bond properties to be calculated
     *
@@ -54,27 +57,6 @@ public:
     * There are stored inside the BondStructs to be passed to averaging functions later.
     */
     void calcBondsInternal(Frame &frame);
-
-    /**
-    * \brief Calculate all bond lengths that were requested in the input file
-    *
-    * *Something, something, locality*
-    */
-    vector<float> calcBondLens(Frame &frame);
-
-    /**
-    * \brief Calculate all bond angles that were requested in the input file
-    *
-    * *Something, something, locality*
-    */
-    vector<float> calcBondAngles(Frame &frame);
-
-    /**
-    * \brief Calculate all bond dihedrals that were requested in the input file
-    *
-    * *Something, something, locality*
-    */
-    vector<float> calcBondDihedrals(Frame &frame);
 
     /** \brief Calculate averages of all bond measurements */
     void calcAvgs();

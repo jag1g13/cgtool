@@ -34,40 +34,6 @@ void BondSet::fromFile(string filename){
     }
 }
 
-vector<float> BondSet::calcBondLens(Frame &frame){
-    vector<float> bonds;
-    vector<float> empty;
-    for(BondStruct &bond : bonds_){
-        bonds.push_back(frame.bondLength(&bond));
-        // does the structure cross a pbc - will break bond lengths
-//        if(*bonds.end() > 0.8f * frame->box_[0][0]){
-//            frame->invalid_ = true;
-//            return empty;
-//        }
-    }
-    return bonds;
-}
-
-vector<float> BondSet::calcBondAngles(Frame &frame){
-    vector<float> bonds;
-    vector<float> empty;
-    if(frame.invalid_) return empty;
-    for(BondStruct &bond : angles_){
-        bonds.push_back(frame.bondAngle(&bond));
-    }
-    return bonds;
-}
-
-vector<float> BondSet::calcBondDihedrals(Frame &frame){
-    vector<float> bonds;
-    vector<float> empty;
-    if(frame.invalid_) return empty;
-    for(BondStruct &bond : dihedrals_){
-        bonds.push_back(frame.bondAngle(&bond));
-    }
-    return bonds;
-}
-
 void BondSet::calcBondsInternal(Frame &frame){
     for(BondStruct &bond : bonds_){
         // does the structure cross a pbc - will break bond lengths
@@ -106,3 +72,13 @@ void BondSet::calcAvgs(){
         bond.avg /= bond.values.size();
     }
 }
+
+//TODO print to csv from within BondSet
+//void printToCSV(ofstream *file, const vector<float> &vec){
+//    for(const auto &item : vec){
+//        // so we don't end up with leading/trailing commas
+//        if(item != vec.front()) *file << ",";
+//        *file << item;
+//    }
+//    *file << endl;
+//}
