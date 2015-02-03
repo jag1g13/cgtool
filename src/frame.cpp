@@ -14,7 +14,7 @@ using std::endl;
 using std::stoi;
 using std::printf;
 
-Frame::Frame(int num, int natoms, string name){
+Frame::Frame(const int num, const int natoms, const string name){
     name_ = name;
     step_ = num;
     numAtoms_ = natoms;
@@ -82,7 +82,7 @@ Frame::~Frame(){
     if(x_) free(x_);
 }
 
-int Frame::allocateAtoms(int num_atoms){
+int Frame::allocateAtoms(const int num_atoms){
     numAtoms_ = num_atoms;
     atoms_.reserve(numAtoms_);
     return (int)atoms_.size();
@@ -219,19 +219,19 @@ void Frame::printAtoms(int n){
     }
 }
 
-float Frame::bondLength(int a, int b){
+float Frame::bondLength(const int a, const int b){
     return (float)sqrt(pow((atoms_[a].coords[0] - atoms_[b].coords[0]), 2) +
             pow((atoms_[a].coords[1] - atoms_[b].coords[1]), 2) +
             pow((atoms_[a].coords[2] - atoms_[b].coords[2]), 2));
 }
 
-float Frame::bondLength(BondStruct *bond) {
-    int a = nameToNum_[bond->atom_names[0]];
-    int b = nameToNum_[bond->atom_names[1]];
+float Frame::bondLength(const BondStruct &bond) {
+    int a = nameToNum_[bond.atom_names[0]];
+    int b = nameToNum_[bond.atom_names[1]];
     return bondLength(a, b);
 }
 
-float Frame::bondAngle(int a, int b, int c, int d){
+float Frame::bondAngle(const int a, const int b, const int c, const int d){
     float vec1[3], vec2[3], mag1=0.f, mag2=0.f, dot = 0.f, angle=0.f;
     for(int i = 0; i < 3; i++){
         vec1[i] = atoms_[b].coords[i] - atoms_[a].coords[i];
@@ -249,12 +249,12 @@ float Frame::bondAngle(int a, int b, int c, int d){
     return (180.f - (angle * 180.f / (float)M_PI));
 }
 
-float Frame::bondAngle(BondStruct *bond){
-    int a = nameToNum_[bond->atom_names[0]];
-    int b = nameToNum_[bond->atom_names[1]];
-    int c = nameToNum_[bond->atom_names[2]];
-    if(bond->atom_names.size() == 4){
-        int d = nameToNum_[bond->atom_names[3]];
+float Frame::bondAngle(const BondStruct &bond){
+    int a = nameToNum_[bond.atom_names[0]];
+    int b = nameToNum_[bond.atom_names[1]];
+    int c = nameToNum_[bond.atom_names[2]];
+    if(bond.atom_names.size() == 4){
+        int d = nameToNum_[bond.atom_names[3]];
         return bondAngle(a, b, c, d);
     }else{
         return bondAngle(a, b, b, c);

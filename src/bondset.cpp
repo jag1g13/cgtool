@@ -37,18 +37,18 @@ void BondSet::fromFile(string filename){
 void BondSet::calcBondsInternal(Frame &frame){
     for(BondStruct &bond : bonds_){
         // does the structure cross a pbc - will break bond lengths
-        float dist = frame.bondLength(&bond);
+        float dist = frame.bondLength(bond);
         if(dist > 0.8f * frame.box_[0][0]){
             frame.invalid_ = true;
             return;
         }
-        bond.values.push_back(frame.bondLength(&bond));
+        bond.values.push_back(dist);
     }
     for(BondStruct &bond : angles_){
-        bond.values.push_back(frame.bondAngle(&bond));
+        bond.values.push_back(frame.bondAngle(bond));
     }
     for(BondStruct &bond : dihedrals_){
-        bond.values.push_back(frame.bondAngle(&bond));
+        bond.values.push_back(frame.bondAngle(bond));
     }
 }
 
@@ -72,13 +72,3 @@ void BondSet::calcAvgs(){
         bond.avg /= bond.values.size();
     }
 }
-
-//TODO print to csv from within BondSet
-//void printToCSV(ofstream *file, const vector<float> &vec){
-//    for(const auto &item : vec){
-//        // so we don't end up with leading/trailing commas
-//        if(item != vec.front()) *file << ",";
-//        *file << item;
-//    }
-//    *file << endl;
-//}

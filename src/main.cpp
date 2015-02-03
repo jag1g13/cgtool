@@ -20,7 +20,7 @@
 #define DEBUG true
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 100
-#define DO_ELECTRIC_FIELD false
+#define DO_ELECTRIC_FIELD true
 #define ELECTRIC_FIELD_FREQ 100
 
 /* things from std that get used a lot */
@@ -132,12 +132,12 @@ int main(const int argc, const char *argv[]){
 
         // calculate electric field/dipole
         if(i % ELECTRIC_FIELD_FREQ == 0 && DO_ELECTRIC_FIELD){
-            field.setupGrid(&frame);
-            field.setupGridContracted(&frame);
-            field.calcFieldMonopolesContracted(&frame);
-            field.calcDipolesDirect(&mapping, &cg_frame, &frame);
+            field.setupGrid(frame);
+            field.setupGridContracted(frame);
+            field.calcFieldMonopolesContracted(frame);
+            field.calcDipolesDirect(mapping, cg_frame, frame);
 //            field.calcDipolesFit(&mapping, &cg_frame, &frame);
-            field.calcFieldDipolesContracted(&cg_frame);
+//            field.calcFieldDipolesContracted(&cg_frame);
 //            field.calcTotalDipole(&frame);
 //            field.calcSumDipole(show_dipoles);
         }

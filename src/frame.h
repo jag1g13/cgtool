@@ -84,7 +84,6 @@ public:
     int numAtoms_ = 0;
     /** The number of atoms stored in this frame that we find interesting */
     int numAtomsTrack_ = 0;
-    /** The number of residues stored in this frame that we find interesting */
     /** Vector of Atoms; Each Atom contains position and type data */
     std::vector<Atom> atoms_;
     /** Vector of Residues; Each Residue contains pointers to atoms */
@@ -112,7 +111,7 @@ public:
     * If we don't know the number of atoms at creation
     * this can be set later using Frame::allocateAtoms()
     */
-    Frame(int num, int natoms, std::string name);
+    Frame(const int num, const int natoms, const std::string name);
 
     /**
     * \brief Create Frame passing config files.
@@ -162,7 +161,7 @@ public:
     *
     * Used if the number of atoms isn't known at time of creation
     */
-    int allocateAtoms(int);
+    int allocateAtoms(const int);
 
     /**
     * \brief Prepare to write XTC output.
@@ -189,21 +188,21 @@ public:
     /**
     * \brief Calculate distance between two atoms
     */
-    float bondLength(int, int);
+    float bondLength(const int a, const int b);
 
     /**
     * \brief Calculate distance between two atoms in a BondStruct object
     *
     * Wrapper around float bondLength(int, int)
     */
-    float bondLength(BondStruct *bond);
+    float bondLength(const BondStruct &bond);
 
     /**
     * \brief Calculate angle between vectors a->b and c->d
     *
     * To be used for bond angles (b=c) and dihedrals (b=/=c)
     */
-    float bondAngle(int a, int b, int c, int d);
+    float bondAngle(const int a, const int b, const int c, const int d);
 
 
     /**
@@ -211,7 +210,7 @@ public:
     *
     * Wrapper around float bondAngle(int, int, int, int)
     */
-    float bondAngle(BondStruct *bond);
+    float bondAngle(const BondStruct &bond);
 };
 
 #endif
