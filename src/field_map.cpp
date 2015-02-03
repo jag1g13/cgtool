@@ -1,6 +1,5 @@
 #include "field_map.h"
 
-//#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -199,7 +198,6 @@ void FieldMap::calcDipolesDirect(const CGMap &cgmap, const Frame &cg_frame, Fram
         dipoles_(i, 5) = float(sqrt(dipoles_(i, 0)*dipoles_(i, 0) +
                               dipoles_(i, 1)*dipoles_(i, 1) +
                               dipoles_(i, 2)*dipoles_(i, 2)));
-        //TODO Dipoles are about 10x smaller than they should be - why?
     }
     printDipoles();
 }
@@ -267,8 +265,16 @@ void FieldMap::calcTotalDipole(const Frame &aa_frame, int num_atoms){
             totalDipole_(1)*totalDipole_(1) +
             totalDipole_(2)*totalDipole_(2)));
 
-    cout << "Molecular dipole - sum of calculated dipoles" << endl;
+    cout << "Total molecular dipole and sum of bead dipoles" << endl;
     totalDipole_.print(8, 4, constants::ENM2DEBYE);
+
+    sumDipoles_.zero();
+    for(int i=0; i < numDipoles_; i++){
+        for(int j=0; j<6; j++){
+            sumDipoles_(j) += dipoles_(i, j);
+        }
+    }
+    sumDipoles_.print(8, 4, constants::ENM2DEBYE);
 }
 
 void FieldMap::calcSumDipole(const vector<int> nums){

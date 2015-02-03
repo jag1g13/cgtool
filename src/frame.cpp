@@ -88,7 +88,7 @@ int Frame::allocateAtoms(const int num_atoms){
     return (int)atoms_.size();
 }
 
-void Frame::setupOutput(const string xtcname, const string topname){
+void Frame::setupOutput(const string &xtcname, const string &topname){
     throw std::runtime_error("Not implemented");
     char mode[2] = {'r', 'w'};
     if(xtcOutput_ == NULL) xtcOutput_ = open_xtc(xtcname.c_str(), &mode[1]);
@@ -111,7 +111,7 @@ bool Frame::writeToXtc(){
 }
 
 
-bool Frame::setupFrame(const std::string topname, t_fileio *xtc){
+bool Frame::setupFrame(const std::string &topname, t_fileio *xtc){
     if(isSetup_) throw std::runtime_error("Frame has already been setup");
     num_ = 0;
     gmx_bool bOK = 0;

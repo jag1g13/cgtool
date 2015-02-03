@@ -1,12 +1,10 @@
 #include <stdexcept>
 #include <iostream>
 #include <cassert>
-//#include <exception>
 
 #include <math.h>
-#include <stdio.h>
 
-#include "arrays.h"
+#include "array.h"
 
 using std::vector;
 using std::cout;
@@ -28,6 +26,7 @@ ArrayFloat::ArrayFloat(const int a, const int b, const int c, const bool fast){
     if(c > 1) dimensions_++;
     size_.reserve(3);
     size_[0] = a; size_[1] = b; size_[2] = c;
+    sizex_ = a; sizey_ = b; sizez_ = c;
     elems_ = a*b*c;
     array_ = new float[elems_];
     if(array_ == NULL) throw std::runtime_error("Array alloc failed");
@@ -55,7 +54,7 @@ void ArrayFloat::init(const int a, const int b, const int c, const bool fast){
     zero();
 }
 
-void ArrayFloat::append(vector<float> vec){
+void ArrayFloat::append(const vector<float> &vec){
     if(!fast_) {
         assert(allocated_);
         assert(dimensions_ == 2);
@@ -115,20 +114,18 @@ float& ArrayFloat::operator()(int x, int y) {
     }else{
         assert(allocated_);
         assert(dimensions_ == 2 || dimensions_ == 3);
-        if (x < 0) x = size_[0] + x;
-        if (y < 0) y = size_[1] + y;
+        if(x < 0) x = size_[0] + x;
+        if(y < 0) y = size_[1] + y;
         assert(x < size_[0] && x >= 0);
         assert(y < size_[1] && y >= 0);
         /* if 3d array return ref to a row */
-        if (dimensions_ == 3) {
-            return array_[x * size_[1] * size_[2] + y * size_[2]];
-        }
+        if(dimensions_ == 3) return array_[x * size_[1] * size_[2] + y * size_[2]];
         return array_[x * sizey_ + y];
     }
 }
 
 float& ArrayFloat::operator()(int x, int y, int z){
-    if(!fast_) {
+    if(!fast_){
         assert(allocated_);
         assert(dimensions_ == 3);
         if(x < 0) x = size_[0] + x;

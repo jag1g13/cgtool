@@ -149,7 +149,7 @@ public:
     * GROMACS read_first_xtc() gets data from the XTC file about the system.
     * This function uses this data to create a Frame object to process this data
     */
-    bool setupFrame(const std::string topname, t_fileio *xtc);
+    bool setupFrame(const std::string &topname, t_fileio *xtc);
 
     /**
     * \brief Read next frame from the open XTC file
@@ -161,7 +161,7 @@ public:
     *
     * Used if the number of atoms isn't known at time of creation
     */
-    int allocateAtoms(const int);
+    int allocateAtoms(const int natoms);
 
     /**
     * \brief Prepare to write XTC output.
@@ -169,7 +169,7 @@ public:
     * \throws std::runtime_error if output TOP file cannot be opened
     * Allocate necessary atom array and create TOP file.
     */
-    void setupOutput(const std::string xtcnameout, const std::string topnameout);
+    void setupOutput(const std::string &xtcnameout, const std::string &topnameout);
 
     /**
     * \brief Write Frame to XTC output file

@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "arrays.h"
+#include "array.h"
 #include "frame.h"
 #include "cg_map.h"
 

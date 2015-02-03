@@ -49,7 +49,7 @@ if(DOXYGEN_FOUND)
 endif(DOXYGEN_FOUND)
 
 set(SOURCE_FILES
-    src/arrays.cpp
+    src/array.cpp
     src/field_map.cpp
     src/frame.cpp
     src/bondset.cpp
@@ -75,6 +75,10 @@ add_test(GTestParserAll gtest_parser)
 add_executable(gtest_bondset src/bondset.cpp src/frame.cpp src/parser.cpp src/tests/bondset_test.cpp)
 target_link_libraries (gtest_bondset ${GTEST_BOTH_LIBRARIES} ${EXTRA_LIBS})
 add_test(GTestBondSetAll gtest_bondset)
+# test array
+add_executable(gtest_array src/array.cpp src/tests/array_test.cpp)
+target_link_libraries (gtest_array ${GTEST_BOTH_LIBRARIES} ${EXTRA_LIBS})
+add_test(GTestArrayAll gtest_array)
 
 # integration test - does it run
 add_test(Integration1 cgtool ../test_data/ALLA)

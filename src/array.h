@@ -39,7 +39,7 @@ public:
 
     /** \brief Constructor which allocates the array automatically.
     * The array is zeroed after allocation. */
-    ArrayFloat(const int a, const int b, const int c, const bool fast=false);
+    ArrayFloat(const int a, const int b=1, const int c=1, const bool fast=false);
 
     /** Default constructor which doesn't allocate the array automatically */
     ArrayFloat();
@@ -53,7 +53,7 @@ public:
 
     /** \brief Append a row to the array into the next blank row.
     * Doesn't have to fill the row. */
-    void append(std::vector<float> vec);
+    void append(const std::vector<float> &vec);
 
     /** \brief Append a row to the array into the next blank row.
     * Copies len floats from *vec.  Doesn't have to fill the row.*/

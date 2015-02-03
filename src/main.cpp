@@ -21,7 +21,7 @@
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 100
 #define DO_ELECTRIC_FIELD true
-#define ELECTRIC_FIELD_FREQ 100
+#define ELECTRIC_FIELD_FREQ 1000
 
 /* things from std that get used a lot */
 using std::ifstream;
@@ -136,9 +136,9 @@ int main(const int argc, const char *argv[]){
             field.setupGridContracted(frame);
             field.calcFieldMonopolesContracted(frame);
             field.calcDipolesDirect(mapping, cg_frame, frame);
-//            field.calcDipolesFit(&mapping, &cg_frame, &frame);
-//            field.calcFieldDipolesContracted(&cg_frame);
-//            field.calcTotalDipole(&frame);
+//            field.calcDipolesFit(mapping, cg_frame, frame);
+//            field.calcFieldDipolesContracted(cg_frame);
+            field.calcTotalDipole(frame);
 //            field.calcSumDipole(show_dipoles);
         }
 
