@@ -61,6 +61,7 @@ void BondSet::calcBondsInternal(Frame &frame){
 void BondSet::calcAvgs(){
     for(BondStruct &bond : bonds_){
         bond.calcAvg();
+        bond.binHistogram(100);
     }
     for(BondStruct &bond : angles_){
         bond.calcAvg();

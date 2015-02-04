@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include "array.h"
+
 /**
 * \brief Class to hold atoms in bonds, angles and dihedrals.
 * Can calculate stats and perform Boltzmann Inversion.
@@ -18,6 +20,9 @@ public:
     std::vector<float> values_;
     /** Average bond parameter.  Double stops overflow on summing */
     double avg_ = 0.;
+    /** Store histogram frequencies */
+    ArrayFloat histogram_;
+
     /** Constructor to set size (bond/angle/dihedral) */
     BondStruct(const int size);
     /** Blank constructor */
