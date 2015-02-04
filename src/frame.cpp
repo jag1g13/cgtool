@@ -132,7 +132,7 @@ bool Frame::setupFrame(const std::string &topname, t_fileio *xtc){
     // Process topology file
     vector<string> substrs;
     Parser top_parser(topname, ParserFormat::GROMACS);
-    while(top_parser.getLineFromSection("atoms", &substrs)){
+    while(top_parser.getLineFromSection("atoms", substrs)){
         numAtomsTrack_ = stoi(substrs[0]);
     }
     cout << numAtomsTrack_ << " atoms found in TOP/ITP" << endl;
@@ -142,7 +142,7 @@ bool Frame::setupFrame(const std::string &topname, t_fileio *xtc){
     for(int i=0; i<numAtomsTrack_; i++){
         // read data from topology file for each atom
         // internal atom name is the res # and atom name from top/gro
-        top_parser.getLineFromSection("atoms", &substrs);
+        top_parser.getLineFromSection("atoms", substrs);
         string name = substrs[2] + substrs[4];
 
         atoms_[i] = Atom(i);

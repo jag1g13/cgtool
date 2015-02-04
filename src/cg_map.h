@@ -60,14 +60,14 @@ public:
     /**
     * \brief Constructor to create an instance from the mapping file provided
     */
-    CGMap(string filename);
+    CGMap(const string filename);
 
     /**
     * \brief Read in CG mapping from file
     *
     * Will throw std::runtime_error if file cannot be opened
     */
-    void fromFile(string filename);
+    void fromFile(const string filename);
 
     /**
     * \brief Setup a CG Frame object that has already been declared

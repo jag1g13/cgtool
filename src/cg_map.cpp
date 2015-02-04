@@ -21,7 +21,7 @@ void CGMap::fromFile(string filename){
     // which mapping type was requested - defaults to MapType::GC if not found
     vector<string> substrs;
     Parser parser(filename);
-    if(!parser.getLineFromSection("maptype", &substrs)){
+    if(!parser.getLineFromSection("maptype", substrs)){
         cout << "Could not find requested mapping type - assuming GC" << endl;
         mapType_ = MapType::GC;
     }else{
@@ -42,7 +42,7 @@ void CGMap::fromFile(string filename){
 
     // read in the bead mappings
     int i = 0;
-    while(parser.getLineFromSection("mapping", &substrs)){
+    while(parser.getLineFromSection("mapping", substrs)){
         BeadMap new_bead;
         new_bead.name = substrs[0];
         new_bead.type = substrs[1];

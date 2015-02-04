@@ -19,17 +19,17 @@ void BondSet::fromFile(const string &filename){
     //TODO don't read in anything if there isn't a line - why does it do this?
     vector<string> substrs;
     Parser parser(filename);
-    while(parser.getLineFromSection("length", &substrs)) {
+    while(parser.getLineFromSection("length", substrs)) {
         BondStruct bond_tmp = BondStruct(4);
         bond_tmp.atom_names = substrs;
         bonds_.push_back(bond_tmp);
     }
-    while(parser.getLineFromSection("angle", &substrs)) {
+    while(parser.getLineFromSection("angle", substrs)) {
         BondStruct bond_tmp = BondStruct(4);
         bond_tmp.atom_names = substrs;
         angles_.push_back(bond_tmp);
     }
-    while(parser.getLineFromSection("dihedral", &substrs)) {
+    while(parser.getLineFromSection("dihedral", substrs)) {
         BondStruct bond_tmp = BondStruct(4);
         bond_tmp.atom_names = substrs;
         dihedrals_.push_back(bond_tmp);
