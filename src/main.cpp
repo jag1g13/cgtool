@@ -17,10 +17,9 @@
 #include "field_map.h"
 #include "itp_writer.h"
 
-#define DEBUG true
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 100
-#define DO_ELECTRIC_FIELD true
+#define DO_ELECTRIC_FIELD false
 #define ELECTRIC_FIELD_FREQ 1000
 
 /* things from std that get used a lot */
@@ -137,9 +136,9 @@ int main(const int argc, const char *argv[]){
             field.calcFieldMonopolesContracted(frame);
             field.calcDipolesDirect(mapping, cg_frame, frame);
 //            field.calcDipolesFit(mapping, cg_frame, frame);
-//            field.calcFieldDipolesContracted(cg_frame);
+            field.calcFieldDipolesContracted(cg_frame);
             field.calcTotalDipole(frame);
-//            field.calcSumDipole(show_dipoles);
+            field.calcSumDipole();
         }
 
         // calculate bonds and store in BondStructs
@@ -152,6 +151,7 @@ int main(const int argc, const char *argv[]){
     // Post processing
     split_text_output("Post processing", start, num_threads);
     bond_set.calcAvgs();
+    bond_set.writeCSV();
 
     ITPWriter itp("out.itp");
     itp.printAtoms(mapping);

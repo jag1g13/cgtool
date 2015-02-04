@@ -225,7 +225,7 @@ float Frame::bondLength(const int a, const int b){
             pow((atoms_[a].coords[2] - atoms_[b].coords[2]), 2));
 }
 
-float Frame::bondLength(const BondStruct &bond) {
+float Frame::bondLength(BondStruct &bond) {
     int a = nameToNum_[bond.atom_names[0]];
     int b = nameToNum_[bond.atom_names[1]];
     return bondLength(a, b);
@@ -249,7 +249,7 @@ float Frame::bondAngle(const int a, const int b, const int c, const int d){
     return (180.f - (angle * 180.f / (float)M_PI));
 }
 
-float Frame::bondAngle(const BondStruct &bond){
+float Frame::bondAngle(BondStruct &bond){
     int a = nameToNum_[bond.atom_names[0]];
     int b = nameToNum_[bond.atom_names[1]];
     int c = nameToNum_[bond.atom_names[2]];

@@ -79,10 +79,10 @@ public:
     void calcDipolesFit(const CGMap &cgmap, const Frame &cg_frame, const Frame &aa_frame);
 
     /** Calculate the total dipole of the system/residue */
-    void calcTotalDipole(const Frame &aa_frame, int num_atoms=0);
+    void calcTotalDipole(const Frame &aa_frame, int num_atoms=-1);
 
     /** Calculate the sum of calculated dipoles */
-    void calcSumDipole(const std::vector<int> nums);
+    void calcSumDipole();
 
     /** Print the dipole array */
     void printDipoles();

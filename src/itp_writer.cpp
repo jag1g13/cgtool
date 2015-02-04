@@ -44,7 +44,7 @@ void ITPWriter::printBonds(const BondSet &bond_set){
                 bond.atom_names[0].c_str(), bond.atom_names[1].c_str(), 2,
                 bond.avg, 0.f);
     }
-    newSection("bonds");
+    newSection("angles");
     for(BondStruct bond : bond_set.angles_){
 //        fprintf(itp_, "%5i %5i %5i %5i %12.5f %12.5e;\n",
 //                bond.atom_nums[0], bond.atom_nums[1],
@@ -55,7 +55,7 @@ void ITPWriter::printBonds(const BondSet &bond_set){
                 bond.atom_names[2].c_str(), 2,
                 bond.avg, 0.f);
     }
-    newSection("bonds");
+    newSection("dihedrals");
     for(BondStruct bond : bond_set.dihedrals_){
 //        fprintf(itp_, "%5i %5i %5i %5i %5i %12.5f %12.5e;\n",
 //                bond.atom_nums[0], bond.atom_nums[1],

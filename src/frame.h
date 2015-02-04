@@ -195,7 +195,7 @@ public:
     *
     * Wrapper around float bondLength(int, int)
     */
-    float bondLength(const BondStruct &bond);
+    float bondLength(BondStruct &bond);
 
     /**
     * \brief Calculate angle between vectors a->b and c->d
@@ -210,7 +210,7 @@ public:
     *
     * Wrapper around float bondAngle(int, int, int, int)
     */
-    float bondAngle(const BondStruct &bond);
+    float bondAngle(BondStruct &bond);
 };
 
 #endif

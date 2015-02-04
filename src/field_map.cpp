@@ -227,7 +227,7 @@ void FieldMap::calcDipolesFit(const CGMap &cgmap, const Frame &cg_frame, const F
 
     // calculate residual molecular dipole
     calcTotalDipole(aa_frame);
-    calcSumDipole(dipoles_calculated);
+    calcSumDipole();
     // keep residual dipole in place of totalDipole_
     totalDipole_ -= sumDipoles_;
 
@@ -253,7 +253,7 @@ void FieldMap::calcDipolesFit(const CGMap &cgmap, const Frame &cg_frame, const F
 
 //TODO get fit dipoles to match total dipole
 void FieldMap::calcTotalDipole(const Frame &aa_frame, int num_atoms){
-    if(num_atoms == 0) num_atoms = aa_frame.numAtomsTrack_;
+    if(num_atoms == -1) num_atoms = aa_frame.numAtomsTrack_;
     totalDipole_.zero();
     for(int i=0; i < num_atoms; i++){
         float charge = aa_frame.atoms_[i].charge;
@@ -268,22 +268,17 @@ void FieldMap::calcTotalDipole(const Frame &aa_frame, int num_atoms){
     cout << "Total molecular dipole and sum of bead dipoles" << endl;
     totalDipole_.print(8, 4, constants::ENM2DEBYE);
 
+}
+
+void FieldMap::calcSumDipole(){
     sumDipoles_.zero();
     for(int i=0; i < numDipoles_; i++){
         for(int j=0; j<6; j++){
             sumDipoles_(j) += dipoles_(i, j);
         }
     }
-    sumDipoles_.print(8, 4, constants::ENM2DEBYE);
-}
 
-void FieldMap::calcSumDipole(const vector<int> nums){
-    sumDipoles_.zero();
-    for(const int &i : nums){
-        sumDipoles_(0) += dipoles_(i, 0);
-        sumDipoles_(1) += dipoles_(i, 1);
-        sumDipoles_(2) += dipoles_(i, 2);
-    }
+    // calc magnitude
     sumDipoles_(5) = float(sqrt(sumDipoles_(0)*sumDipoles_(0) +
             sumDipoles_(1)*sumDipoles_(1) +
             sumDipoles_(2)*sumDipoles_(2)));

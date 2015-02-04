@@ -21,7 +21,7 @@ struct BondStruct{
     /** The values of the bond parameter (length, angle, dih) for each Frame */
     std::vector<float> values;
     /** Average bond parameter */
-    float avg;
+    double avg;
     /** Constructor to set size (bond/angle/dihedral) */
     BondStruct(int size){atom_names.resize(size); atom_nums.resize(size);};
     BondStruct(){};
@@ -38,19 +38,21 @@ public:
     vector<BondStruct> angles_;
     /** Vector of bond dihedral quads */
     vector<BondStruct> dihedrals_;
+    /** How many frames did we successfully measure */
+    int numFrames_ = 0;
 
     /** \brief Blank constructor */
     BondSet(){};
 
     /** \brief Constructor to read from file */
-    BondSet(std::string cfgname){fromFile(cfgname);};
+    BondSet(const std::string &cfgname){fromFile(cfgname);};
 
     /**
     * \brief Reads in from file all bond properties to be calculated
     *
     * Gets Vectors of all bond lengths, angles and dihedrals that must be calculated.
     */
-    void fromFile(string);
+    void fromFile(const string &filename);
 
     /**
     * \brief Calculate all bond lengths, angles and dihedrals.
@@ -60,6 +62,9 @@ public:
 
     /** \brief Calculate averages of all bond measurements */
     void calcAvgs();
+
+    /** \brief Write all values to CSVs */
+    void writeCSV();
 };
 
 #endif
