@@ -38,32 +38,32 @@ void ITPWriter::printBonds(const BondSet &bond_set){
     for(BondStruct bond : bond_set.bonds_){
         // I don't know what the last integer is
 //        fprintf(itp_, "%5i %5i %5i %12.5f %12.5e;\n",
-//                bond.atom_nums[0], bond.atom_nums[1], 2,
+//                bond.atomNums_[0], bond.atomNums_[1], 2,
 //                bond.avg, 0.f);
         fprintf(itp_, "%5s %5s %5i %12.5f %12.5e;\n",
-                bond.atom_names[0].c_str(), bond.atom_names[1].c_str(), 2,
-                bond.avg, 0.f);
+                bond.atomNames_[0].c_str(), bond.atomNames_[1].c_str(), 2,
+                bond.avg_, 0.f);
     }
     newSection("angles");
     for(BondStruct bond : bond_set.angles_){
 //        fprintf(itp_, "%5i %5i %5i %5i %12.5f %12.5e;\n",
-//                bond.atom_nums[0], bond.atom_nums[1],
-//                bond.atom_nums[2], 2,
+//                bond.atomNums_[0], bond.atomNums_[1],
+//                bond.atomNums_[2], 2,
 //                bond.avg, 0.f);
         fprintf(itp_, "%5s %5s %5s %5i %12.5f %12.5e;\n",
-                bond.atom_names[0].c_str(), bond.atom_names[1].c_str(),
-                bond.atom_names[2].c_str(), 2,
-                bond.avg, 0.f);
+                bond.atomNames_[0].c_str(), bond.atomNames_[1].c_str(),
+                bond.atomNames_[2].c_str(), 2,
+                bond.avg_, 0.f);
     }
     newSection("dihedrals");
     for(BondStruct bond : bond_set.dihedrals_){
 //        fprintf(itp_, "%5i %5i %5i %5i %5i %12.5f %12.5e;\n",
-//                bond.atom_nums[0], bond.atom_nums[1],
-//                bond.atom_nums[2], bond.atom_nums[3],
+//                bond.atomNums_[0], bond.atomNums_[1],
+//                bond.atomNums_[2], bond.atomNums_[3],
 //                2, bond.avg, 0.f);
         fprintf(itp_, "%5s %5s %5s %5s %5i %12.5f %12.5e;\n",
-                bond.atom_names[0].c_str(), bond.atom_names[1].c_str(),
-                bond.atom_names[2].c_str(), bond.atom_names[3].c_str(),
-                2, bond.avg, 0.f);
+                bond.atomNames_[0].c_str(), bond.atomNames_[1].c_str(),
+                bond.atomNames_[2].c_str(), bond.atomNames_[3].c_str(),
+                2, bond.avg_, 0.f);
     }
 }

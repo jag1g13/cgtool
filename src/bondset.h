@@ -4,28 +4,13 @@
 #include <vector>
 #include <string>
 
+#include "bond_struct.h"
+
 using std::vector;
 using std::string;
 
 // resolve circular dependency
 class Frame;
-
-/**
-* \brief Struct to hold atoms in bonds, angles and dihedrals
-*/
-struct BondStruct{
-    /** Vector of atom names for this bond property; For a bond length will contain two names; three for angle; four for dihedral */
-    std::vector<std::string> atom_names;
-    /** Vector of atom numbers for this bond property; For a bond length will contain two names; three for angle; four for dihedral */
-    std::vector<int> atom_nums;
-    /** The values of the bond parameter (length, angle, dih) for each Frame */
-    std::vector<float> values;
-    /** Average bond parameter */
-    double avg;
-    /** Constructor to set size (bond/angle/dihedral) */
-    BondStruct(int size){atom_names.resize(size); atom_nums.resize(size);};
-    BondStruct(){};
-};
 
 /**
 * \brief Class that holds all bond lengths, angles and dihedrals to be calculated

@@ -21,17 +21,17 @@ void BondSet::fromFile(const string &filename){
     Parser parser(filename);
     while(parser.getLineFromSection("length", substrs)) {
         BondStruct bond_tmp = BondStruct(4);
-        bond_tmp.atom_names = substrs;
+        bond_tmp.atomNames_ = substrs;
         bonds_.push_back(bond_tmp);
     }
     while(parser.getLineFromSection("angle", substrs)) {
         BondStruct bond_tmp = BondStruct(4);
-        bond_tmp.atom_names = substrs;
+        bond_tmp.atomNames_ = substrs;
         angles_.push_back(bond_tmp);
     }
     while(parser.getLineFromSection("dihedral", substrs)) {
         BondStruct bond_tmp = BondStruct(4);
-        bond_tmp.atom_names = substrs;
+        bond_tmp.atomNames_ = substrs;
         dihedrals_.push_back(bond_tmp);
     }
 }
@@ -48,34 +48,25 @@ void BondSet::calcBondsInternal(Frame &frame){
     }
     numFrames_++;
     for(BondStruct &bond : bonds_){
-        bond.values.push_back(frame.bondLength(bond));
+        bond.values_.push_back(frame.bondLength(bond));
     }
     for(BondStruct &bond : angles_){
-        bond.values.push_back(frame.bondAngle(bond));
+        bond.values_.push_back(frame.bondAngle(bond));
     }
     for(BondStruct &bond : dihedrals_){
-        bond.values.push_back(frame.bondAngle(bond));
+        bond.values_.push_back(frame.bondAngle(bond));
     }
 }
 
 void BondSet::calcAvgs(){
     for(BondStruct &bond : bonds_){
-        for(float &b : bond.values){
-            bond.avg += b;
-        }
-        bond.avg /= bond.values.size();
+        bond.calcAvg();
     }
     for(BondStruct &bond : angles_){
-        for(float &b : bond.values){
-            bond.avg += b;
-        }
-        bond.avg /= bond.values.size();
+        bond.calcAvg();
     }
     for(BondStruct &bond : dihedrals_){
-        for(float &b : bond.values){
-            bond.avg += b;
-        }
-        bond.avg /= bond.values.size();
+        bond.calcAvg();
     }
 }
 
@@ -85,15 +76,15 @@ void BondSet::writeCSV(){
     FILE *f_dihedral = fopen("dihedrals.csv", "w");
     for(int i=0; i < numFrames_; i++){
         for(BondStruct &bond : bonds_){
-            fprintf(f_bond, "%8.4f", bond.values[i]);
+            fprintf(f_bond, "%8.4f", bond.values_[i]);
         }
         fprintf(f_bond, "\n");
         for(BondStruct &bond : angles_){
-            fprintf(f_angle, "%8.4f", bond.values[i]);
+            fprintf(f_angle, "%8.4f", bond.values_[i]);
         }
         fprintf(f_angle, "\n");
         for(BondStruct &bond : dihedrals_){
-            fprintf(f_dihedral, "%8.4f", bond.values[i]);
+            fprintf(f_dihedral, "%8.4f", bond.values_[i]);
         }
         fprintf(f_dihedral, "\n");
     }

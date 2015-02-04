@@ -159,7 +159,7 @@ int main(const int argc, const char *argv[]){
 
     // print something so I can tell it's working - can be removed later
     for(BondStruct bond : bond_set.bonds_){
-        printf("%8.4f", bond.avg);
+        printf("%8.4f", bond.avg_);
     }
     cout << endl;
 
