@@ -25,7 +25,7 @@ protected:
     /** Ignore safety features?  Default no */
     bool fast_;
     /** Has array_ been allocated yet? */
-    bool allocated_;
+    bool allocated_ = false;
     /** Size of the array in the x dimension */
     int sizex_;
     /** Size of the array in the y dimension */

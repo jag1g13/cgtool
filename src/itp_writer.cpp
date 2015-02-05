@@ -33,9 +33,9 @@ void ITPWriter::printAtoms(const CGMap &map){
 }
 
 //TODO use atom numbers instead of names to make a valid GROMACS topology/itp
-void ITPWriter::printBonds(const BondSet &bond_set){
+void ITPWriter::printBonds(BondSet &bond_set){
     newSection("bonds");
-    for(BondStruct bond : bond_set.bonds_){
+    for(BondStruct &bond : bond_set.bonds_){
         // I don't know what the last integer is
 //        fprintf(itp_, "%5i %5i %5i %12.5f %12.5e;\n",
 //                bond.atomNums_[0], bond.atomNums_[1], 2,
@@ -45,7 +45,7 @@ void ITPWriter::printBonds(const BondSet &bond_set){
                 bond.avg_, 0.f);
     }
     newSection("angles");
-    for(BondStruct bond : bond_set.angles_){
+    for(BondStruct &bond : bond_set.angles_){
 //        fprintf(itp_, "%5i %5i %5i %5i %12.5f %12.5e;\n",
 //                bond.atomNums_[0], bond.atomNums_[1],
 //                bond.atomNums_[2], 2,
@@ -56,7 +56,7 @@ void ITPWriter::printBonds(const BondSet &bond_set){
                 bond.avg_, 0.f);
     }
     newSection("dihedrals");
-    for(BondStruct bond : bond_set.dihedrals_){
+    for(BondStruct &bond : bond_set.dihedrals_){
 //        fprintf(itp_, "%5i %5i %5i %5i %5i %12.5f %12.5e;\n",
 //                bond.atomNums_[0], bond.atomNums_[1],
 //                bond.atomNums_[2], bond.atomNums_[3],

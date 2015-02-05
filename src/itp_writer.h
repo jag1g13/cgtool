@@ -40,7 +40,7 @@ public:
     void printAtoms(const CGMap &map);
 
     /** Print bond params to itp */
-    void printBonds(const BondSet &bond_set);
+    void printBonds(BondSet &bond_set);
 };
 
 #endif

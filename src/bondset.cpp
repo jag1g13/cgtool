@@ -16,7 +16,6 @@ using std::endl;
 using std::fprintf;
 
 void BondSet::fromFile(const string &filename){
-    //TODO don't read in anything if there isn't a line - why does it do this?
     vector<string> substrs;
     Parser parser(filename);
     while(parser.getLineFromSection("length", substrs)) {
@@ -65,9 +64,11 @@ void BondSet::calcAvgs(){
     }
     for(BondStruct &bond : angles_){
         bond.calcAvg();
+        bond.binHistogram(100);
     }
     for(BondStruct &bond : dihedrals_){
         bond.calcAvg();
+        bond.binHistogram(100);
     }
 }
 

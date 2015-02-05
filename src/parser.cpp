@@ -81,16 +81,8 @@ bool Parser::findNextSection(){
     }
 }
 
-bool Parser::getLastLineFromSection(const string find, vector<string> &tokens){
-    string section_buffer;
-    while(getLine(section_buffer, tokens)){
-        if(section_ == find) break;
-    }
-    rewind();
-    return false;
-}
-
 bool Parser::getLineFromSection(const string find, vector<string> &tokens){
+    //TODO don't read in anything if there isn't a line - why does it do this?
     string section_buffer;
     while(getLine(section_buffer, tokens)){
         if(section_ == find) return true;

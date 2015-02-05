@@ -109,14 +109,10 @@ int main(const int argc, const char *argv[]){
     CGMap mapping(cfgname);
     Frame cg_frame = mapping.initFrame(frame);
     BondSet bond_set(cfgname);
-//    bond_set.fromFile(cfgname);
     FieldMap field(10, 10, 10, mapping.num_beads);
 
     split_text_output("Reading frames", start, num_threads);
     start = std::clock();
-    vector<float> tmp;
-    tmp.reserve(6);
-//    vector<int> show_dipoles{0, 1, 2, 3, 4, 5};
 
     int i = 0;
     // Keep reading frames until something goes wrong (run out of frames)
@@ -157,8 +153,8 @@ int main(const int argc, const char *argv[]){
     itp.printAtoms(mapping);
     itp.printBonds(bond_set);
 
-    // print something so I can tell it's working - can be removed later
-    for(BondStruct bond : bond_set.bonds_){
+    // print something so I can check results by eye - can be removed later
+    for(const BondStruct &bond : bond_set.bonds_){
         printf("%8.4f", bond.avg_);
     }
     cout << endl;

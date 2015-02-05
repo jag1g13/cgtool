@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include <math.h>
+#include <stddef.h>
 
 #include "array.h"
 
@@ -196,9 +197,9 @@ void ArrayFloat::print(const int width, const int prec, const float scale){
 }
 
 void ArrayFloat::free(){
-    assert(allocated_);
-    allocated_ = false;
     delete[] array_;
+    allocated_ = false;
+    array_ = nullptr;
 }
 
 ArrayFloat::~ArrayFloat(){

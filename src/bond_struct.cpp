@@ -1,12 +1,17 @@
 #include "bond_struct.h"
 
+#include <iostream>
+
+using std::cout;
+using std::endl;
+
 BondStruct::BondStruct(const int size){
     atomNames_.resize(size);
     atomNums_.resize(size);
 }
 
 void BondStruct::calcAvg(){
-    for(float &val : values_){
+    for(const float &val : values_){
         avg_ += val;
     }
     avg_ /= values_.size();
@@ -24,10 +29,11 @@ void BondStruct::binHistogram(const int bins){
         if(val > max) max = val;
     }
 
-    float step = (max - min) / bins;
+    float step = (max - min) / (bins-1);
 
     for(const float val : values_){
         int loc = int((val - min) / step);
+        if(loc < 0 || loc > bins-1) cout << loc << endl;
         histogram_(loc)++;
     }
 }
