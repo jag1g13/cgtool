@@ -199,7 +199,7 @@ void FieldMap::calcDipolesDirect(const CGMap &cgmap, const Frame &cg_frame, Fram
                               dipoles_(i, 1)*dipoles_(i, 1) +
                               dipoles_(i, 2)*dipoles_(i, 2)));
     }
-    printDipoles();
+//    printDipoles();
 }
 
 void FieldMap::calcDipolesFit(const CGMap &cgmap, const Frame &cg_frame, const Frame &aa_frame){
@@ -264,16 +264,12 @@ void FieldMap::calcTotalDipole(const Frame &aa_frame, int num_atoms){
     totalDipole_(5) = float(sqrt(totalDipole_(0)*totalDipole_(0) +
             totalDipole_(1)*totalDipole_(1) +
             totalDipole_(2)*totalDipole_(2)));
-
-    cout << "Total molecular dipole and sum of bead dipoles" << endl;
-    totalDipole_.print(8, 4, constants::ENM2DEBYE);
-
 }
 
 void FieldMap::calcSumDipole(){
     sumDipoles_.zero();
     for(int i=0; i < numDipoles_; i++){
-        for(int j=0; j<6; j++){
+        for(int j=0; j<2; j++){
             sumDipoles_(j) += dipoles_(i, j);
         }
     }
@@ -282,13 +278,14 @@ void FieldMap::calcSumDipole(){
     sumDipoles_(5) = float(sqrt(sumDipoles_(0)*sumDipoles_(0) +
             sumDipoles_(1)*sumDipoles_(1) +
             sumDipoles_(2)*sumDipoles_(2)));
-
-    sumDipoles_.print(8, 4, constants::ENM2DEBYE);
 }
 
 void FieldMap::printDipoles(){
-    cout << "  Dipx    Dipy    Dipz    Polt    Polp    Polm" << endl;
-    dipoles_.print(8, 4, constants::ENM2DEBYE);
+//    cout << "  Dipx    Dipy    Dipz    Polt    Polp    Polm" << endl;
+//    dipoles_.print(8, 4, constants::ENM2DEBYE);
+    cout << "Total molecular dipole and sum of bead dipoles" << endl;
+    totalDipole_.print(8, 4, constants::ENM2DEBYE);
+    sumDipoles_.print(8, 4, constants::ENM2DEBYE);
 }
 
 //TODO move this outside the class - it doesn't need to be here

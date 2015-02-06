@@ -18,8 +18,10 @@ public:
     BoltzmannInverter(){};
     BoltzmannInverter(BondSet *bondSet){bondSet_ = bondSet;};
 
+    /** \brief Perform a Boltzmann Inversion on a single bond parameter */
     void invert();
-    void binHistogram(const int bins);
+    /** \brief Sort bond time series into histogram bins */
+    void binHistogram(const BondStruct &bond, const int bins);
 };
 
 #endif

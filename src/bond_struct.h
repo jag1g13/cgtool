@@ -11,6 +11,10 @@
 * Can calculate stats and perform Boltzmann Inversion.
 */
 class BondStruct{
+protected:
+    /** Keep track of serial number */
+    static int totalNum_;
+
 public:
     /** Vector of atom names for this bond property; For a bond length will contain two names; three for angle; four for dihedral */
     std::vector<std::string> atomNames_;
@@ -18,13 +22,15 @@ public:
     std::vector<int> atomNums_;
     /** The values of the bond parameter (length, angle, dih) for each Frame */
     std::vector<float> values_;
-    /** Average bond parameter.  Double stops overflow on summing */
+    /** Average of bond parameter.  Double avoids overflow on summing over large numbers of Frames */
     double avg_ = 0.;
+    /** Serial number, count includes all bond lengths, angles and dihedrals */
+    int num_;
 
     /** Constructor to set size (bond/angle/dihedral) */
     BondStruct(const int size);
     /** Blank constructor */
-    BondStruct(){};
+    BondStruct(){num_ = totalNum_; totalNum_++;};
     /** Copy constructor - required to push into vectors */
     BondStruct(const BondStruct &other);
 

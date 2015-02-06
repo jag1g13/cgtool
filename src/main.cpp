@@ -18,9 +18,9 @@
 #include "itp_writer.h"
 
 #define UPDATE_PROGRESS true
-#define PROGRESS_UPDATE_FREQ 100
-#define DO_ELECTRIC_FIELD false
-#define ELECTRIC_FIELD_FREQ 1000
+#define PROGRESS_UPDATE_FREQ 50
+#define DO_ELECTRIC_FIELD true
+#define ELECTRIC_FIELD_FREQ 1
 
 /* things from std that get used a lot */
 using std::ifstream;

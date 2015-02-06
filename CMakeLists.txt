@@ -20,6 +20,8 @@ else()
     endif()
 endif()
 
+
+
 message("Using " ${CMAKE_CXX_FLAGS})
 
 link_directories("/usr/local/lib /usr/lib/x86_64-linux-gnu")
