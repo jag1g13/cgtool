@@ -3,7 +3,6 @@
 #include <cassert>
 
 #include <math.h>
-#include <stddef.h>
 
 #include "array.h"
 
