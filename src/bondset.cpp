@@ -15,23 +15,30 @@ using std::cout;
 using std::endl;
 using std::fprintf;
 
+BondStruct::BondStruct(const BondStruct &other){
+    unsigned long size = other.atomNames_.size();
+    atomNames_.resize(size);
+    atomNums_.resize(size);
+    for(int i = 0; i < size; i++){
+        atomNames_[i] = other.atomNames_[i];
+        atomNums_[i] = other.atomNums_[i];
+    }
+}
+
 void BondSet::fromFile(const string &filename){
     vector<string> substrs;
     Parser parser(filename);
     while(parser.getLineFromSection("length", substrs)) {
-        BondStruct bond_tmp = BondStruct(4);
-        bond_tmp.atomNames_ = substrs;
-        bonds_.push_back(bond_tmp);
+        bonds_.emplace_back(BondStruct(2));
+        bonds_.back().atomNames_ = substrs;
     }
     while(parser.getLineFromSection("angle", substrs)) {
-        BondStruct bond_tmp = BondStruct(4);
-        bond_tmp.atomNames_ = substrs;
-        angles_.push_back(bond_tmp);
+        angles_.emplace_back(BondStruct(3));
+        angles_.back().atomNames_ = substrs;
     }
     while(parser.getLineFromSection("dihedral", substrs)) {
-        BondStruct bond_tmp = BondStruct(4);
-        bond_tmp.atomNames_ = substrs;
-        dihedrals_.push_back(bond_tmp);
+        dihedrals_.emplace_back(BondStruct(4));
+        dihedrals_.back().atomNames_ = substrs;
     }
 }
 
@@ -60,15 +67,15 @@ void BondSet::calcBondsInternal(Frame &frame){
 void BondSet::calcAvgs(){
     for(BondStruct &bond : bonds_){
         bond.calcAvg();
-        bond.binHistogram(100);
+//        bond.binHistogram(100);
     }
     for(BondStruct &bond : angles_){
         bond.calcAvg();
-        bond.binHistogram(100);
+//        bond.binHistogram(100);
     }
     for(BondStruct &bond : dihedrals_){
         bond.calcAvg();
-        bond.binHistogram(100);
+//        bond.binHistogram(100);
     }
 }
 

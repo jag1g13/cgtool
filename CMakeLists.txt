@@ -1,10 +1,7 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(cgtool)
 
-MESSAGE("${CMAKE_CXX_COMPILER}")
-MESSAGE("${CMAKE_CXX_COMPILER_ID}")
-MESSAGE("${CMAKE_CXX_COMPILER_VERSION}")
-MESSAGE("${CMAKE_SYSTEM_NAME}")
+MESSAGE("${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wno-sign-compare -Wno-unused-variable")
 
@@ -15,7 +12,7 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
 else()
     # Not Apple OSX
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -openmp -pthread")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -openmp -pthread")
     elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Og -g -fopenmp")
     else()
@@ -58,7 +55,8 @@ set(SOURCE_FILES
     src/parser.cpp
     src/cmd.cpp
     src/itp_writer.cpp
-    src/bond_struct.cpp)
+    src/bond_struct.cpp
+    src/boltzmann_inverter.cpp)
 
 add_executable(cgtool ${SOURCE_FILES} src/main.cpp)
 target_link_libraries (cgtool ${EXTRA_LIBS})

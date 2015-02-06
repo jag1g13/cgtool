@@ -20,21 +20,16 @@ public:
     std::vector<float> values_;
     /** Average bond parameter.  Double stops overflow on summing */
     double avg_ = 0.;
-    /** Store histogram frequencies */
-    ArrayFloat histogram_;
 
     /** Constructor to set size (bond/angle/dihedral) */
     BondStruct(const int size);
     /** Blank constructor */
     BondStruct(){};
+    /** Copy constructor - required to push into vectors */
+    BondStruct(const BondStruct &other);
 
     /** Calculate average of the bonds */
     void calcAvg();
-    /** Calculate force constants by Boltzmann Inversion */
-    void boltzmannInversion();
-    //TODO consider moving this into a Histogram class
-    /** Bin values to prepare for a histogram/Boltzmann Inversion */
-    void binHistogram(const int bins=100);
 };
 
 #endif
