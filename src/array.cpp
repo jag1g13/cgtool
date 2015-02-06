@@ -196,7 +196,7 @@ void ArrayFloat::print(const int width, const int prec, const float scale){
 }
 
 void ArrayFloat::free(){
-    delete[] array_;
+    if(array_) delete[] array_;
     allocated_ = false;
     array_ = nullptr;
 }
