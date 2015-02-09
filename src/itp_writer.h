@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include "cg_map.h"
+#include "frame.h"
 
 /** \brief Contains all functions necessary to print mapping to a GROMACS ITP file
 * Handles the [moleculetype], [atoms], [bonds], [angles] and [dihedrals] sections
@@ -30,17 +31,17 @@ protected:
 
 public:
     /** Create an ITP file and prepare to write */
-    ITPWriter(std::string name);
+    ITPWriter(const std::string &name);
 
     /** Create a new section in the ITP file */
-    void newSection(std::string section_name);
+    void newSection(const std::string &section_name);
 
     /** Print atoms to itp */
 //    void printAtoms(const std::vector<BeadMap> &mapping);
     void printAtoms(const CGMap &map);
 
     /** Print bond params to itp */
-    void printBonds(BondSet &bond_set);
+    void printBonds(const BondSet &bond_set, const Frame &cg_frame);
 };
 
 #endif

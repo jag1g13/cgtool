@@ -15,30 +15,49 @@ using std::cout;
 using std::endl;
 using std::fprintf;
 
-BondStruct::BondStruct(const BondStruct &other){
-    unsigned long size = other.atomNames_.size();
-    atomNames_.resize(size);
-    atomNums_.resize(size);
-    for(int i = 0; i < size; i++){
-        atomNames_[i] = other.atomNames_[i];
-        atomNums_[i] = other.atomNums_[i];
-    }
-}
 
 void BondSet::fromFile(const string &filename){
     vector<string> substrs;
     Parser parser(filename);
-    while(parser.getLineFromSection("length", substrs)) {
+
+    int i = 0;
+    while(parser.getLineFromSection("mapping", substrs)){
+//        beadNums_.insert({substrs[0], i});
+        beadNums_.emplace(substrs[0], i);
+        cout << substrs[0] << " " << beadNums_[substrs[0]] << endl;
+    }
+
+    while(parser.getLineFromSection("length", substrs)){
         bonds_.emplace_back(BondStruct(2));
-        bonds_.back().atomNames_ = substrs;
+        for(int j = 0; j < 2; j++){
+            bonds_.back().atomNames_[j] = substrs[j];
+            bonds_.back().atomNums_[j] = beadNums_[substrs[j]];
+            cout << substrs[j] << " " << beadNums_[substrs[j]] << endl;
+        }
+//        bonds_.back().atomNames_ = substrs;
+//        bonds_.back().atomNums_.emplace_back(beadNums_[name]);
     }
-    while(parser.getLineFromSection("angle", substrs)) {
+    while(parser.getLineFromSection("angle", substrs)){
         angles_.emplace_back(BondStruct(3));
-        angles_.back().atomNames_ = substrs;
+        for(int j = 0; j < 3; j++){
+            angles_.back().atomNames_[j] = substrs[j];
+            angles_.back().atomNums_[j] = beadNums_[substrs[j]];
+        }
+//        angles_.back().atomNames_ = substrs;
+//        for(const string &name : angles_.back().atomNames_){
+//            angles_.back().atomNums_.emplace_back(beadNums_[name]);
+//        }
     }
-    while(parser.getLineFromSection("dihedral", substrs)) {
+    while(parser.getLineFromSection("dihedral", substrs)){
         dihedrals_.emplace_back(BondStruct(4));
-        dihedrals_.back().atomNames_ = substrs;
+        for(int j = 0; j < 4; j++){
+            dihedrals_.back().atomNames_[j] = substrs[j];
+            dihedrals_.back().atomNums_[j] = beadNums_[substrs[j]];
+        }
+//        dihedrals_.back().atomNames_ = substrs;
+//        for(const string &name : dihedrals_.back().atomNames_){
+//            dihedrals_.back().atomNums_.emplace_back(beadNums_[name]);
+//        }
     }
 }
 

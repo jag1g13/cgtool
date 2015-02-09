@@ -16,6 +16,7 @@
 #include "bondset.h"
 #include "field_map.h"
 #include "itp_writer.h"
+#include "parser.h"
 
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 50
@@ -111,6 +112,14 @@ int main(const int argc, const char *argv[]){
     BondSet bond_set(cfgname);
     FieldMap field(10, 10, 10, mapping.num_beads);
 
+    // read from config
+    Parser parser(cfgname);
+    vector<string> tokens;
+    bool do_electric_field = parser.findSection("field");
+    int num_frames_max = -1;
+    if(parser.getLineFromSection("frames", tokens)) num_frames_max = stoi(tokens[0]);
+    cout << num_frames_max << " frames max" << endl;
+
     split_text_output("Reading frames", start, num_threads);
     start = std::clock();
 
@@ -126,7 +135,7 @@ int main(const int argc, const char *argv[]){
 //        cg_frame.writeToXtc("xtcout.xtc");
 
         // calculate electric field/dipole
-        if(i % ELECTRIC_FIELD_FREQ == 0 && DO_ELECTRIC_FIELD){
+        if(i % ELECTRIC_FIELD_FREQ == 0 && DO_ELECTRIC_FIELD && do_electric_field){
             field.setupGrid(frame);
             field.setupGridContracted(frame);
             field.calcFieldMonopolesContracted(frame);
@@ -140,6 +149,7 @@ int main(const int argc, const char *argv[]){
         // calculate bonds and store in BondStructs
         bond_set.calcBondsInternal(cg_frame);
 
+        if(i == num_frames_max && num_frames_max != -1) break;
         i++;
     }
     cout << "Read " << i << " frames" << endl;
@@ -151,7 +161,7 @@ int main(const int argc, const char *argv[]){
 
     ITPWriter itp("out.itp");
     itp.printAtoms(mapping);
-    itp.printBonds(bond_set);
+    itp.printBonds(bond_set, cg_frame);
 
     // print something so I can check results by eye - can be removed later
     for(const BondStruct &bond : bond_set.bonds_){

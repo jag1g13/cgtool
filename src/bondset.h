@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 #include "bond_struct.h"
 
@@ -25,6 +26,8 @@ public:
     vector<BondStruct> dihedrals_;
     /** How many frames did we successfully measure */
     int numFrames_ = 0;
+    /** Map of bead names to number - to put numbers into BondStructs */
+    std::map<std::string, int> beadNums_;
 
     /** \brief Blank constructor */
     BondSet(){};

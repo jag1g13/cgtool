@@ -67,10 +67,6 @@ public:
     * Once it reaches the end of the file, it rewinds to the beginning and returns */
     bool getLineFromSection(const std::string find, std::vector<std::string> &tokens);
 
-    /** \brief Search through config file for a particular section and pass back last line
-    * Once it reaches the end of the file, it rewinds to the beginning and returns */
-    bool getLastLineFromSection(const std::string find, std::vector<std::string> &tokens);
-
     /** \brief Rewind to start of file */
     void rewind();
 };
