@@ -22,6 +22,12 @@ public:
     void invert();
     /** \brief Sort bond time series into histogram bins */
     void binHistogram(const BondStruct &bond, const int bins);
+
+    /** \brief Calculate statistical moments of bond data.
+    * Mean, standard deviation, skewness and kurtosis.
+    * This data may not be useful for a multi-modal distribution.
+    */
+    void statisticalMoments(ArrayFloat &array);
 };
 
 #endif

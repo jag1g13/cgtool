@@ -36,6 +36,11 @@ public:
     /** How many rows have been appended to the array? */
     int appendedRows_ = 0;
 
+    /** \brief Dimensions_ getter */
+    int getDimensions() const {return dimensions_;};
+    /** \brief Elems_ getter */
+    int getElems() const {return elems_;};
+
     /** \brief Constructor which allocates the array automatically.
     * The array is zeroed after allocation. */
     ArrayFloat(const int a, const int b=1, const int c=1, const bool fast=false);
