@@ -21,7 +21,7 @@
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 50
 #define DO_ELECTRIC_FIELD true
-#define ELECTRIC_FIELD_FREQ 1
+#define ELECTRIC_FIELD_FREQ 100
 
 /* things from std that get used a lot */
 using std::ifstream;
@@ -135,7 +135,7 @@ int main(const int argc, const char *argv[]){
 //        cg_frame.writeToXtc("xtcout.xtc");
 
         // calculate electric field/dipole
-        if(i % ELECTRIC_FIELD_FREQ == 0 && DO_ELECTRIC_FIELD && do_electric_field){
+        if(i % ELECTRIC_FIELD_FREQ == 0 && DO_ELECTRIC_FIELD){
             field.setupGrid(frame);
             field.setupGridContracted(frame);
             field.calcFieldMonopolesContracted(frame);

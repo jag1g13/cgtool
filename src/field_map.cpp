@@ -199,7 +199,7 @@ void FieldMap::calcDipolesDirect(const CGMap &cgmap, const Frame &cg_frame, Fram
                               dipoles_(i, 1)*dipoles_(i, 1) +
                               dipoles_(i, 2)*dipoles_(i, 2)));
     }
-//    printDipoles();
+    printDipoles();
 }
 
 void FieldMap::calcDipolesFit(const CGMap &cgmap, const Frame &cg_frame, const Frame &aa_frame){

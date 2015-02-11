@@ -31,6 +31,7 @@ void BondSet::fromFile(const string &filename){
         bonds_.emplace_back(BondStruct(2));
         for(int j = 0; j < 2; j++){
             bonds_.back().atomNames_[j] = substrs[j];
+            //TODO these numbers don't work - all are 0
             bonds_.back().atomNums_[j] = beadNums_[substrs[j]];
             cout << substrs[j] << " " << beadNums_[substrs[j]] << endl;
         }

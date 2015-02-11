@@ -31,24 +31,26 @@ void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
 // use these properties to form the gaussian and check R2 value
 // if it's small, go on and calculate the force constant, otherwise... use guess??
 // I don't need to calculate skew or kurtosis unless they're useful for uni/multi-modal check
-void BoltzmannInverter::statisticalMoments(ArrayFloat &array){
-    if(array.getDimensions() != 1) throw std::logic_error("Can't get moments of n-dimensional array");
+void BoltzmannInverter::statisticalMoments(const vector<float> &vec){
+//    if(array.getDimensions() != 1) throw std::logic_error("Can't get moments of n-dimensional array");
     double sum = 0.0;
-    int n = array.getElems();
+//    int n = array.getElems();
+    const int n = vec.size();
 
     // calculate mean with first pass
-    for(int i = 0; i < n; i++) sum += array(i);
-    float avg = sum / n;
+//    for(int i = 0; i < n; i++) sum += array(i);
+    for(int i = 0; i < n; i++) sum += vec[i];
+    const float avg = sum / n;
 
     // calculate other stats with second pass
     double adev = 0.0, var = 0.0, skew = 0.0, kurt = 0.0, ep = 0.0;
-    double p = 0.0;
     for(int i = 0; i < n; i++){
-        sum = array(i) - avg;
+//        sum = array(i) - avg;
+        sum = vec[i] - avg;
         ep += sum;
         adev += abs(sum);
 
-        p = sum * sum;
+        double p = sum * sum;
         var += p;
 
         p *= sum;
@@ -60,7 +62,7 @@ void BoltzmannInverter::statisticalMoments(ArrayFloat &array){
 
     adev /= n;
     var = (var - ep*ep/n) / (n - 1);
-    float sdev = sqrt(var);
+    const float sdev = float(sqrt(var));
 
     if(var > 0.01){
         skew /= n * sdev*sdev*sdev;

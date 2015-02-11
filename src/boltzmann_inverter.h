@@ -27,7 +27,8 @@ public:
     * Mean, standard deviation, skewness and kurtosis.
     * This data may not be useful for a multi-modal distribution.
     */
-    void statisticalMoments(ArrayFloat &array);
+    void statisticalMoments(const std::vector<float> &vec);
+//    void statisticalMoments(ArrayFloat &array);
 };
 
 #endif
