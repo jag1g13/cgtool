@@ -7,19 +7,22 @@
 using std::cout;
 using std::endl;
 
-void BoltzmannInverter::invert(){
+void BoltzmannInverter::invertGaussian(){
+    /* line from Python version
+    y_inv = -R * T * np.log(y_fit / (x_fit*x_fit))
+     */
 }
 
 void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
-    float max = float(bond.avg_), min = float(bond.avg_);
+    double max = bond.avg_, min = bond.avg_;
     histogram_.init(bins);
 
-    for(const float val : bond.values_){
+    for(const double val : bond.values_){
         if(val < min) min = val;
         if(val > max) max = val;
     }
 
-    float step = (max - min) / (bins-1);
+    double step = (max - min) / (bins-1);
 
     for(const float val : bond.values_){
         int loc = int((val - min) / step);
@@ -35,12 +38,12 @@ void BoltzmannInverter::statisticalMoments(const vector<float> &vec){
 //    if(array.getDimensions() != 1) throw std::logic_error("Can't get moments of n-dimensional array");
     double sum = 0.0;
 //    int n = array.getElems();
-    const int n = vec.size();
+    const unsigned long n = vec.size();
 
     // calculate mean with first pass
 //    for(int i = 0; i < n; i++) sum += array(i);
     for(int i = 0; i < n; i++) sum += vec[i];
-    const float avg = sum / n;
+    const double avg = sum / n;
 
     // calculate other stats with second pass
     double adev = 0.0, var = 0.0, skew = 0.0, kurt = 0.0, ep = 0.0;
@@ -48,7 +51,7 @@ void BoltzmannInverter::statisticalMoments(const vector<float> &vec){
 //        sum = array(i) - avg;
         sum = vec[i] - avg;
         ep += sum;
-        adev += abs(sum);
+        adev += fabs(sum);
 
         double p = sum * sum;
         var += p;
@@ -62,7 +65,7 @@ void BoltzmannInverter::statisticalMoments(const vector<float> &vec){
 
     adev /= n;
     var = (var - ep*ep/n) / (n - 1);
-    const float sdev = float(sqrt(var));
+    const double sdev = sqrt(var);
 
     if(var > 0.01){
         skew /= n * sdev*sdev*sdev;

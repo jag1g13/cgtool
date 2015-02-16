@@ -60,6 +60,8 @@ struct Residue{
     Residue(){};
 };
 
+enum class BoxType{CUBIC, TRICLINIC};
+
 
 /**
 * \brief Class to hold a single frame of an XTC file
@@ -67,29 +69,15 @@ struct Residue{
 * Holds a std::vector<Atom> and contains member functions to operate on this
 */
 class Frame{
-public:
-    /** Has the Frame been properly setup yet? */
-    bool isSetup_ = false;
+protected:
     /** Has the XTC output been setup yet? */
     bool outputSetup_ = false;
     /** GROMACS xtc file to import frames */
     t_fileio *xtcInput_ = nullptr;
     /** GROMACS xtc file to export frames */
     t_fileio *xtcOutput_ = nullptr;
-    /** The number of this Frame, starting at 0 */
-    int num_ = 0;
-    /** The simulation step corresponding to this frame */
-    int step_ = 0;
-    /** The number of atoms stored in this frame */
-    int numAtoms_ = 0;
-    /** The number of atoms stored in this frame that we find interesting */
-    int numAtomsTrack_ = 0;
-    /** Vector of Atoms; Each Atom contains position and type data */
-    std::vector<Atom> atoms_;
     /** Vector of Residues; Each Residue contains pointers to atoms */
     std::vector<Residue> residues_;
-    /** The simulation time of this frame, in picoseconds */
-    float time_ = 0.f;
     /** XTC precision; not used internally, just for XTC input/output */
     float prec_ = 0.f;
     /** Size of the simulation box */
@@ -98,12 +86,31 @@ public:
     rvec *x_ = NULL;
     /** Name of the Frame; taken from comment in the GRO file */
     std::string name_;
+    /** What box shape do we have?  Currently must be cubic */
+    BoxType boxType_ = BoxType::CUBIC;
+
+public:
+    /** Has the Frame been properly setup yet? */
+    bool isSetup_ = false;
+    /** The number of atoms stored in this frame that we find interesting */
+    int numAtomsTrack_ = 0;
+    /** Vector of Atoms; Each Atom contains position and type data */
+    std::vector<Atom> atoms_;
+    /** The number of atoms stored in this frame */
+    int numAtoms_ = 0;
+    /** Is frame invalid for some reason - molecule lies on pbc */
+    bool invalid_ = false;
+    /** The simulation time of this frame, in picoseconds */
+    float time_ = 0.f;
+    /** The number of this Frame, starting at 0 */
+    int num_ = 0;
+    /** The simulation step corresponding to this frame */
+    int step_ = 0;
     /** Dictionary mapping atom numbers to atom names */
     std::map<int, std::string> numToName_;
     /** Dictionary mapping atom names to numbers */
     std::map<std::string, int> nameToNum_;
-    /** Is frame invalid for some reason - molecule lies on pbc */
-    bool invalid_ = false;
+
 
     /**
     * \brief Create Frame passing frame number, number of atoms to store and the frame name

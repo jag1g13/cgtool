@@ -51,10 +51,8 @@ void CGMap::fromFile(string filename){
         new_bead.num_atoms = int(new_bead.atoms.size());
 
         // print for debugging
-//        cout << new_bead.name << " " << new_bead.num_atoms << " ";
         std::printf("%6s %6s %3i:", new_bead.name.c_str(), new_bead.type.c_str(), new_bead.num_atoms);
-        for(auto atom : new_bead.atoms){
-//            cout << atom << " ";
+        for(const string &atom : new_bead.atoms){
             std::printf(" %s", atom.c_str());
         }
         cout << endl;
@@ -132,6 +130,7 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
     if(!cg_frame.isSetup_) throw std::runtime_error("CG frame isn't setup");
     cg_frame.num_ = aa_frame.num_;
     cg_frame.time_ = aa_frame.time_;
+    cg_frame.step_ = aa_frame.step_;
 
     // remove 'invalid' marker - for frames where molecule crosses PBC
     cg_frame.invalid_ = false;

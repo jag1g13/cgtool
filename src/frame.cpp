@@ -7,6 +7,8 @@
 
 #include "parser.h"
 
+#define EPSILON 0.00001
+
 using std::string;
 using std::vector;
 using std::cout;
@@ -30,8 +32,11 @@ Frame::Frame(const Frame &frame){
     for(int i=0; i<3; i++){
         for(int j=0; j<3; j++){
             box_[i][j] = frame.box_[i][j];
+            // must be cubic box
+//            if(i != j) assert(box_[i][j] < EPSILON);
         }
     }
+    boxType_ = BoxType::CUBIC;
 }
 
 // don't need this?
@@ -161,11 +166,10 @@ bool Frame::setupFrame(const std::string &topname, t_fileio *xtc){
     }
 
     if(ok && bOK) isSetup_ = true;
-//    printAtoms(numAtomsTrack_);
+    printAtoms(numAtomsTrack_);
     return isSetup_;
 }
 
-//bool Frame::readNext(t_fileio *xtc){
 bool Frame::readNext(){
     /**
     * \brief Read a frame from the XTC file into an existing Frame object
@@ -191,11 +195,11 @@ bool Frame::readNext(){
 
 //TODO check this works consistently
 void Frame::recentreBox(const int atom_num){
-    float box_centre[3];
-    float res_centre[3];
-    float offset[3];
-
+    assert(boxType_ == BoxType::CUBIC);
     assert(atom_num < numAtoms_);
+
+    float res_centre[3];
+
     res_centre[0] = x_[atom_num][0];
     res_centre[1] = x_[atom_num][1];
     res_centre[2] = x_[atom_num][2];
@@ -211,10 +215,11 @@ void Frame::recentreBox(const int atom_num){
 void Frame::printAtoms(int n){
     assert(isSetup_);
     if(n == -1) n = numAtomsTrack_;
-    printf("  Name   Mass    Charge   Posx    Posy    Posz\n");
+    printf("   Num   Name   Mass   Charge   Posx    Posy    Posz\n");
     for(int i=0; i<n; i++){
-        printf("%6s %7.3f %7.3f %7.4f %7.4f %7.4f\n",
-               atoms_[i].atom_type.c_str(), atoms_[i].mass, atoms_[i].charge,
+        printf("%6i %6s %7.3f %7.3f %7.4f %7.4f %7.4f\n",
+               nameToNum_[atoms_[i].atom_type], atoms_[i].atom_type.c_str(),
+               atoms_[i].mass, atoms_[i].charge,
                atoms_[i].coords[0], atoms_[i].coords[1], atoms_[i].coords[2]);
     }
 }
@@ -226,8 +231,8 @@ float Frame::bondLength(const int a, const int b){
 }
 
 float Frame::bondLength(BondStruct &bond) {
-    int a = nameToNum_[bond.atomNames_[0]];
-    int b = nameToNum_[bond.atomNames_[1]];
+    int a = bond.atomNums_[0];
+    int b = bond.atomNums_[1];
     return bondLength(a, b);
 }
 
@@ -243,7 +248,7 @@ float Frame::bondAngle(const int a, const int b, const int c, const int d){
     angle = (float)acos(dot / (mag1 * mag2));
     // if angle is NaN
     if(angle != angle){
-        printf("%d %d %d %d\n", a, b, c, d);
+//        printf("%s %s\n", numToName_[a].c_str(), numToName_[b].c_str());
         return 0.f;
     }
     return (180.f - (angle * 180.f / (float)M_PI));
@@ -251,11 +256,11 @@ float Frame::bondAngle(const int a, const int b, const int c, const int d){
 
 //TODO move this and bondLength into bond_struct.cpp
 float Frame::bondAngle(BondStruct &bond){
-    int a = nameToNum_[bond.atomNames_[0]];
-    int b = nameToNum_[bond.atomNames_[1]];
-    int c = nameToNum_[bond.atomNames_[2]];
-    if(bond.atomNames_.size() == 4){
-        int d = nameToNum_[bond.atomNames_[3]];
+    int a = bond.atomNums_[0];
+    int b = bond.atomNums_[1];
+    int c = bond.atomNums_[2];
+    if(bond.atomNums_.size() == 4){
+        int d = bond.atomNums_[3];
         return bondAngle(a, b, c, d);
     }else{
         return bondAngle(a, b, b, c);

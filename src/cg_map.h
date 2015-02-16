@@ -41,16 +41,18 @@ enum class MapType{CM, GC, ATOM};
 * Mostly just a wrapper around a BeadMap vector
 */
 class CGMap{
-public:
-    /** Vector of BeadMap; holds the mappings for every bead */
-    vector<BeadMap> mapping_;
+protected:
     /** Dictionary mapping an atom to the bead it should be mapped into */
     std::map<string, BeadMap*> atomname_to_bead_;
-    /** Number of beads defined */
-    int num_beads;
     /** \brief What type of mapping are we going to apply?  CM, GC, or atom centred
     * Default is geometric centre of component atoms. */
     MapType mapType_ = MapType::GC;
+
+public:
+    /** Number of beads defined */
+    int num_beads;
+    /** Vector of BeadMap; holds the mappings for every bead */
+    vector<BeadMap> mapping_;
 
     /**
     * \brief Constructor to create a blank instance

@@ -20,7 +20,7 @@
 
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 50
-#define DO_ELECTRIC_FIELD true
+#define DO_ELECTRIC_FIELD false
 #define ELECTRIC_FIELD_FREQ 100
 
 /* things from std that get used a lot */

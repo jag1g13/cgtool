@@ -6,6 +6,7 @@
 #include <map>
 
 #include "bond_struct.h"
+#include "frame.h"
 
 using std::vector;
 using std::string;
@@ -17,6 +18,12 @@ class Frame;
 * \brief Class that holds all bond lengths, angles and dihedrals to be calculated
 */
 class BondSet{
+protected:
+    /** How many frames did we successfully measure */
+    int numFrames_ = 0;
+    /** Map of bead names to number - to put numbers into BondStructs */
+    std::map<std::string, int> beadNums_;
+
 public:
     /** Vector of bond length pairs; Contains all bond lengths that must be calculated */
     vector<BondStruct> bonds_;
@@ -24,10 +31,6 @@ public:
     vector<BondStruct> angles_;
     /** Vector of bond dihedral quads */
     vector<BondStruct> dihedrals_;
-    /** How many frames did we successfully measure */
-    int numFrames_ = 0;
-    /** Map of bead names to number - to put numbers into BondStructs */
-    std::map<std::string, int> beadNums_;
 
     /** \brief Blank constructor */
     BondSet(){};

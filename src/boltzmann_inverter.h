@@ -19,7 +19,7 @@ public:
     BoltzmannInverter(BondSet *bondSet){bondSet_ = bondSet;};
 
     /** \brief Perform a Boltzmann Inversion on a single bond parameter */
-    void invert();
+    void invertGaussian();
     /** \brief Sort bond time series into histogram bins */
     void binHistogram(const BondStruct &bond, const int bins);
 
