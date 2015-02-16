@@ -16,6 +16,7 @@ protected:
 
 public:
     BoltzmannInverter(){};
+    /** \brief Construct a new Boltzmann Inverter and assign a bondset */
     BoltzmannInverter(BondSet *bondSet){bondSet_ = bondSet;};
 
     /** \brief Perform a Boltzmann Inversion on a single bond parameter */

@@ -45,7 +45,7 @@ int main(const int argc, const char *argv[]){
     clock_t start_time = std::clock();
 
     const string version_string =
-            "CGTOOL v0.1.121:8988c756c9b8";
+            "CGTOOL v0.1.133:3bdfbbb525e5";
 
     const string help_string =
             "Requires GROMACS .xtc and .top files.\n"
