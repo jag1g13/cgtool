@@ -46,15 +46,17 @@ void BondSet::fromFile(const string &filename){
 }
 
 void BondSet::calcBondsInternal(Frame &frame){
-//    for(BondStruct &bond : bonds_){
-//         does the structure cross a pbc - will break bond lengths
-//        float dist = frame.bondLength(bond);
-//        if(dist > 0.8f * frame.box_[0][0]){
-//        if(dist > 1.f || dist < 0.01f){
-//            frame.invalid_ = true;
-//            return;
-//        }
-//    }
+    for(BondStruct &bond : bonds_){
+//        does the structure cross a pbc - will break bond lengths
+        float dist = frame.bondLength(bond);
+//        if(dist > 0.8f * frame.box_[0][0])
+        if(dist > 1.f || dist < 0.01f){
+            frame.invalid_ = true;
+            cout << "Molecule must not be broken by PBC" << endl;
+            cout << "Consider using trjconv -pbc nojump" << endl;
+            return;
+        }
+    }
     numFrames_++;
     for(BondStruct &bond : bonds_){
         bond.values_.push_back(frame.bondLength(bond));

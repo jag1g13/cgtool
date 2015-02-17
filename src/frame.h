@@ -80,12 +80,12 @@ protected:
     std::vector<Residue> residues_;
     /** XTC precision; not used internally, just for XTC input/output */
     float prec_ = 0.f;
-    /** Size of the simulation box */
-    float box_[3][3];
     /** Holds atomic coordinates for GROMACS */
     rvec *x_ = NULL;
     /** Name of the Frame; taken from comment in the GRO file */
     std::string name_;
+    /** Size of the simulation box */
+    float box_[3][3];
     /** What box shape do we have?  Currently must be cubic */
     BoxType boxType_ = BoxType::CUBIC;
 

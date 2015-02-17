@@ -122,6 +122,7 @@ bool Frame::setupFrame(const std::string &topname, t_fileio *xtc){
     gmx_bool bOK = 0;
     // init system from XTC file - GROMACS library
     int ok = read_first_xtc(xtc, &numAtoms_, &step_, &time_, box_, &x_, &prec_, &bOK);
+//    recentreBox(0);
 
     // print box vectors
     cout << "Box vectors" << endl;
@@ -179,7 +180,7 @@ bool Frame::readNext(){
     assert(isSetup_);
     invalid_ = false;
     ok = read_next_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_, &bOK);
-    recentreBox(0);
+//    recentreBox(0);
     for(int i = 0; i < numAtomsTrack_; i++){
         // overwrite coords of atoms stored in the current Frame
         atoms_[i].coords[0] = x_[i][0];
@@ -202,14 +203,15 @@ void Frame::recentreBox(const int atom_num){
     res_centre[0] = x_[atom_num][0];
     res_centre[1] = x_[atom_num][1];
     res_centre[2] = x_[atom_num][2];
-//    printf("res_centre: %8.4f%8.4f%8.4f\n", res_centre[0], res_centre[1], res_centre[2]);
+    printf("res_centre: %8.4f%8.4f%8.4f\n", res_centre[0], res_centre[1], res_centre[2]);
     for(int i=0; i<numAtoms_; i++){
         for(int j=0; j<3; j++){
-            x_[i][j] -= res_centre[j] - box_[j][j];
-            if(x_[i][j] < -box_[j][j]) x_[i][j] += box_[j][j];
+//            x_[i][j] -= res_centre[j];
+//            if(x_[i][j] < -box_[j][j]) x_[i][j] += box_[j][j];
         }
     }
 }
+
 
 void Frame::printAtoms(int n){
     assert(isSetup_);

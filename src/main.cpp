@@ -38,6 +38,7 @@ vector<float> calc_avg(const vector<vector<float>> &vec);
 void printToCSV(ofstream *file, const vector<float> &vec);
 void split_text_output(const string, const clock_t, const int num_threads);
 bool file_exists(const string name);
+bool fix_PBC(const string name);
 
 
 int main(const int argc, const char *argv[]){
@@ -102,8 +103,8 @@ int main(const int argc, const char *argv[]){
         throw std::runtime_error("File doesn't exist");
     }
     cout << "XTC file: " << xtcname << endl;
-    cout << "TOP file: " << topname << endl;
     cout << "CFG file: " << cfgname << endl;
+    cout << "TOP file: " << topname << endl;
 
     // Open files and do setup
     split_text_output("Frame setup", start, num_threads);
@@ -178,6 +179,7 @@ int main(const int argc, const char *argv[]){
 
 void split_text_output(const string name, const clock_t start, const int num_threads){
     clock_t now = std::clock();
+    // if time has passed, how much?  Ignore small times
     if((float) (now - start) / CLOCKS_PER_SEC > 0.1){
         cout << "--------------------" << endl;
         cout << float(now - start) / (CLOCKS_PER_SEC * num_threads) << " seconds" << endl;
@@ -192,3 +194,9 @@ bool file_exists(const string name){
     return (stat(name.c_str(), &buffer) == 0);
 }
 
+/** call trjconv to fix PBC problems until I work out how to do it myself */
+bool fix_PBC(const string name){
+    std::stringstream stream;
+    stream << "trjconv -f " << name << ".xtc -o " << name << "_nojump.xtc -pbc nojump";
+    return bool(system(stream.str().c_str()));
+}
