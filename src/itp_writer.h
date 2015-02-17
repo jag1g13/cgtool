@@ -26,7 +26,9 @@ protected:
             "; Topology prepared automatically using CGTOOL\n"
             "; James Graham <J.A.Graham@soton.ac.uk> 2015\n"
             "; University of Southampton\n"
-            ";\n; This isn't quite a valid GROMACS topology yet\n"
+            ";\n"
+            "; This isn't quite a valid GROMACS topology yet\n"
+            "; Force constants are not yet included\n"
             ";\n";
 
 public:
@@ -37,7 +39,6 @@ public:
     void newSection(const std::string &section_name);
 
     /** Print atoms to itp */
-//    void printAtoms(const std::vector<BeadMap> &mapping);
     void printAtoms(const CGMap &map);
 
     /** Print bond params to itp */
