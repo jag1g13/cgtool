@@ -17,32 +17,31 @@ enum class ArgType{STRING, INT, FLOAT, BOOL};
 */
 class CMD{
 protected:
-    /** Stores string arguments accessed by argument name */
+    /** Stores string argument names */
     std::map<std::string, std::string> stringArgs_;
-    /** Stores integer arguments accessed by argument name */
-    std::map<std::string, int> intArgs_;
-    /** Stores float arguments accessed by argument name */
-    std::map<std::string, float> floatArgs_;
-    /** Stores boolean arguments accessed by argument name */
-    std::map<std::string, bool> boolArgs_;
-    /** Stores type of each argument */
-    std::map<std::string, ArgType> argTypes_;
+//    /** Stores string argument default values */
+//    std::vector<std::string> stringArgDefaults_;
+//    /** Stores integer arguments accessed by argument name */
+//    std::map<std::string, int> intArgs_;
+//    /** Stores float arguments accessed by argument name */
+//    std::map<std::string, float> floatArgs_;
+//    /** Stores boolean arguments accessed by argument name */
+//    std::map<std::string, bool> boolArgs_;
+//    /** Stores type of each argument */
+//    std::map<std::string, ArgType> argTypes_;
     /** Program help string.  Should be parsed to generate arguments */
     std::string helpString_;
 //    boost::program_options::options_description desc_;
+    /** Store options from Boost program_options */
+    boost::program_options::variables_map options_;
+    boost::program_options::options_description desc_;
 
 public:
     /** \brief Constructor to parse the program help text */
-    CMD(std::string help_string);
+    CMD(const std::string &help_string, const int argc, const char *argv[]);
 
     /** \brief Empty constructor, does nothing */
     CMD();
-
-    /** \brief Parses arguments from the command line input */
-    bool parseArguments(const int argc, const char* argv[]);
-
-    /** \brief Parses arguments from the command line input using Boost */
-    bool boostParse(const int argc, const char* argv[]);
 
     /** Print the help text */
     void help();
@@ -51,25 +50,25 @@ public:
     * If argument was not provided by the user the default value will be used.
     * If there is not default value, print an error
     */
-    const std::string getStringArg(const std::string arg);
+    const std::string &getStringArg(const std::string &arg);
 
     /** \brief Return the value of named argument.
     * If argument was not provided by the user the default value will be used.
     * If there is not default value, print an error
     */
-    const int getIntArg(const std::string arg);
+    const int getIntArg(const std::string &arg);
 
     /** \brief Return the value of named argument.
     * If argument was not provided by the user the default value will be used.
     * If there is not default value, print an error
     */
-    const float getFloatArg(const std::string arg);
+    const float getFloatArg(const std::string &arg);
 
     /** \brief Return the value of named argument.
     * If argument was not provided by the user the default value will be used.
     * If there is not default value, print an error
     */
-    const bool getBoolArg(const std::string arg);
+    const bool getBoolArg(const std::string &arg);
 };
 
 #endif

@@ -47,13 +47,15 @@ int main(const int argc, const char *argv[]){
     const string version_string =
             "CGTOOL v0.1.133:3bdfbbb525e5";
 
-    const string help_string =
+    const string help_header =
             "Requires GROMACS .xtc and .top files.\n"
             "Uses a config file to set beads and measure parameters\n\n"
-            "Usage:\n"
-            "cgtool\t\t\t\t; Runs using GROMACS files in the current directory\n"
-            "cgtool <directory>\t\t; Runs using GROMACS files in the specified directory\n"
-            "cgtool <xtc> <cfg> <top>\t; Runs using specified files - you want this one\n";
+            "Usage:\n";
+    const string help_options =
+            "--xtc\tGROMACS xtc file\tmd.xtc\n"
+            "--itp\tGROMACS itp file\ttopol.top\n"
+            "--cfg\tCGTOOL mapping file\tcg.cfg";
+    const string help_string = help_header + help_options;
 
     // clang doesn't like this - it doesn't seem to handle OpenMP well?
     int num_threads = 1;
@@ -65,8 +67,7 @@ int main(const int argc, const char *argv[]){
 //    cout << "Running with " << num_threads << " threads" << endl;
 
     // get commands
-//    CMD cmd_parser(help_string);
-//    cmd_parser.boostParse(argc, argv);
+//    CMD cmd_parser(help_options, argc, argv);
 
     // Where does the user want us to look for input files?
     split_text_output(version_string, start, num_threads);
