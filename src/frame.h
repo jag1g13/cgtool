@@ -11,6 +11,8 @@
 
 #include "bondset.h"
 
+typedef unsigned int uint;
+
 /**
 * \brief Struct to hold atom data
 */
@@ -93,7 +95,7 @@ public:
     /** Has the Frame been properly setup yet? */
     bool isSetup_ = false;
     /** The number of atoms stored in this frame that we find interesting */
-    int numAtomsTrack_ = 0;
+    uint numAtomsTrack_ = 0;
     /** Vector of Atoms; Each Atom contains position and type data */
     std::vector<Atom> atoms_;
     /** The number of atoms stored in this frame */
@@ -118,7 +120,7 @@ public:
     * If we don't know the number of atoms at creation
     * this can be set later using Frame::allocateAtoms()
     */
-    Frame(const int num, const int natoms, const std::string name);
+    Frame(const uint num, const uint natoms, const std::string name);
 
     /**
     * \brief Create Frame passing config files.
@@ -168,7 +170,7 @@ public:
     *
     * Used if the number of atoms isn't known at time of creation
     */
-    int allocateAtoms(const int natoms);
+    int allocateAtoms(const uint natoms);
 
     /**
     * \brief Prepare to write XTC output.
@@ -187,40 +189,40 @@ public:
     * Avoids problems where a residue is split by the periodic boundary,
     * causing bond lengths to be calculated incorrectly
     */
-    void recentreBox(const int atom_num);
+    void recentreBox(const uint atom_num);
 
     /** Print info for all atoms up to n.  Default print all. */
-    void printAtoms(int n=-1);
+    void printAtoms(int natoms=-1);
 
     /** Print all atoms up to n to GRO file.  Default print all. */
-    void printGRO(const std::string &filename, int n=-1);
+    void printGRO(const std::string &filename, int natoms=-1);
 
     /**
     * \brief Calculate distance between two atoms
     */
-    float bondLength(const int a, const int b);
+    double bondLength(const uint a, const uint b);
 
     /**
     * \brief Calculate distance between two atoms in a BondStruct object
     *
-    * Wrapper around float bondLength(int, int)
+    * Wrapper around float bondLength(uint, uint)
     */
-    float bondLength(BondStruct &bond);
+    double bondLength(BondStruct &bond);
 
     /**
     * \brief Calculate angle between vectors a->b and c->d
     *
     * To be used for bond angles (b=c) and dihedrals (b=/=c)
     */
-    float bondAngle(const int a, const int b, const int c, const int d);
+    double bondAngle(const uint a, const uint b, const uint c, const uint d);
 
 
     /**
     * \brief Calculate angle or dihedral between atoms in a BondStruct object
     *
-    * Wrapper around float bondAngle(int, int, int, int)
+    * Wrapper around float bondAngle(uint, uint, uint, uint)
     */
-    float bondAngle(BondStruct &bond);
+    double bondAngle(BondStruct &bond);
 };
 
 #endif

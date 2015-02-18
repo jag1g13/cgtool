@@ -32,7 +32,7 @@ void ITPWriter::printAtoms(const CGMap &map){
     }
 }
 
-void ITPWriter::printBonds(const BondSet &bond_set, const Frame &cg_frame){
+void ITPWriter::printBonds(const BondSet &bond_set){
     newSection("bonds");
     for(const BondStruct &bond : bond_set.bonds_){
         // I don't know what the last integer is

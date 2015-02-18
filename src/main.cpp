@@ -166,7 +166,7 @@ int main(const int argc, const char *argv[]){
 
     ITPWriter itp("out.itp");
     itp.printAtoms(mapping);
-    itp.printBonds(bond_set, cg_frame);
+    itp.printBonds(bond_set);
 
     // print something so I can check results by eye - can be removed later
     for(const BondStruct &bond : bond_set.bonds_){
