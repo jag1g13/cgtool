@@ -192,6 +192,9 @@ public:
     /** Print info for all atoms up to n.  Default print all. */
     void printAtoms(int n=-1);
 
+    /** Print all atoms up to n to GRO file.  Default print all. */
+    void printGRO(const std::string &filename, int n=-1);
+
     /**
     * \brief Calculate distance between two atoms
     */

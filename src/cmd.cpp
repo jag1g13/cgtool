@@ -1,5 +1,6 @@
 #include "cmd.h"
 
+#include <iostream>
 #include <vector>
 
 #include <boost/algorithm/string.hpp>

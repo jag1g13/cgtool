@@ -158,6 +158,9 @@ int main(const int argc, const char *argv[]){
 
     // Post processing
     split_text_output("Post processing", start, num_threads);
+    // output cg residue
+    cg_frame.printGRO("cg.gro");
+
     bond_set.calcAvgs();
     bond_set.writeCSV();
 
