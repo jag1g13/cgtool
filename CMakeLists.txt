@@ -74,7 +74,7 @@ add_executable(gtest_parser src/parser.cpp src/tests/parser_test.cpp)
 target_link_libraries (gtest_parser ${GTEST_BOTH_LIBRARIES} ${EXTRA_LIBS})
 add_test(GTestParserAll gtest_parser)
 # test bondset
-add_executable(gtest_bondset src/bondset.cpp src/bond_struct.cpp src/array.cpp  src/frame.cpp src/parser.cpp src/tests/bondset_test.cpp)
+add_executable(gtest_bondset src/bondset.cpp src/boltzmann_inverter.cpp src/bond_struct.cpp src/array.cpp  src/frame.cpp src/parser.cpp src/tests/bondset_test.cpp)
 target_link_libraries (gtest_bondset ${GTEST_BOTH_LIBRARIES} ${EXTRA_LIBS})
 add_test(GTestBondSetAll gtest_bondset)
 # test array

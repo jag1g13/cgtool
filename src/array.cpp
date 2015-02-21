@@ -205,6 +205,14 @@ ArrayFloat::~ArrayFloat(){
     free();
 }
 
+double ArrayFloat::sum(){
+    assert(allocated_);
+    double sum = 0.;
+    for(int i=0; i<elems_; i++) sum += array_[i];
+    return sum;
+}
+
+
 bool operator==(const ArrayFloat &a, const ArrayFloat &b){
     assert(a.allocated_);
     assert(b.allocated_);

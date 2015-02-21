@@ -4,6 +4,8 @@
 
 #include <math.h>
 
+#include "array.h"
+
 using std::cout;
 using std::endl;
 
@@ -14,27 +16,59 @@ void BoltzmannInverter::invertGaussian(){
 }
 
 void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
-    double max = bond.avg_, min = bond.avg_;
+    max_ = bond.avg_; min_ = bond.avg_;
+    bins_ = bins;
     histogram_.init(bins);
+    gaussian_.init(bins);
+    n_ = bond.values_.size();
 
     for(const double val : bond.values_){
-        if(val < min) min = val;
-        if(val > max) max = val;
+        if(val < min_) min_ = val;
+        if(val > max_) max_ = val;
     }
 
-    double step = (max - min) / (bins-1);
+    step_ = (max_ - min_) / (bins-1);
+    printf("%8.3f%8.3f%8.5f\n", min_, max_, step_);
 
     for(const float val : bond.values_){
-        int loc = int((val - min) / step);
+        int loc = int((val - min_) / step_);
         if(loc < 0 || loc > bins-1) cout << loc << endl;
         histogram_(loc)++;
     }
 }
 
+double BoltzmannInverter::gaussianRSquared(){
+    const double root2pi = sqrt(M_2_PI);
+    double y_bar = 0.;
+
+    // first pass to calculate mean and gaussian integral
+    for(int i=0; i<bins_; i++){
+        double x = min_ + i * step_;
+        double gau = (1 / (sdev_ * root2pi)) * exp(-(x - avg_) * (x - avg_) / (2 * sdev_ * sdev_));
+        gaussian_(i) = gau;
+        y_bar += int(histogram_(i));
+    }
+
+    y_bar /= bins_;
+    double gau_scale = n_ / gaussian_.sum();
+    double ss_res = 0., ss_tot = 0.;
+
+    // second pass to calculate R^2
+    for(int i=0; i<bins_; i++){
+        int actual = int(histogram_(i));
+        double gau = gaussian_(i) * gau_scale;
+        ss_res += (actual - gau) * (actual - gau);
+        ss_tot += (actual - y_bar) * (actual - y_bar);
+    }
+    const double r_sqr = 1 - ss_res / ss_tot;
+//    printf("%8.3f\n", r_sqr);
+    return r_sqr;
+}
+
 // use these properties to form the gaussian and check R2 value
 // if it's small, go on and calculate the force constant, otherwise... use guess??
 // I don't need to calculate skew or kurtosis unless they're useful for uni/multi-modal check
-void BoltzmannInverter::statisticalMoments(const vector<float> &vec){
+void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
 //    if(array.getDimensions() != 1) throw std::logic_error("Can't get moments of n-dimensional array");
     double sum = 0.0;
 //    int n = array.getElems();
@@ -43,32 +77,34 @@ void BoltzmannInverter::statisticalMoments(const vector<float> &vec){
     // calculate mean with first pass
 //    for(int i = 0; i < n; i++) sum += array(i);
     for(int i = 0; i < n; i++) sum += vec[i];
-    const double avg = sum / n;
+    avg_ = sum / n;
 
     // calculate other stats with second pass
-    double adev = 0.0, var = 0.0, skew = 0.0, kurt = 0.0, ep = 0.0;
+    double var = 0.0, ep = 0.0;
+    adev_ = 0.0; skew_ = 0.0; kurt_ = 0.0;
     for(int i = 0; i < n; i++){
-//        sum = array(i) - avg;
-        sum = vec[i] - avg;
+        sum = vec[i] - avg_;
         ep += sum;
-        adev += fabs(sum);
+        adev_ += fabs(sum);
 
         double p = sum * sum;
         var += p;
 
         p *= sum;
-        skew += p;
+        skew_ += p;
 
         p *= sum;
-        kurt += p;
+        kurt_ += p;
     }
 
-    adev /= n;
+    adev_ /= n;
     var = (var - ep*ep/n) / (n - 1);
-    const double sdev = sqrt(var);
+    sdev_ = sqrt(var);
 
     if(var > 0.01){
-        skew /= n * sdev*sdev*sdev;
-        kurt /= (n * var*var) - 3;
+        skew_ /= n * sdev_*var;
+        kurt_ /= (n * var*var) - 3;
     }
+
+    printf("%12.5f%12.5f%12.5f%12.5f\n", avg_, sdev_, skew_, kurt_);
 }

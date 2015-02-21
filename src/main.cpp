@@ -163,6 +163,7 @@ int main(const int argc, const char *argv[]){
 
     bond_set.calcAvgs();
     bond_set.writeCSV();
+    bond_set.boltzmannInversion();
 
     ITPWriter itp("out.itp");
     itp.printAtoms(mapping);

@@ -7,6 +7,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "parser.h"
+#include "boltzmann_inverter.h"
 
 using std::vector;
 using std::string;
@@ -78,6 +79,16 @@ void BondSet::calcAvgs(){
     }
     for(BondStruct &bond : dihedrals_){
         bond.calcAvg();
+    }
+}
+
+void BondSet::boltzmannInversion(){
+    BoltzmannInverter bi;
+    for(BondStruct &bond : bonds_){
+        bond.calcAvg();
+        bi.statisticalMoments(bond.values_);
+        bi.binHistogram(bond, 32);
+        bi.gaussianRSquared();
     }
 }
 

@@ -88,6 +88,9 @@ public:
     /** Linspace a line of a 1d array */
     void linspace(const int n, const float min, const float max);
 
+    /** \brief Sum all elements in the array. */
+    double sum();
+
     // operators and friends
     /** Array equality test */
     friend bool operator==(const ArrayFloat &a, const ArrayFloat &b);
