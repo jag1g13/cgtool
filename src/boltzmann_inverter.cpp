@@ -16,6 +16,10 @@ void BoltzmannInverter::invertGaussian(){
 }
 
 void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
+    // make sure you know where the point estimates for the
+    // histogram for the residual calculation are coming from
+    //
+    // look up constant variance test to see if you need more data
     max_ = bond.avg_; min_ = bond.avg_;
     bins_ = bins;
     histogram_.init(bins);
@@ -28,7 +32,7 @@ void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
     }
 
     step_ = (max_ - min_) / (bins-1);
-    printf("%8.3f%8.3f%8.5f\n", min_, max_, step_);
+//    printf("%8.3f%8.3f%8.5f\n", min_, max_, step_);
 
     for(const float val : bond.values_){
         int loc = int((val - min_) / step_);
@@ -51,17 +55,19 @@ double BoltzmannInverter::gaussianRSquared(){
 
     y_bar /= bins_;
     double gau_scale = n_ / gaussian_.sum();
-    double ss_res = 0., ss_tot = 0.;
+    double ss_res = 0., ss_reg = 0., ss_tot = 0.;
 
     // second pass to calculate R^2
     for(int i=0; i<bins_; i++){
         int actual = int(histogram_(i));
         double gau = gaussian_(i) * gau_scale;
+        ss_reg += (y_bar - gau) * (y_bar - gau);
         ss_res += (actual - gau) * (actual - gau);
         ss_tot += (actual - y_bar) * (actual - y_bar);
     }
-    const double r_sqr = 1 - ss_res / ss_tot;
-//    printf("%8.3f\n", r_sqr);
+//    const double r_sqr = 1 - ss_res / ss_tot;
+    const double r_sqr = ss_res / ss_tot;
+    printf("%8.3f\n", r_sqr);
     return r_sqr;
 }
 
@@ -106,5 +112,5 @@ void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
         kurt_ /= (n * var*var) - 3;
     }
 
-    printf("%12.5f%12.5f%12.5f%12.5f\n", avg_, sdev_, skew_, kurt_);
+//    printf("%12.5f%12.5f%12.5f%12.5f\n", avg_, sdev_, skew_, kurt_);
 }
