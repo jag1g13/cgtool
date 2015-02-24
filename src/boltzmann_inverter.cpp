@@ -61,11 +61,10 @@ double BoltzmannInverter::gaussianRSquared(){
     for(int i=0; i<bins_; i++){
         int actual = int(histogram_(i));
         double gau = gaussian_(i) * gau_scale;
-        ss_reg += (y_bar - gau) * (y_bar - gau);
         ss_res += (actual - gau) * (actual - gau);
         ss_tot += (actual - y_bar) * (actual - y_bar);
     }
-//    const double r_sqr = 1 - ss_res / ss_tot;
+    //const double r_sqr = 1 - ss_res / ss_tot;
     const double r_sqr = ss_res / ss_tot;
     printf("%8.3f\n", r_sqr);
     return r_sqr;
