@@ -13,6 +13,19 @@ void BoltzmannInverter::invertGaussian(){
     /* line from Python version
     y_inv = -R * T * np.log(y_fit / (x_fit*x_fit))
      */
+    const double R = 8.314;
+    const int T = 310;
+
+    ArrayFloat harmonic(bins_);
+
+    double x = min_ + 0.5*step_;
+    for(int i=0; i<bins_; i++){
+        harmonic(i) = -R * T * log(gaussian_(i) / (x*x));
+        x += step_;
+    }
+
+    // equation y = kx(x - mean)
+    
 }
 
 void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
@@ -43,29 +56,35 @@ void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
 
 double BoltzmannInverter::gaussianRSquared(){
     const double root2pi = sqrt(M_2_PI);
+    const double prefactor = 1. / (sdev_ * root2pi);
     double y_bar = 0.;
 
     // first pass to calculate mean and gaussian integral
     for(int i=0; i<bins_; i++){
-        double x = min_ + i * step_;
-        double gau = (1 / (sdev_ * root2pi)) * exp(-(x - avg_) * (x - avg_) / (2 * sdev_ * sdev_));
+        double x = min_ + (i + 0.5) * step_;
+        double gau = prefactor * exp(-(x-mean_) * (x-mean_) / (2 * var_));
         gaussian_(i) = gau;
         y_bar += int(histogram_(i));
     }
 
     y_bar /= bins_;
-    double gau_scale = n_ / gaussian_.sum();
+    const double gau_scale = n_ / gaussian_.sum();
     double ss_res = 0., ss_reg = 0., ss_tot = 0.;
+    double sse = 0.;
 
     // second pass to calculate R^2
     for(int i=0; i<bins_; i++){
         int actual = int(histogram_(i));
         double gau = gaussian_(i) * gau_scale;
-        ss_res += (actual - gau) * (actual - gau);
+//        ss_reg += (gau - y_bar) * (gau - y_bar);
+        ss_res += (gau - actual) * (gau - actual);
         ss_tot += (actual - y_bar) * (actual - y_bar);
+        sse += (actual - gau) * (actual - gau);
     }
-    //const double r_sqr = 1 - ss_res / ss_tot;
-    const double r_sqr = ss_res / ss_tot;
+    const double r_sqr = 1 - ss_res / ss_tot;
+//    const double r_sqr2 = ss_reg / ss_tot;
+//    sse = log(sse / n_);
+//    printf("%8.3f%8.3f%12.3f\n", r_sqr, r_sqr2, sse);
     printf("%8.3f\n", r_sqr);
     return r_sqr;
 }
@@ -82,18 +101,18 @@ void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
     // calculate mean with first pass
 //    for(int i = 0; i < n; i++) sum += array(i);
     for(int i = 0; i < n; i++) sum += vec[i];
-    avg_ = sum / n;
+    mean_ = sum / n;
 
     // calculate other stats with second pass
-    double var = 0.0, ep = 0.0;
+    double var_ = 0.0, ep = 0.0;
     adev_ = 0.0; skew_ = 0.0; kurt_ = 0.0;
     for(int i = 0; i < n; i++){
-        sum = vec[i] - avg_;
+        sum = vec[i] - mean_;
         ep += sum;
         adev_ += fabs(sum);
 
         double p = sum * sum;
-        var += p;
+        var_ += p;
 
         p *= sum;
         skew_ += p;
@@ -103,12 +122,12 @@ void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
     }
 
     adev_ /= n;
-    var = (var - ep*ep/n) / (n - 1);
-    sdev_ = sqrt(var);
+    var_ = (var_ - ep*ep/n) / (n - 1);
+    sdev_ = sqrt(var_);
 
-    if(var > 0.01){
-        skew_ /= n * sdev_*var;
-        kurt_ /= (n * var*var) - 3;
+    if(var_ > 0.01){
+        skew_ /= n * sdev_*var_;
+        kurt_ /= (n * var_*var_) - 3;
     }
 
 //    printf("%12.5f%12.5f%12.5f%12.5f\n", avg_, sdev_, skew_, kurt_);
