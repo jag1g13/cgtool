@@ -25,7 +25,7 @@ void BoltzmannInverter::invertGaussian(){
     }
 
     // equation y = kx(x - mean)
-    
+
 }
 
 void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
@@ -47,7 +47,7 @@ void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
     step_ = (max_ - min_) / (bins-1);
 //    printf("%8.3f%8.3f%8.5f\n", min_, max_, step_);
 
-    for(const float val : bond.values_){
+    for(const double val : bond.values_){
         int loc = int((val - min_) / step_);
         if(loc < 0 || loc > bins-1) cout << loc << endl;
         histogram_(loc)++;
@@ -55,14 +55,14 @@ void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
 }
 
 double BoltzmannInverter::gaussianRSquared(){
-    const double root2pi = sqrt(M_2_PI);
-    const double prefactor = 1. / (sdev_ * root2pi);
+    const double prefactor = 1. / (sdev_ * sqrt(M_2_PI));
+    const double postfactor = 1. / (2 * var_);
     double y_bar = 0.;
 
     // first pass to calculate mean and gaussian integral
     for(int i=0; i<bins_; i++){
         double x = min_ + (i + 0.5) * step_;
-        double gau = prefactor * exp(-(x-mean_) * (x-mean_) / (2 * var_));
+        double gau = prefactor * exp(-(x-mean_) * (x-mean_) * postfactor);
         gaussian_(i) = gau;
         y_bar += int(histogram_(i));
     }
@@ -79,7 +79,7 @@ double BoltzmannInverter::gaussianRSquared(){
 //        ss_reg += (gau - y_bar) * (gau - y_bar);
         ss_res += (gau - actual) * (gau - actual);
         ss_tot += (actual - y_bar) * (actual - y_bar);
-        sse += (actual - gau) * (actual - gau);
+//        sse += (actual - gau) * (actual - gau);
     }
     const double r_sqr = 1 - ss_res / ss_tot;
 //    const double r_sqr2 = ss_reg / ss_tot;
@@ -89,46 +89,25 @@ double BoltzmannInverter::gaussianRSquared(){
     return r_sqr;
 }
 
-// use these properties to form the gaussian and check R2 value
-// if it's small, go on and calculate the force constant, otherwise... use guess??
-// I don't need to calculate skew or kurtosis unless they're useful for uni/multi-modal check
 void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
-//    if(array.getDimensions() != 1) throw std::logic_error("Can't get moments of n-dimensional array");
     double sum = 0.0;
-//    int n = array.getElems();
     const unsigned long n = vec.size();
 
     // calculate mean with first pass
-//    for(int i = 0; i < n; i++) sum += array(i);
     for(int i = 0; i < n; i++) sum += vec[i];
     mean_ = sum / n;
 
-    // calculate other stats with second pass
-    double var_ = 0.0, ep = 0.0;
-    adev_ = 0.0; skew_ = 0.0; kurt_ = 0.0;
+    // calculate deviations with second pass
+    double ep = 0.0;
+    var_ = 0.0; adev_ = 0.0;
     for(int i = 0; i < n; i++){
-        sum = vec[i] - mean_;
-        ep += sum;
-        adev_ += fabs(sum);
-
-        double p = sum * sum;
-        var_ += p;
-
-        p *= sum;
-        skew_ += p;
-
-        p *= sum;
-        kurt_ += p;
+        double dev = vec[i] - mean_;
+        ep += dev;
+        adev_ += fabs(dev);
+        var_ += dev * dev;
     }
 
     adev_ /= n;
     var_ = (var_ - ep*ep/n) / (n - 1);
     sdev_ = sqrt(var_);
-
-    if(var_ > 0.01){
-        skew_ /= n * sdev_*var_;
-        kurt_ /= (n * var_*var_) - 3;
-    }
-
-//    printf("%12.5f%12.5f%12.5f%12.5f\n", avg_, sdev_, skew_, kurt_);
 }

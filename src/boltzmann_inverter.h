@@ -16,7 +16,7 @@ protected:
     ArrayFloat gaussian_;
     int bins_ = 0, n_ = 0;
     double min_, max_, step_;
-    double mean_, adev_, var_, sdev_, skew_, kurt_;
+    double mean_, adev_, var_, sdev_;
 
 public:
     BoltzmannInverter(){};

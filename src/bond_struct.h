@@ -23,6 +23,8 @@ public:
     std::vector<int> atomNums_;
     /** Average of bond parameter.  Double avoids overflow on summing over large numbers of Frames */
     double avg_ = 0.;
+    /** Force constant */
+    double forceConstant_ = 0.;
 
     /** Constructor to set size (bond/angle/dihedral) */
     BondStruct(const int size);
