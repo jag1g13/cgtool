@@ -17,6 +17,7 @@
 #include "field_map.h"
 #include "itp_writer.h"
 #include "parser.h"
+#include "boltzmann_inverter.h"
 
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 50

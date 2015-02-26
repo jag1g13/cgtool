@@ -116,6 +116,8 @@ float& ArrayFloat::operator()(int x, int y) {
         assert(dimensions_ == 2 || dimensions_ == 3);
         if(x < 0) x = size_[0] + x;
         if(y < 0) y = size_[1] + y;
+//        printf("%5i%5i%5i\n", size_[0], size_[1], size_[2]);
+//        printf("%5i%5i\n", x, y);
         assert(x < size_[0] && x >= 0);
         assert(y < size_[1] && y >= 0);
         /* if 3d array return ref to a row */

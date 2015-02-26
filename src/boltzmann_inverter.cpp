@@ -9,6 +9,7 @@
 using std::cout;
 using std::endl;
 
+
 void BoltzmannInverter::invertGaussian(){
     /* line from Python version
     y_inv = -R * T * np.log(y_fit / (x_fit*x_fit))
@@ -18,14 +19,103 @@ void BoltzmannInverter::invertGaussian(){
 
     ArrayFloat harmonic(bins_);
 
+    gaussian_.print(8, 2);
     double x = min_ + 0.5*step_;
     for(int i=0; i<bins_; i++){
         harmonic(i) = -R * T * log(gaussian_(i) / (x*x));
         x += step_;
     }
+    harmonic.print(12, 2);
+    cout << endl;
 
     // equation y = kx(x - mean)
+    // may as well fit all coefficients
+    // replace with lapack
+    // A = (xT . x)^-1 . xT . y
+    // where y is harmonic()
+    // replace code here with matrix multiply in ArrayFloat
 
+    // input arrays
+    ArrayFloat X(bins_, 3);
+    for(int i=0; i<bins_; i++){
+        X(i, 0) = 1;
+        X(i, 1) = (min_ + (i + 0.5) * step_);
+        X(i, 2) = X(i, 1) * X(i, 1);
+    }
+//    X(0, 0) = 1; X(0,1) = -1; X(0, 2) = 1;
+//    X(1, 0) = 1; X(1,1) = 0; X(1, 2) = 0;
+//    X(2, 0) = 1; X(2,1) = 1; X(2, 2) = 1;
+//    X(3, 0) = 1; X(3,1) = 2; X(3, 2) = 4;
+    X.print(10, 3);
+    cout << endl;
+
+//    ArrayFloat Y(bins_);
+//    Y(0) = 1; Y(1) = 0; Y(2) = 1; Y(3) = 4;
+
+    // output array
+    ArrayFloat A(3);
+
+    // tmp arrays
+    ArrayFloat XT(3, bins_);
+    ArrayFloat XTX(3, 3);
+    ArrayFloat XTXInv(3, 3);
+
+    for(int i=0; i<3; i++){
+        for(int j=0; j<bins_; j++){
+            XT(i, j) = X(j, i);
+        }
+    }
+//    XT.print();
+//    cout << endl;
+
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            for(int k=0; k<bins_; k++){
+                XTX(i, j) += XT(j, k) * X(k, i);
+            }
+        }
+    }
+//    XTX.print();
+//    cout << endl;
+
+    double det = 0.;
+    det += XTX(0, 0) * (XTX(1, 1)*XTX(2, 2) - XTX(2, 1)*XTX(1, 2));
+    det -= XTX(1, 0) * (XTX(0, 1)*XTX(2, 2) - XTX(2, 1)*XTX(0, 2));
+    det += XTX(2, 0) * (XTX(0, 1)*XTX(1, 2) - XTX(1, 1)*XTX(0, 2));
+    cout << det << endl;
+    cout << endl;
+    double invdet = 1. / det;
+
+    XTXInv(0,0) =  (XTX(1,1)*XTX(2,2)-XTX(2,1)*XTX(1,2))*invdet;
+    XTXInv(0,1) = -(XTX(0,1)*XTX(2,2)-XTX(0,2)*XTX(2,1))*invdet;
+    XTXInv(0,2) =  (XTX(0,1)*XTX(1,2)-XTX(0,2)*XTX(1,1))*invdet;
+    XTXInv(1,0) = -(XTX(1,0)*XTX(2,2)-XTX(1,2)*XTX(2,0))*invdet;
+    XTXInv(1,1) =  (XTX(0,0)*XTX(2,2)-XTX(0,2)*XTX(2,0))*invdet;
+    XTXInv(1,2) = -(XTX(0,0)*XTX(1,2)-XTX(1,0)*XTX(0,2))*invdet;
+    XTXInv(2,0) =  (XTX(1,0)*XTX(2,1)-XTX(2,0)*XTX(1,1))*invdet;
+    XTXInv(2,1) = -(XTX(0,0)*XTX(2,1)-XTX(2,0)*XTX(0,1))*invdet;
+    XTXInv(2,2) =  (XTX(0,0)*XTX(1,1)-XTX(1,0)*XTX(0,1))*invdet;
+//    XTXInv.print();
+//    cout << endl;
+
+    ArrayFloat XTXInvXT(3, bins_);
+    for(int i=0; i<3; i++){
+        for(int j=0; j<bins_; j++){
+            for(int k=0; k<3; k++){
+                XTXInvXT(i, j) += XTXInv(i, k) * XT(k, j);
+            }
+        }
+    }
+//    XTXInvXT.print();
+//    cout << endl;
+
+    for(int i=0; i<3; i++){
+        for(int k=0; k<bins_; k++){
+            A(i) += XTXInvXT(i, k) * harmonic(k);
+        }
+    }
+    A.print(12, 3);
+    cout << endl;
 }
 
 void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
