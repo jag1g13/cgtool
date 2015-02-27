@@ -153,12 +153,12 @@ public:
 
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file
-    * \throws runtime_error if Frame has already been setup
+    * \throws logic_error if Frame has already been setup
     *
-    * GROMACS read_first_xtc() gets data from the XTC file about the system.
-    * This function uses this data to create a Frame object to process this data
+    * Uses libxdrfile to get number of atoms and allocate storage.
+    * This function uses this data to create a Frame object to process this data.
     */
-    bool setupFrame(const std::string &topname, XDRFILE *xtc);
+    bool setupFrame(const std::string &topname, const std::string &xtcname);
 
     /**
     * \brief Read next frame from the open XTC file

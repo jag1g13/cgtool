@@ -4,7 +4,7 @@ project(cgtool)
 MESSAGE("${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 
 set(IGNORED_WARNINGS "-Wno-sign-compare -Wno-unused-variable -Wno-comment")
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall ${IGNORED_WARNINGS}")
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++11 -Wall ${IGNORED_WARNINGS}")
 
 # Platform
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
@@ -29,7 +29,12 @@ link_directories("/usr/local/lib /usr/lib/x86_64-linux-gnu")
 
 # libxdrfile - replaces GROMACS
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-set (EXTRA_LIBS ${EXTRA_LIBS} xdrfile)
+find_library(XDRFILE_LIBRARY NAMES xdrfile
+             PATHS /usr/lib /usr/local/lib ${CMAKE_CURRENT_SOURCE_DIR}lib)
+if(XDRFILE_LIBRARY)
+    MESSAGE("Found libxdrfile: ${XDRFILE_LIBRARY}")
+endif()
+set (EXTRA_LIBS ${EXTRA_LIBS} ${XDRFILE_LIBRARY})
 
 # Boost
 find_package(Boost COMPONENTS program_options REQUIRED)

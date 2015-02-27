@@ -58,16 +58,7 @@ Frame::Frame(const Frame &frame){
 //}
 
 Frame::Frame(const std::string topname, const std::string xtcname){
-    char mode[2] = {'r', 'w'};
-//    xtcInput_ = open_xtc(xtcname.c_str(), &mode[0]);
-    int status = read_xtc_natoms(xtcname.c_str(), &numAtoms_);
-    if(exdrOK != status){
-        cout<< "Could not open input XTC file" << endl;
-        exit(-1);
-    }
-    xtcInput_ = xdrfile_open(xtcname.c_str(), &mode[0]);
-//    if(output) xtc_out = open_xtc("out.xtc", &mode[1]);
-    setupFrame(topname, xtcInput_);
+    setupFrame(topname, xtcname);
 }
 
 //TODO finish move constructor
@@ -125,12 +116,22 @@ bool Frame::writeToXtc(){
 }
 
 
-bool Frame::setupFrame(const std::string &topname, XDRFILE *xtc){
-    if(isSetup_) throw std::runtime_error("Frame has already been setup");
+bool Frame::setupFrame(const string &topname, const string &xtcname){
+    if(isSetup_) throw std::logic_error("Frame has already been setup");
+    char mode[2] = {'r', 'w'};
+    int status = read_xtc_natoms(xtcname.c_str(), &numAtoms_);
+    if(status != exdrOK){
+        cout << "Could not open input XTC file" << endl;
+        exit(-1);
+    }
+    xtcInput_ = xdrfile_open(xtcname.c_str(), &mode[0]);
+//    if(output) xtc_out = xdrfile_open("out.xtc".c_str(), &mode[1]);
     num_ = 0;
-    // init system from XTC file - GROMACS library
+
+    // init system from XTC file - libxdrfile library
     x_ = (rvec *)malloc(numAtoms_ * sizeof(*x_));
-    int status = read_xtc(xtc, numAtoms_, &step_, &time_, box_, x_, &prec_);
+    status = read_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_);
+
 //    recentreBox(0);
 
     // print box vectors
@@ -187,9 +188,11 @@ bool Frame::readNext(){
     */
     assert(isSetup_);
     invalid_ = false;
-//    ok = read_next_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_, &bOK);
     int status = read_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_);
-    if(status != exdrOK) xdrfile_close(xtcInput_);
+    if(status != exdrOK){
+        xdrfile_close(xtcInput_);
+        return status == exdrOK;
+    }
 //    recentreBox(0);
     for(int i = 0; i < numAtomsTrack_; i++){
         // overwrite coords of atoms stored in the current Frame
@@ -198,7 +201,7 @@ bool Frame::readNext(){
         atoms_[i].coords[2] = x_[i][2];
     }
     num_++;
-    return status;
+    return status == exdrOK;
 }
 
 //TODO this doesn't solve the problem - we need all molecules to be whole

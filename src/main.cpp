@@ -47,7 +47,7 @@ int main(const int argc, const char *argv[]){
     clock_t start_time = std::clock();
 
     const string version_string =
-            "CGTOOL v0.1.133:3bdfbbb525e5";
+            "CGTOOL v0.2.148:eaf90eb22cfd";
 
     const string help_header =
             "Requires GROMACS .xtc and .top files.\n"
@@ -59,7 +59,7 @@ int main(const int argc, const char *argv[]){
             "--cfg\tCGTOOL mapping file\tcg.cfg";
     const string help_string = help_header + help_options;
 
-    // clang doesn't like this - it doesn't seem to handle OpenMP well?
+    // clang doesn't like this - it doesn't seem to do OpenMP functions?
     int num_threads = 1;
 //    #pragma omp parallel
 //    #pragma omp master
