@@ -17,6 +17,7 @@
 #include "field_map.h"
 #include "itp_writer.h"
 #include "parser.h"
+#include "boltzmann_inverter.h"
 
 #define UPDATE_PROGRESS true
 #define PROGRESS_UPDATE_FREQ 50
@@ -38,6 +39,7 @@ vector<float> calc_avg(const vector<vector<float>> &vec);
 void printToCSV(ofstream *file, const vector<float> &vec);
 void split_text_output(const string, const clock_t, const int num_threads);
 bool file_exists(const string name);
+bool fix_PBC(const string name);
 
 
 int main(const int argc, const char *argv[]){
@@ -45,17 +47,19 @@ int main(const int argc, const char *argv[]){
     clock_t start_time = std::clock();
 
     const string version_string =
-            "CGTOOL v0.1.133:3bdfbbb525e5";
+            "CGTOOL v0.2.149:72a9a7be9ee9";
 
-    const string help_string =
+    const string help_header =
             "Requires GROMACS .xtc and .top files.\n"
             "Uses a config file to set beads and measure parameters\n\n"
-            "Usage:\n"
-            "cgtool\t\t\t\t; Runs using GROMACS files in the current directory\n"
-            "cgtool <directory>\t\t; Runs using GROMACS files in the specified directory\n"
-            "cgtool <xtc> <cfg> <top>\t; Runs using specified files - you want this one\n";
+            "Usage:\n";
+    const string help_options =
+            "--xtc\tGROMACS xtc file\tmd.xtc\n"
+            "--itp\tGROMACS itp file\ttopol.top\n"
+            "--cfg\tCGTOOL mapping file\tcg.cfg";
+    const string help_string = help_header + help_options;
 
-    // clang doesn't like this - it doesn't seem to handle OpenMP well?
+    // clang doesn't like this - it doesn't seem to do OpenMP functions?
     int num_threads = 1;
 //    #pragma omp parallel
 //    #pragma omp master
@@ -65,8 +69,7 @@ int main(const int argc, const char *argv[]){
 //    cout << "Running with " << num_threads << " threads" << endl;
 
     // get commands
-//    CMD cmd_parser(help_string);
-//    cmd_parser.boostParse(argc, argv);
+//    CMD cmd_parser(help_options, argc, argv);
 
     // Where does the user want us to look for input files?
     split_text_output(version_string, start, num_threads);
@@ -101,8 +104,8 @@ int main(const int argc, const char *argv[]){
         throw std::runtime_error("File doesn't exist");
     }
     cout << "XTC file: " << xtcname << endl;
-    cout << "TOP file: " << topname << endl;
     cout << "CFG file: " << cfgname << endl;
+    cout << "TOP file: " << topname << endl;
 
     // Open files and do setup
     split_text_output("Frame setup", start, num_threads);
@@ -156,12 +159,16 @@ int main(const int argc, const char *argv[]){
 
     // Post processing
     split_text_output("Post processing", start, num_threads);
+    // output cg residue
+    cg_frame.printGRO("cg.gro");
+
     bond_set.calcAvgs();
     bond_set.writeCSV();
+//    bond_set.boltzmannInversion();
 
     ITPWriter itp("out.itp");
     itp.printAtoms(mapping);
-    itp.printBonds(bond_set, cg_frame);
+    itp.printBonds(bond_set);
 
     // print something so I can check results by eye - can be removed later
     for(const BondStruct &bond : bond_set.bonds_){
@@ -177,6 +184,7 @@ int main(const int argc, const char *argv[]){
 
 void split_text_output(const string name, const clock_t start, const int num_threads){
     clock_t now = std::clock();
+    // if time has passed, how much?  Ignore small times
     if((float) (now - start) / CLOCKS_PER_SEC > 0.1){
         cout << "--------------------" << endl;
         cout << float(now - start) / (CLOCKS_PER_SEC * num_threads) << " seconds" << endl;
@@ -191,3 +199,9 @@ bool file_exists(const string name){
     return (stat(name.c_str(), &buffer) == 0);
 }
 
+/** call trjconv to fix PBC problems until I work out how to do it myself */
+bool fix_PBC(const string name){
+    std::stringstream stream;
+    stream << "trjconv -f " << name << ".xtc -o " << name << "_nojump.xtc -pbc nojump";
+    return bool(system(stream.str().c_str()));
+}

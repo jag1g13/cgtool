@@ -7,6 +7,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "parser.h"
+#include "boltzmann_inverter.h"
 
 using std::vector;
 using std::string;
@@ -46,15 +47,17 @@ void BondSet::fromFile(const string &filename){
 }
 
 void BondSet::calcBondsInternal(Frame &frame){
-//    for(BondStruct &bond : bonds_){
-//         does the structure cross a pbc - will break bond lengths
-//        float dist = frame.bondLength(bond);
-//        if(dist > 0.8f * frame.box_[0][0]){
-//        if(dist > 1.f || dist < 0.01f){
-//            frame.invalid_ = true;
-//            return;
-//        }
-//    }
+    for(BondStruct &bond : bonds_){
+//        does the structure cross a pbc - will break bond lengths
+        float dist = frame.bondLength(bond);
+//        if(dist > 0.8f * frame.box_[0][0])
+        if(dist > 1.f || dist < 0.01f){
+            frame.invalid_ = true;
+            cout << "Molecule must not be broken by PBC" << endl;
+            cout << "Consider using trjconv -pbc nojump" << endl;
+            return;
+        }
+    }
     numFrames_++;
     for(BondStruct &bond : bonds_){
         bond.values_.push_back(frame.bondLength(bond));
@@ -76,6 +79,17 @@ void BondSet::calcAvgs(){
     }
     for(BondStruct &bond : dihedrals_){
         bond.calcAvg();
+    }
+}
+
+void BondSet::boltzmannInversion(){
+    BoltzmannInverter bi;
+    for(BondStruct &bond : bonds_){
+        bond.calcAvg();
+        bi.statisticalMoments(bond.values_);
+        bi.binHistogram(bond, 5);
+        bi.gaussianRSquared();
+        bi.invertGaussian();
     }
 }
 

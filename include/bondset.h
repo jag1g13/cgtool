@@ -53,6 +53,8 @@ public:
 
     /** \brief Calculate averages of all bond measurements */
     void calcAvgs();
+    /** \brief Perform a boltzmann inversion on each bond */
+    void boltzmannInversion();
 
     /** \brief Write all values to CSVs */
     void writeCSV();

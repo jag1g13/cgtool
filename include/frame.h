@@ -1,7 +1,7 @@
 #ifndef FRAME_H_
 #define FRAME_H_
 
-#include <gromacs/fileio/xtcio.h>
+#include "xdrfile.h"
 
 #include <vector>
 #include <string>
@@ -10,6 +10,8 @@
 #include <string.h>
 
 #include "bondset.h"
+
+typedef unsigned int uint;
 
 /**
 * \brief Struct to hold atom data
@@ -73,19 +75,19 @@ protected:
     /** Has the XTC output been setup yet? */
     bool outputSetup_ = false;
     /** GROMACS xtc file to import frames */
-    t_fileio *xtcInput_ = nullptr;
+    XDRFILE *xtcInput_ = nullptr;
     /** GROMACS xtc file to export frames */
-    t_fileio *xtcOutput_ = nullptr;
+    XDRFILE *xtcOutput_ = nullptr;
     /** Vector of Residues; Each Residue contains pointers to atoms */
     std::vector<Residue> residues_;
     /** XTC precision; not used internally, just for XTC input/output */
     float prec_ = 0.f;
-    /** Size of the simulation box */
-    float box_[3][3];
     /** Holds atomic coordinates for GROMACS */
     rvec *x_ = NULL;
     /** Name of the Frame; taken from comment in the GRO file */
     std::string name_;
+    /** Size of the simulation box */
+    float box_[3][3];
     /** What box shape do we have?  Currently must be cubic */
     BoxType boxType_ = BoxType::CUBIC;
 
@@ -93,7 +95,7 @@ public:
     /** Has the Frame been properly setup yet? */
     bool isSetup_ = false;
     /** The number of atoms stored in this frame that we find interesting */
-    int numAtomsTrack_ = 0;
+    uint numAtomsTrack_ = 0;
     /** Vector of Atoms; Each Atom contains position and type data */
     std::vector<Atom> atoms_;
     /** The number of atoms stored in this frame */
@@ -118,7 +120,7 @@ public:
     * If we don't know the number of atoms at creation
     * this can be set later using Frame::allocateAtoms()
     */
-    Frame(const int num, const int natoms, const std::string name);
+    Frame(const uint num, const uint natoms, const std::string name);
 
     /**
     * \brief Create Frame passing config files.
@@ -151,12 +153,12 @@ public:
 
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file
-    * \throws runtime_error if Frame has already been setup
+    * \throws logic_error if Frame has already been setup
     *
-    * GROMACS read_first_xtc() gets data from the XTC file about the system.
-    * This function uses this data to create a Frame object to process this data
+    * Uses libxdrfile to get number of atoms and allocate storage.
+    * This function uses this data to create a Frame object to process this data.
     */
-    bool setupFrame(const std::string &topname, t_fileio *xtc);
+    bool setupFrame(const std::string &topname, const std::string &xtcname);
 
     /**
     * \brief Read next frame from the open XTC file
@@ -168,7 +170,7 @@ public:
     *
     * Used if the number of atoms isn't known at time of creation
     */
-    int allocateAtoms(const int natoms);
+    int allocateAtoms(const uint natoms);
 
     /**
     * \brief Prepare to write XTC output.
@@ -187,37 +189,40 @@ public:
     * Avoids problems where a residue is split by the periodic boundary,
     * causing bond lengths to be calculated incorrectly
     */
-    void recentreBox(const int atom_num);
+    void recentreBox(const uint atom_num);
 
     /** Print info for all atoms up to n.  Default print all. */
-    void printAtoms(int n=-1);
+    void printAtoms(int natoms=-1);
+
+    /** Print all atoms up to n to GRO file.  Default print all. */
+    void printGRO(const std::string &filename, int natoms=-1);
 
     /**
     * \brief Calculate distance between two atoms
     */
-    float bondLength(const int a, const int b);
+    double bondLength(const uint a, const uint b);
 
     /**
     * \brief Calculate distance between two atoms in a BondStruct object
     *
-    * Wrapper around float bondLength(int, int)
+    * Wrapper around float bondLength(uint, uint)
     */
-    float bondLength(BondStruct &bond);
+    double bondLength(BondStruct &bond);
 
     /**
     * \brief Calculate angle between vectors a->b and c->d
     *
     * To be used for bond angles (b=c) and dihedrals (b=/=c)
     */
-    float bondAngle(const int a, const int b, const int c, const int d);
+    double bondAngle(const uint a, const uint b, const uint c, const uint d);
 
 
     /**
     * \brief Calculate angle or dihedral between atoms in a BondStruct object
     *
-    * Wrapper around float bondAngle(int, int, int, int)
+    * Wrapper around float bondAngle(uint, uint, uint, uint)
     */
-    float bondAngle(BondStruct &bond);
+    double bondAngle(BondStruct &bond);
 };
 
 #endif

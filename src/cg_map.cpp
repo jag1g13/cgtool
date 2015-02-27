@@ -112,7 +112,7 @@ Frame CGMap::initFrame(const Frame &aa_frame){
             inbead->mass += atom->mass;
             inbead->charge += atom->charge;
         }else{
-            cout << "Ignoring atom " << i << " " << aa_frame.atoms_[i].atom_type << endl;
+//            cout << "Ignoring atom " << i << " " << aa_frame.atoms_[i].atom_type << endl;
         }
     }
 

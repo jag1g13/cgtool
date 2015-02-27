@@ -1,110 +1,47 @@
 #include "cmd.h"
 
 #include <iostream>
-#include <sstream>
+#include <vector>
 
 #include <boost/algorithm/string.hpp>
 
 using std::string;
 using std::cout;
 using std::endl;
+using std::vector;
 using boost::algorithm::trim;
 
 namespace po = boost::program_options;
 
-/*
-* Naval Fate.
-*
-* Usage:
-*   naval_fate ship new <name>...
-*   naval_fate ship <name> move <x> <y> [--speed=<kn>]
-*   naval_fate ship shoot <x> <y>
-*   naval_fate mine (set|remove) <x> <y> [--moored|--drifting]
-*   naval_fate -h | --help
-*   naval_fate --version
-*
-* Options:
-*   -h --help     Show this screen.
-*   --version     Show version.
-*   --speed=<kn>  Speed in knots [default: 10].
-*   --moored      Moored (anchored) mine.
-*   --drifting    Drifting mine.
- */
+CMD::CMD(const string &help_string, const int argc, const char *argv[]){
+//    const string help_options =
+//            "--xtc\tGROMACS xtc file\tmd.xtc\n"
+//            "--itp\tGROMACS itp file\ttopol.top\n"
+//            "--cfg\tCGTOOL mapping file\tcg.cfg";
 
-CMD::CMD(string help_string){
-    // Declare the supported options.
-//    po::options_description desc_("Allowed options");
-//    desc_.add_options()
-//        ("help", "produce help message")
-//        ("compression", po::value<int>(), "set compression level")
-//    ;
+    helpString_ = help_string;
+    vector<string> lines;
+    vector<string> parts(3);
 
+//    desc_.options_description("Allowed options");
+    desc_.add_options()("help", "show this help text");
+    boost::split(lines, helpString_, boost::is_any_of("\n"));
+    for(const string &line : lines){
+        boost::split(parts, line, boost::is_any_of("\t"));
+        const string arg = boost::trim_left_copy_if(parts[0], boost::is_any_of("-"));
+        desc_.add_options()(arg.c_str(), po::value<string>(), parts[1].c_str());
+        stringArgs_.emplace(arg, parts[2]);
+    }
+    po::store(po::parse_command_line(argc, argv, desc_), options_);
+    po::notify(options_);
+    if (options_.count("help")) {
+        cout << desc_ << "\n";
+    }
+    exit(0);
 }
 
 CMD::CMD(){
 
-}
-
-bool CMD::boostParse(const int argc, const char *argv[]){
-    po::options_description desc("Allowed options");
-    desc.add_options()
-            ("help", "show this help text")
-            ("compression", po::value<string>(), "set compression level")
-            ;
-    po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
-
-    // if key is in map
-    if (vm.count("help")) {
-        cout << desc << "\n";
-        return 1;
-    }
-
-    if (vm.count("compression")) {
-        cout << "Compression level was set to "
-                << vm["compression"].as<int>() << ".\n";
-    } else {
-        cout << "Compression level was not set.\n";
-    }
-    // stop - just for testing
-    exit(0);
-}
-
-bool CMD::parseArguments(const int argc, const char *argv[]){
-//    throw std::runtime_error("Not implemented");
-    string current_arg;
-    for(int i=1; i<argc; i++){
-        if(argv[i][0] == '-'){
-            // new argument
-            if(argv[i][1] == '-'){
-                current_arg = argv[i][2];
-            }else{
-            current_arg = argv[i][1];
-            }
-            if(current_arg == "h" || current_arg == "help") help();
-            if(argTypes_[current_arg] == ArgType::BOOL) boolArgs_[current_arg] = true;
-            cout << current_arg << endl;
-
-        }else{
-            // if not new arg - must be value
-            switch(argTypes_[current_arg]){
-                case ArgType::STRING:
-                    stringArgs_[current_arg] = argv[i];
-                    break;
-                case ArgType::INT:
-                    intArgs_[current_arg] = std::stoi(argv[i]);
-                    break;
-                case ArgType::FLOAT:
-                    floatArgs_[current_arg] = std::stof(argv[i]);
-                    break;
-                case ArgType::BOOL:
-                    // do nothing, already dealt with
-                    break;
-            }
-        }
-    }
-    return true;
 }
 
 void CMD::help(){
@@ -112,22 +49,22 @@ void CMD::help(){
     exit(0);
 }
 
-const std::string CMD::getStringArg(const std::string arg){
+const std::string &CMD::getStringArg(const std::string &arg){
     throw std::runtime_error("Not implemented");
 
 }
 
-const int CMD::getIntArg(const std::string arg){
+const int CMD::getIntArg(const std::string &arg){
     throw std::runtime_error("Not implemented");
 
 }
 
-const float CMD::getFloatArg(const std::string arg){
+const float CMD::getFloatArg(const std::string &arg){
     throw std::runtime_error("Not implemented");
 
 }
 
-const bool CMD::getBoolArg(const std::string arg){
+const bool CMD::getBoolArg(const std::string &arg){
     throw std::runtime_error("Not implemented");
 
 }
