@@ -1,7 +1,7 @@
 #ifndef FRAME_H_
 #define FRAME_H_
 
-#include <gromacs/fileio/xtcio.h>
+#include "xdrfile.h"
 
 #include <vector>
 #include <string>
@@ -75,9 +75,9 @@ protected:
     /** Has the XTC output been setup yet? */
     bool outputSetup_ = false;
     /** GROMACS xtc file to import frames */
-    t_fileio *xtcInput_ = nullptr;
+    XDRFILE *xtcInput_ = nullptr;
     /** GROMACS xtc file to export frames */
-    t_fileio *xtcOutput_ = nullptr;
+    XDRFILE *xtcOutput_ = nullptr;
     /** Vector of Residues; Each Residue contains pointers to atoms */
     std::vector<Residue> residues_;
     /** XTC precision; not used internally, just for XTC input/output */
@@ -158,7 +158,7 @@ public:
     * GROMACS read_first_xtc() gets data from the XTC file about the system.
     * This function uses this data to create a Frame object to process this data
     */
-    bool setupFrame(const std::string &topname, t_fileio *xtc);
+    bool setupFrame(const std::string &topname, XDRFILE *xtc);
 
     /**
     * \brief Read next frame from the open XTC file

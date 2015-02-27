@@ -165,7 +165,8 @@ double BoltzmannInverter::gaussianRSquared(){
     // second pass to calculate R^2
     for(int i=0; i<bins_; i++){
         int actual = int(histogram_(i));
-        double gau = gaussian_(i) * gau_scale;
+        gaussian_(i) *= gau_scale;
+        const double gau = gaussian_(i);
 //        ss_reg += (gau - y_bar) * (gau - y_bar);
         ss_res += (gau - actual) * (gau - actual);
         ss_tot += (actual - y_bar) * (actual - y_bar);

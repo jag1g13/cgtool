@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <sstream>
 
+#include "xdrfile_xtc.h"
+
 #include "parser.h"
 
 #define EPSILON 0.00001
@@ -57,7 +59,13 @@ Frame::Frame(const Frame &frame){
 
 Frame::Frame(const std::string topname, const std::string xtcname){
     char mode[2] = {'r', 'w'};
-    xtcInput_ = open_xtc(xtcname.c_str(), &mode[0]);
+//    xtcInput_ = open_xtc(xtcname.c_str(), &mode[0]);
+    int status = read_xtc_natoms(xtcname.c_str(), &numAtoms_);
+    if(exdrOK != status){
+        cout<< "Could not open input XTC file" << endl;
+        exit(-1);
+    }
+    xtcInput_ = xdrfile_open(xtcname.c_str(), &mode[0]);
 //    if(output) xtc_out = open_xtc("out.xtc", &mode[1]);
     setupFrame(topname, xtcInput_);
 }
@@ -97,7 +105,7 @@ int Frame::allocateAtoms(const uint num_atoms){
 void Frame::setupOutput(const string &xtcname, const string &topname){
     throw std::runtime_error("Not implemented");
     char mode[2] = {'r', 'w'};
-    if(xtcOutput_ == NULL) xtcOutput_ = open_xtc(xtcname.c_str(), &mode[1]);
+    if(xtcOutput_ == NULL) xtcOutput_ = xdrfile_open(xtcname.c_str(), &mode[1]);
     if(x_ == NULL) x_ = (rvec*)malloc(numAtoms_ * sizeof(rvec));
     if(x_ == NULL) throw std::runtime_error("Couldn't allocate memory");
 
@@ -117,12 +125,12 @@ bool Frame::writeToXtc(){
 }
 
 
-bool Frame::setupFrame(const std::string &topname, t_fileio *xtc){
+bool Frame::setupFrame(const std::string &topname, XDRFILE *xtc){
     if(isSetup_) throw std::runtime_error("Frame has already been setup");
     num_ = 0;
-    gmx_bool bOK = 0;
     // init system from XTC file - GROMACS library
-    int ok = read_first_xtc(xtc, &numAtoms_, &step_, &time_, box_, &x_, &prec_, &bOK);
+    x_ = (rvec *)malloc(numAtoms_ * sizeof(*x_));
+    int status = read_xtc(xtc, numAtoms_, &step_, &time_, box_, x_, &prec_);
 //    recentreBox(0);
 
     // print box vectors
@@ -165,7 +173,7 @@ bool Frame::setupFrame(const std::string &topname, t_fileio *xtc){
         atoms_[i].coords[2] = x_[i][2];
     }
 
-    if(ok && bOK) isSetup_ = true;
+    if(status == exdrOK) isSetup_ = true;
     printAtoms(numAtomsTrack_);
     return isSetup_;
 }
@@ -177,10 +185,11 @@ bool Frame::readNext(){
     * Reads a frame into a pre-setup Frame object.
     * The same Frame object should be used for each frame to save time in allocation.
     */
-    int ok = 0, bOK = 0;
     assert(isSetup_);
     invalid_ = false;
-    ok = read_next_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_, &bOK);
+//    ok = read_next_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_, &bOK);
+    int status = read_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_);
+    if(status != exdrOK) xdrfile_close(xtcInput_);
 //    recentreBox(0);
     for(int i = 0; i < numAtomsTrack_; i++){
         // overwrite coords of atoms stored in the current Frame
@@ -189,8 +198,7 @@ bool Frame::readNext(){
         atoms_[i].coords[2] = x_[i][2];
     }
     num_++;
-    if(!ok || !bOK) close_xtc(xtcInput_);
-    return ok && bOK;
+    return status;
 }
 
 //TODO this doesn't solve the problem - we need all molecules to be whole
