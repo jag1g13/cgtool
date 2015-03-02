@@ -83,13 +83,15 @@ void BondSet::calcAvgs(){
 }
 
 void BondSet::boltzmannInversion(){
-    BoltzmannInverter bi;
     for(BondStruct &bond : bonds_){
+        cout << "..............." << endl;
         bond.calcAvg();
+        BoltzmannInverter bi;
         bi.statisticalMoments(bond.values_);
-        bi.binHistogram(bond, 25);
+        bi.binHistogram(bond, 75);
+        bi.printHistogram();
         bi.gaussianRSquared();
-        bi.invertGaussian();
+//        bi.invertGaussian();
     }
 }
 

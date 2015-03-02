@@ -33,10 +33,12 @@ public:
     * This data may not be useful for a multi-modal distribution.
     */
     void statisticalMoments(const std::vector<double> &vec);
-//    void statisticalMoments(ArrayFloat &array);
 
     /** \brief Calculate R^2 value for calculated gaussian relative to histogram */
     double gaussianRSquared();
+
+    /** \brief Print the histogram to terminal for debugging */
+    void printHistogram(const int scale=10);
 };
 
 #endif

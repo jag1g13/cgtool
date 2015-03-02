@@ -14,6 +14,7 @@ void BoltzmannInverter::invertGaussian(){
     /* line from Python version
     y_inv = -R * T * np.log(y_fit / (x_fit*x_fit))
      */
+    cout << "invertGaussian" << endl;
     const double R = 8.314;
     const int T = 310;
 
@@ -39,7 +40,7 @@ void BoltzmannInverter::invertGaussian(){
     Array X(bins_, 3);
     for(int i=0; i<bins_; i++){
         X(i, 0) = 1;
-        X(i, 1) = 10*(min_ + (i + 0.5) * step_); // in Angstroms
+        X(i, 1) = min_ + (i + 0.5) * step_; // in Angstroms
         X(i, 2) = X(i, 1) * X(i, 1);
     }
     X.print(15, 8);
@@ -113,16 +114,12 @@ void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
     // histogram for the residual calculation are coming from
     //
     // look up constant variance test to see if you need more data
-    max_ = bond.avg_; min_ = bond.avg_;
+    cout << "binHistogram" << endl;
     bins_ = bins;
     histogram_.init(bins);
     gaussian_.init(bins);
     n_ = bond.values_.size();
 
-    for(const double val : bond.values_){
-        if(val < min_) min_ = val;
-        if(val > max_) max_ = val;
-    }
 
     step_ = (max_ - min_) / (bins-1);
 //    printf("%8.3f%8.3f%8.5f\n", min_, max_, step_);
@@ -135,8 +132,10 @@ void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
 }
 
 double BoltzmannInverter::gaussianRSquared(){
-    const double prefactor = 1. / (sdev_ * sqrt(M_2_PI));
-    const double postfactor = 1. / (2 * var_);
+    cout << "gaussianRSquared" << endl;
+    const double prefactor = 1 / (sdev_ * sqrt(M_PI_2));
+    const double postfactor = 2. / var_;
+//    printf("%12.3f%12.3f%12.3f\n", amplitude_, prefactor, postfactor);
     double y_bar = 0.;
 
     // first pass to calculate mean and gaussian integral
@@ -146,6 +145,7 @@ double BoltzmannInverter::gaussianRSquared(){
         gaussian_(i) = gau;
         y_bar += int(histogram_(i));
     }
+    gaussian_.print();
 
     y_bar /= bins_;
     amplitude_ = n_ / gaussian_.sum();
@@ -171,12 +171,14 @@ double BoltzmannInverter::gaussianRSquared(){
 }
 
 void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
+    cout << "statisticalMoments" << endl;
     double sum = 0.0;
     const unsigned long n = vec.size();
 
     // calculate mean with first pass
     for(int i = 0; i < n; i++) sum += vec[i];
     mean_ = sum / n;
+    max_ = mean_; min_ = mean_;
 
     // calculate deviations with second pass
     double ep = 0.0;
@@ -186,9 +188,31 @@ void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
         ep += dev;
         adev_ += fabs(dev);
         var_ += dev * dev;
+        if(vec[i] < min_) min_ = vec[i];
+        if(vec[i] > max_) max_ = vec[i];
     }
 
     adev_ /= n;
     var_ = (var_ - ep*ep/n) / (n - 1);
     sdev_ = sqrt(var_);
+    printf("%12.9f%12.9f%12.9f%12.9f\n", mean_, var_, sdev_, max_-min_);
 }
+
+void BoltzmannInverter::printHistogram(const int scale){
+    int max_num = 0;
+    for(int i=0; i<bins_; i++){
+        if(int(histogram_(i)) > max_num) max_num = int(histogram_(i));
+    }
+    // go down rows in terminal and print marker if h_ is greater
+    for(int i=scale; i>0; i--){
+        printf("%5.3f|", min_);
+        for(int j=0; j<bins_; j++){
+            if(histogram_(j)*scale/max_num >= i){
+                printf("#");
+            }else{
+                printf(" ");
+            }
+        }
+        printf("|%5.3f\n", max_);
+    }
+};
