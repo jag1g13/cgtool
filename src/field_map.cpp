@@ -59,12 +59,12 @@ void FieldMap::setupGrid(const Frame &frame){
 }
 
 void FieldMap::setupGridContracted(const Frame &frame){
-    float radmin, dist;
-    float rmax = border_;    // use an rmax equal to border_ around molecule
-    float vrad = 0.1f;       // reject if within 1A of an atom (inside atomic radius)
+    double radmin2, dist2;
+    float rmax2 = border_ * border_;    // use an rmax equal to border_ around molecule
+    float vrad2 = 0.1f * 0.1f;       // reject if within 1A of an atom (inside atomic radius)
     bool accepted;
     int accepted_count = 0, close_count = 0, far_count = 0;
-    vector<float> coords(3);
+    vector<double> coords(3);
     gridContracted_.appendedRows_ = 0;
 
 #pragma omp parallel for
@@ -74,18 +74,18 @@ void FieldMap::setupGridContracted(const Frame &frame){
             coords[1] = gridCoords_(1, j);
             for(int k=0; k < gridDims_[2]; k++){
                 coords[2] = gridCoords_(2, k);
-                radmin = 500.f;
+                radmin2 = 500.f;
                 accepted = true;
                 for(int ii=0; ii < frame.numAtomsTrack_; ii++){
-                    dist = float(sqrt(distSqr(frame.atoms_[ii].coords, coords[0], coords[1], coords[2])));
-                    radmin = min(radmin, dist);
-                    if(dist < vrad){
+                    dist2 = distSqr(frame.atoms_[ii].coords, coords[0], coords[1], coords[2]);
+                    radmin2 = min(radmin2, dist2);
+                    if(dist2 < vrad2){
                         accepted = false;
                         ++close_count;
                         break;
                     }
                 }
-                if(accepted && radmin > rmax){
+                if(accepted && radmin2 > rmax2){
                     ++far_count;
                     continue;
                 }
@@ -289,10 +289,10 @@ void FieldMap::printDipoles(){
 }
 
 //TODO move this outside the class - it doesn't need to be here
-float FieldMap::distSqr(const float *coords, const float x, const float y, const float z) {
-    float tmpx = coords[0] - x;
-    float tmpy = coords[1] - y;
-    float tmpz = coords[2] - z;
+double FieldMap::distSqr(const double *coords, const double x, const double y, const double z) {
+    double tmpx = coords[0] - x;
+    double tmpy = coords[1] - y;
+    double tmpz = coords[2] - z;
     return tmpx*tmpx + tmpy*tmpy + tmpz*tmpz;
 }
 

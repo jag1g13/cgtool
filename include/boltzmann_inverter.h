@@ -12,11 +12,11 @@ protected:
     /** Pointer to associated BondSet */
     BondSet *bondSet_;
     /** Store histogram frequencies */
-    ArrayFloat histogram_;
-    ArrayFloat gaussian_;
+    Array histogram_;
+    Array gaussian_;
     int bins_ = 0, n_ = 0;
     double min_, max_, step_;
-    double mean_, adev_, var_, sdev_;
+    double amplitude_, mean_, adev_, var_, sdev_;
 
 public:
     BoltzmannInverter(){};

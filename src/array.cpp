@@ -10,11 +10,11 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-ArrayFloat::ArrayFloat(){
+Array::Array(){
 }
 
 //TODO turn this into a copy constructor
-ArrayFloat::ArrayFloat(const int a, const int b, const int c, const bool fast){
+Array::Array(const int a, const int b, const int c, const bool fast){
     fast_ = fast;
     allocated_ = false;
     assert(a > 0);
@@ -28,13 +28,13 @@ ArrayFloat::ArrayFloat(const int a, const int b, const int c, const bool fast){
     size_[0] = a; size_[1] = b; size_[2] = c;
     sizex_ = a; sizey_ = b; sizez_ = c;
     elems_ = a*b*c;
-    array_ = new float[elems_];
+    array_ = new double[elems_];
     if(array_ == NULL) throw std::runtime_error("Array alloc failed");
     allocated_ = true;
     zero();
 }
 
-void ArrayFloat::init(const int a, const int b, const int c, const bool fast){
+void Array::init(const int a, const int b, const int c, const bool fast){
     fast_ = fast;
     allocated_ = false;
     assert(a > 0);
@@ -48,13 +48,13 @@ void ArrayFloat::init(const int a, const int b, const int c, const bool fast){
     size_[0] = a; size_[1] = b; size_[2] = c;
     sizex_ = a; sizey_ = b; sizez_ = c;
     elems_ = a*b*c;
-    array_ = new float[elems_];
+    array_ = new double[elems_];
     if(array_ == NULL) throw std::runtime_error("Array alloc failed");
     allocated_ = true;
     zero();
 }
 
-void ArrayFloat::append(const vector<float> &vec){
+void Array::append(const vector<double> &vec){
     if(!fast_) {
         assert(allocated_);
         assert(dimensions_ == 2);
@@ -67,7 +67,7 @@ void ArrayFloat::append(const vector<float> &vec){
     appendedRows_++;
 }
 
-void ArrayFloat::append(const float *vec, const int len){
+void Array::append(const double *vec, const int len){
     if(!fast_){
         assert(allocated_);
         assert(dimensions_ == 2);
@@ -80,7 +80,7 @@ void ArrayFloat::append(const float *vec, const int len){
     appendedRows_++;
 }
 
-float& ArrayFloat::operator()(int x){
+double& Array::operator()(int x){
     if(!fast_) {
         assert(allocated_);
         assert(dimensions_ >= 1);
@@ -94,7 +94,7 @@ float& ArrayFloat::operator()(int x){
     return array_[x];
 }
 
-//float* ArrayFloat::operator()(int x){
+//double* Array::operator()(int x){
 //    if(!fast_) {
 //        assert(allocated_);
 //        assert(dimensions_ >= 1);
@@ -108,7 +108,7 @@ float& ArrayFloat::operator()(int x){
 //    return array_ + x;
 //}
 
-float& ArrayFloat::operator()(int x, int y) {
+double& Array::operator()(int x, int y) {
     if(fast_){
         return array_[x * sizey_ + y];
     }else{
@@ -126,7 +126,7 @@ float& ArrayFloat::operator()(int x, int y) {
     }
 }
 
-float& ArrayFloat::operator()(int x, int y, int z){
+double& Array::operator()(int x, int y, int z){
     if(!fast_){
         assert(allocated_);
         assert(dimensions_ == 3);
@@ -140,28 +140,28 @@ float& ArrayFloat::operator()(int x, int y, int z){
     return array_[x * sizey_ * sizez_ + y * sizez_ + z];
 }
 
-void ArrayFloat::linspace(const int a, const int n, const float min, const float max){
+void Array::linspace(const int a, const int n, const double min, const double max){
     assert(allocated_);
     assert(dimensions_ == 2);
     assert(a < size_[0]);
-    float *tmp = array_ + a*size_[1];
+    double *tmp = array_ + a*size_[1];
     for(int i=0; i<n; i++){
         tmp[i] = min + i*(max-min)/(n-1);
     }
 }
 
-void ArrayFloat::linspace(const int a, const int b, const int n, const float min, const float max){
+void Array::linspace(const int a, const int b, const int n, const double min, const double max){
     assert(allocated_);
     assert(dimensions_ == 3);
     assert(a < size_[0]);
     assert(b < size_[1]);
-    float *tmp = array_ + a*size_[1]*size_[2] + b*size_[2];
+    double *tmp = array_ + a*size_[1]*size_[2] + b*size_[2];
     for(int i=0; i<n; i++){
         tmp[i] = min + i*(max-min)/(n-1);
     }
 }
 
-void ArrayFloat::linspace(const int n, const float min, const float max){
+void Array::linspace(const int n, const double min, const double max){
     assert(allocated_);
     assert(dimensions_ == 1);
     for(int i=0; i<n; i++){
@@ -169,14 +169,14 @@ void ArrayFloat::linspace(const int n, const float min, const float max){
     }
 }
 
-void ArrayFloat::zero(){
+void Array::zero(){
     assert(allocated_);
     for(int i=0; i<elems_; i++){
         array_[i] = 0.f;
     }
 }
 
-void ArrayFloat::print(const int width, const int prec, const float scale){
+void Array::print(const int width, const int prec, const double scale){
     assert(allocated_);
     if(dimensions_ == 3) throw std::runtime_error("Not implemented");
 
@@ -197,17 +197,17 @@ void ArrayFloat::print(const int width, const int prec, const float scale){
     }
 }
 
-void ArrayFloat::free(){
+void Array::free(){
     if(array_) delete[] array_;
     allocated_ = false;
     array_ = nullptr;
 }
 
-ArrayFloat::~ArrayFloat(){
+Array::~Array(){
     free();
 }
 
-double ArrayFloat::sum(){
+double Array::sum(){
     assert(allocated_);
     double sum = 0.;
     for(int i=0; i<elems_; i++) sum += array_[i];
@@ -215,7 +215,7 @@ double ArrayFloat::sum(){
 }
 
 
-bool operator==(const ArrayFloat &a, const ArrayFloat &b){
+bool operator==(const Array &a, const Array &b){
     assert(a.allocated_);
     assert(b.allocated_);
     assert(a.elems_ == b.elems_);
@@ -231,30 +231,30 @@ bool operator==(const ArrayFloat &a, const ArrayFloat &b){
     return equal;
 }
 
-float rms(const ArrayFloat *a, const ArrayFloat *b){
+double rms(const Array *a, const Array *b){
     // Both arrays need to be allocated and the same size
     assert(a->allocated_);
     assert(b->allocated_);
     assert(a->elems_ == b->elems_);
-    float sum = 0.f;
+    double sum = 0.f;
     for(int i=0; i<a->elems_; i++){
         sum += (a->array_[i] - b->array_[i]) * (a->array_[i] - b->array_[i]);
     }
-    return float(sqrt(sum / a->elems_));
+    return double(sqrt(sum / a->elems_));
 }
 
-float vector_rms(const vector<float> *a, const vector<float> *b){
+double vector_rms(const vector<double> *a, const vector<double> *b){
     assert(a->size() == b->size());
     assert(a->size() != 0);
     assert(b->size() != 0);
-    float sum = 0.f;
+    double sum = 0.f;
     for(int i=0; i<a->size(); i++){
         sum += ((*a)[i] - (*b)[i]) * ((*a)[i] - (*b)[i]);
     }
-    return float(sqrt(sum / a->size()));
+    return double(sqrt(sum / a->size()));
 }
 
-ArrayFloat& ArrayFloat::operator-=(const ArrayFloat &other){
+Array& Array::operator-=(const Array &other){
     assert(elems_ == other.elems_);
     assert(dimensions_ == other.dimensions_);
     // could assert that it's the same shape, but might be useful in the future
@@ -262,7 +262,7 @@ ArrayFloat& ArrayFloat::operator-=(const ArrayFloat &other){
     return (*this);
 }
 
-ArrayFloat& ArrayFloat::operator+=(const ArrayFloat &other){
+Array& Array::operator+=(const Array &other){
     assert(elems_ == other.elems_);
     assert(dimensions_ == other.dimensions_);
     // could assert that it's the same shape, but might be useful in the future
@@ -271,13 +271,13 @@ ArrayFloat& ArrayFloat::operator+=(const ArrayFloat &other){
 }
 
 //TODO fix this with openmp - currently shows -nan
-StatsBox vector_stats(const vector<float> *a, const vector<float> *b){
+StatsBox vector_stats(const vector<double> *a, const vector<double> *b){
     assert(a->size() == b->size());
     const int N = a->size();
     assert(a->size() != 0);
     assert(b->size() != 0);
     StatsBox result;
-    float sumsqr = 0.f;
+    double sumsqr = 0.f;
     for(int i=0; i<a->size(); i++){
         sumsqr += ((*a)[i] - (*b)[i]) * ((*a)[i] - (*b)[i]);
         result.mean_a += (*a)[i];
@@ -285,8 +285,8 @@ StatsBox vector_stats(const vector<float> *a, const vector<float> *b){
     }
     result.mean_a /= N;
     result.mean_b /= N;
-    result.mean_diff = float(fabs(result.mean_a - result.mean_b));
-    result.rms = float((sqrt(sumsqr / N)));
-    result.rrms = float(fabs(result.rms / (result.mean_a)));
+    result.mean_diff = double(fabs(result.mean_a - result.mean_b));
+    result.rms = double((sqrt(sumsqr / N)));
+    result.rrms = double(fabs(result.rms / (result.mean_a)));
     return result;
 }

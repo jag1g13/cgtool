@@ -17,7 +17,7 @@ void BoltzmannInverter::invertGaussian(){
     const double R = 8.314;
     const int T = 310;
 
-    ArrayFloat harmonic(bins_);
+    Array harmonic(bins_);
 
     gaussian_.print(8, 2);
     double x = min_ + 0.5*step_;
@@ -33,40 +33,31 @@ void BoltzmannInverter::invertGaussian(){
     // replace with lapack
     // A = (xT . x)^-1 . xT . y
     // where y is harmonic()
-    // replace code here with matrix multiply in ArrayFloat
+    // replace code here with matrix multiply in Array
 
     // input arrays
-    ArrayFloat X(bins_, 3);
+    Array X(bins_, 3);
     for(int i=0; i<bins_; i++){
         X(i, 0) = 1;
-        X(i, 1) = (min_ + (i + 0.5) * step_);
+        X(i, 1) = 10*(min_ + (i + 0.5) * step_); // in Angstroms
         X(i, 2) = X(i, 1) * X(i, 1);
     }
-//    X(0, 0) = 1; X(0,1) = -1; X(0, 2) = 1;
-//    X(1, 0) = 1; X(1,1) = 0; X(1, 2) = 0;
-//    X(2, 0) = 1; X(2,1) = 1; X(2, 2) = 1;
-//    X(3, 0) = 1; X(3,1) = 2; X(3, 2) = 4;
-    X.print(10, 3);
+    X.print(15, 8);
     cout << endl;
 
-//    ArrayFloat Y(bins_);
-//    Y(0) = 1; Y(1) = 0; Y(2) = 1; Y(3) = 4;
-
     // output array
-    ArrayFloat A(3);
+    Array A(3);
 
     // tmp arrays
-    ArrayFloat XT(3, bins_);
-    ArrayFloat XTX(3, 3);
-    ArrayFloat XTXInv(3, 3);
+    Array XT(3, bins_);
+    Array XTX(3, 3);
+    Array XTXInv(3, 3);
 
     for(int i=0; i<3; i++){
         for(int j=0; j<bins_; j++){
             XT(i, j) = X(j, i);
         }
     }
-//    XT.print();
-//    cout << endl;
 
     for(int i=0; i<3; i++){
         for(int j=0; j<3; j++){
@@ -75,8 +66,6 @@ void BoltzmannInverter::invertGaussian(){
             }
         }
     }
-//    XTX.print();
-//    cout << endl;
 
     double det = 0.;
     det += XTX(0, 0) * (XTX(1, 1)*XTX(2, 2) - XTX(2, 1)*XTX(1, 2));
@@ -98,7 +87,7 @@ void BoltzmannInverter::invertGaussian(){
 //    XTXInv.print();
 //    cout << endl;
 
-    ArrayFloat XTXInvXT(3, bins_);
+    Array XTXInvXT(3, bins_);
     for(int i=0; i<3; i++){
         for(int j=0; j<bins_; j++){
             for(int k=0; k<3; k++){
@@ -113,8 +102,9 @@ void BoltzmannInverter::invertGaussian(){
         for(int k=0; k<bins_; k++){
             A(i) += XTXInvXT(i, k) * harmonic(k);
         }
+//        A(1) = A(1) / A(0);
     }
-    A.print(12, 3);
+    A.print(15, 3);
     cout << endl;
 }
 
@@ -158,14 +148,14 @@ double BoltzmannInverter::gaussianRSquared(){
     }
 
     y_bar /= bins_;
-    const double gau_scale = n_ / gaussian_.sum();
+    amplitude_ = n_ / gaussian_.sum();
     double ss_res = 0., ss_reg = 0., ss_tot = 0.;
     double sse = 0.;
 
     // second pass to calculate R^2
     for(int i=0; i<bins_; i++){
         int actual = int(histogram_(i));
-        gaussian_(i) *= gau_scale;
+        gaussian_(i) *= amplitude_;
         const double gau = gaussian_(i);
 //        ss_reg += (gau - y_bar) * (gau - y_bar);
         ss_res += (gau - actual) * (gau - actual);

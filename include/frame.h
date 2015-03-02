@@ -24,7 +24,7 @@ struct Atom{
     /** Atomtype as a string.  I don't want to be dealing with *char */
     std::string atom_type;
     /** Atomic coordinates in x, y, z */
-    float coords[3];
+    double coords[3];
     /** Atomic charge from the force field */
     float charge = 0.f;
     /** Atomic mass */
