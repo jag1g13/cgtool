@@ -19,14 +19,14 @@ BondStruct::BondStruct(const BondStruct &other){
     unsigned long size = other.atomNums_.size();
 //    atomNames_.resize(size);
     atomNums_.resize(size);
-    for(int i = 0; i < size; i++){
+    for(unsigned int i = 0; i < size; i++){
 //        atomNames_[i] = other.atomNames_[i];
         atomNums_[i] = other.atomNums_[i];
     }
 }
 
 void BondStruct::calcAvg(){
-    for(const float &val : values_){
+    for(const double &val : values_){
         avg_ += val;
     }
     avg_ /= values_.size();

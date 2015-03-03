@@ -4,6 +4,8 @@
 #include "bondset.h"
 #include "array.h"
 
+typedef unsigned int uint;
+
 /** \brief Class to perform Boltzmann Inversion
 *
 */
@@ -14,7 +16,7 @@ protected:
     /** Store histogram frequencies */
     Array histogram_;
     Array gaussian_;
-    int bins_ = 0, n_ = 0;
+    uint bins_ = 0, n_ = 0;
     double min_, max_, step_;
     double amplitude_, mean_, adev_, var_, sdev_;
 

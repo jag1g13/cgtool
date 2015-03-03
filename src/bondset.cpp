@@ -88,10 +88,10 @@ void BondSet::boltzmannInversion(){
         bond.calcAvg();
         BoltzmannInverter bi;
         bi.statisticalMoments(bond.values_);
-        bi.binHistogram(bond, 75);
+        bi.binHistogram(bond, 35);
         bi.printHistogram();
         bi.gaussianRSquared();
-//        bi.invertGaussian();
+        bi.invertGaussian();
     }
 }
 

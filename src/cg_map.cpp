@@ -58,7 +58,7 @@ void CGMap::fromFile(string filename){
         cout << endl;
         mapping_.push_back(new_bead);
     }
-    num_beads = int(mapping_.size());
+    numBeads_ = mapping_.size();
 }
 
 // is this prototype okay?  does it copy/move?
@@ -78,14 +78,13 @@ Frame CGMap::initFrame(const Frame &aa_frame){
         // add bead to dictionaries so we can find it by name
         //TODO does this support an atom being in multiple beads?
         cg_frame.nameToNum_.emplace(bead.name, i);
-        cg_frame.numToName_.emplace(i, bead.name);
         for(auto &atomname : bead.atoms) {
             // dictionary of atom to bead they're in
             atomname_to_bead_.emplace(atomname, &bead);
         }
 
         for(int j=0; j<aa_frame.numAtomsTrack_; j++) {
-            for (string &atomname : bead.atoms){
+            for(string &atomname : bead.atoms){
                 if(aa_frame.atoms_[j].atom_type == atomname){
                     cg_frame.atoms_[i].mass += aa_frame.atoms_[j].mass;
                     cg_frame.atoms_[i].charge += aa_frame.atoms_[j].charge;
@@ -107,12 +106,11 @@ Frame CGMap::initFrame(const Frame &aa_frame){
 
     for(int i=0; i<aa_frame.numAtomsTrack_; i++){
         const Atom *atom = &(aa_frame.atoms_[i]);
+        // if atom is in a bead count it, otherwise ignore
         if(atomname_to_bead_.count(atom->atom_type)){
             BeadMap *inbead = atomname_to_bead_[atom->atom_type];
             inbead->mass += atom->mass;
             inbead->charge += atom->charge;
-        }else{
-//            cout << "Ignoring atom " << i << " " << aa_frame.atoms_[i].atom_type << endl;
         }
     }
 

@@ -3,19 +3,31 @@ project(CGTOOL)
 
 MESSAGE("${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 
-set(IGNORED_WARNINGS "-Wno-sign-compare -Wno-unused-variable -Wno-comment")
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++11 -Wall ${IGNORED_WARNINGS}")
+set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-Og -g -Wall")
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++11 -g -Wall")
 
-# Platform
+# Should we ignore warnings - default ignore a few
+option(INGORE_SOME_WARNINGS "Don't ignore any warnings" ON)
+
+
+# Platform specifics
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-    # Apple OSX
+    # Apple OSX - don't use OPENMP
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 else()
-    # Not Apple OSX
+    # GCC and CLANG use different OPENMP flags
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -openmp -pthread")
     elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -Og")
+        if(IGNORE_SOME_WARNINGS)
+            set(IGNORED_WARNINGS " -Wno-sign-compare -Wno-unused-variable -Wno-comment")
+            set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${IGNORED_WARNINGS})
+            set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${IGNORED_WARNINGS})
+        else()
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-comment -Wno-sign-compare")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment -Wno-sign-compare")
+        endif()
     else()
         MESSAGE("Not using GNU or Clang")
     endif()
@@ -25,30 +37,30 @@ message("Using " ${CMAKE_CXX_FLAGS})
 
 link_directories("/usr/local/lib")
 
-FILE(GLOB SOURCE_FILES src/*.cpp)
 
-# libxdrfile - replaces GROMACS
+# Find libxdrfile - compile it if not present - replaces GROMACS library
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 find_library(XDRFILE_LIBRARY NAMES xdrfile
-             PATHS /usr/lib /usr/local/lib ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+             PATHS /usr/lib /usr/local/lib ${CMAKE_CURRENT_SOURCE_DIR}/lib ${PROJECT_BINARY_DIR})
 if(XDRFILE_LIBRARY)
     MESSAGE("Found libxdrfile: ${XDRFILE_LIBRARY}")
     set (EXTRA_LIBS ${EXTRA_LIBS} ${XDRFILE_LIBRARY})
 else()
     MESSAGE("Cannot find libxdrfile, including in compile")
     set(LIBRARY_OUTPUT_DIRCTORY lib)
-    add_library(xdrfile STATIC src/xdrfile.c src/xdrfile_xtc.c)
+    add_library(xdrfile STATIC lib/xdrfile/xdrfile.c lib/xdrfile/xdrfile_xtc.c)
     set (EXTRA_LIBS ${EXTRA_LIBS} xdrfile)
-    #set(XDR_FILES src/xdrfile.c src/xdrfile_xtc.c)
+    #set(XDR_FILES lib/xdrfile.c lib/xdrfile_xtc.c)
     #set(SOURCE_FILES ${SOURCE_FILES} ${XDR_FILES})
 endif()
 
-# Boost
+
+# Find Boost library - required
 find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 set (EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES})
 
-# add a target to generate API documentation with Doxygen
+# Add target for documentation if we have Doxygen
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doc)
@@ -60,10 +72,29 @@ if(DOXYGEN_FOUND)
     )
 endif(DOXYGEN_FOUND)
 
-add_executable(cgtool ${SOURCE_FILES} src/main.cpp)
+
+# handle conditional compilation of testing features
+option(UPDATE_PROGRESS "Print progress update every few frames" ON)
+option(BOLTZMANN_INVERSION "Do a Boltzmann Inversion to calculate force constants" OFF)
+option(ELECTRIC_FIELD "Calculate dipoles and the electric field" OFF)
+
+if(UPDATE_PROGRESS)
+    add_definitions(-DUPDATE_PROGRESS)
+endif()
+if(BOLTZMANN_INVERSION)
+    add_definitions(-DBOLTZMANN_INVERSION)
+endif()
+if(ELECTRIC_FIELD)
+    add_definitions(-DELECTRIC_FIELD)
+endif()
+
+
+# Add the main target
+FILE(GLOB SOURCE_FILES src/*.cpp)
+add_executable(cgtool ${SOURCE_FILES})
 target_link_libraries (cgtool ${EXTRA_LIBS})
 
-# gtest
+# Testing - do we have GTEST
 find_package(GTest)
 if(GTEST_FOUND)
     set(GTEST_SOURCE_FILES ${SOURCE_FILES})

@@ -19,11 +19,12 @@ using std::endl;
 using std::stoi;
 using std::printf;
 
-Frame::Frame(const unsigned int num, const unsigned int natoms, const string name){
+Frame::Frame(const int num, const int natoms, const string name){
+    assert(natoms >= 0);
     name_ = name;
     step_ = num;
     numAtoms_ = natoms;
-    atoms_.reserve(natoms);
+    atoms_.reserve(uint(natoms));
 }
 
 Frame::Frame(const Frame &frame){
@@ -32,87 +33,59 @@ Frame::Frame(const Frame &frame){
     prec_ = frame.prec_;
     time_ = frame.time_;
     step_ = frame.step_;
+    boxType_ = BoxType::CUBIC;
     for(int i=0; i<3; i++){
         for(int j=0; j<3; j++){
             box_[i][j] = frame.box_[i][j];
+            if(box_[i][j] > EPSILON) boxType_ = BoxType::TRICLINIC;
             // must be cubic box
 //            if(i != j) assert(box_[i][j] < EPSILON);
         }
     }
-    boxType_ = BoxType::CUBIC;
 }
-
-// don't need this?
-//Frame &Frame::operator=(const Frame &frame){
-//    num_ = frame.num_;
-//    name_ = frame.name_;
-//    prec_ = frame.prec_;
-//    time_ = frame.time_;
-//    step_ = frame.step_;
-//    for(int i=0; i<3; i++){
-//        for(int j=0; j<3; j++){
-//            box_[i][j] = frame.box_[i][j];
-//        }
-//    }
-//    return *this;
-//}
 
 Frame::Frame(const std::string topname, const std::string xtcname){
     setupFrame(topname, xtcname);
 }
 
-//TODO finish move constructor
-// don't need this?
-//Frame::Frame(Frame&& frame){
-//    isSetup_ = frame.isSetup_;
-//    xtcInput_ = frame.xtcInput_;
-//    num_ = frame.num_;
-//    step_ = frame.step_;
-//    numAtoms_ = frame.numAtoms_;
-//    numAtomsTrack_ = frame.numAtomsTrack_;
-//    atoms_ = frame.atoms_;
-//    residues_ = frame.residues_;
-//    time_ = frame.time_;
-//    prec_ = frame.prec_;
-////    box_ = frame.box_;
-//    x_ = frame.x_;
-//    name_ = frame.name_;
-//    numToName_ = frame.numToName_;
-//    nameToNum_ = frame.nameToNum_;
-//}
-
 Frame::~Frame(){
     assert(isSetup_);
     isSetup_ = false;
-    if(x_) free(x_);
-}
-
-int Frame::allocateAtoms(const uint num_atoms){
-    numAtoms_ = num_atoms;
-    atoms_.reserve(numAtoms_);
-    return (int)atoms_.size();
+    if(x_ != nullptr) free(x_);
+    if(xtcInput_ != nullptr){
+        xdrfile_close(xtcInput_);
+        xtcInput_ = NULL;
+    }
+    if(xtcOutput_ != nullptr){
+        xdrfile_close(xtcOutput_);
+        xtcOutput_ = NULL;
+    }
 }
 
 void Frame::setupOutput(const string &xtcname, const string &topname){
-    throw std::runtime_error("Not implemented");
     char mode[2] = {'r', 'w'};
     if(xtcOutput_ == NULL) xtcOutput_ = xdrfile_open(xtcname.c_str(), &mode[1]);
-    if(x_ == NULL) x_ = (rvec*)malloc(numAtoms_ * sizeof(rvec));
+    if(xtcOutput_ == NULL) throw std::runtime_error("Could not open XTC output");
+    if(x_ == NULL){
+        x_ = (rvec *) malloc(numAtoms_ * sizeof(*x_));
+    }
     if(x_ == NULL) throw std::runtime_error("Couldn't allocate memory");
 
     std::ofstream top(topname);
     if(!top.is_open()) throw std::runtime_error("Could not open output TOP file");
+    outputSetup_ = true;
 }
 
 bool Frame::writeToXtc(){
-    throw std::runtime_error("Not implemented");
     if(!outputSetup_) throw std::runtime_error("Output has not been setup");
     // need to put atomic coordinates back into x_
     // either it's a CG frame and x_ is empty, or it's atomistic but may have been recentred
     for(int i=0; i<numAtoms_; i++){
-        memcpy(&(x_[i][0]), atoms_[i].coords, 3);
+        x_[i][0] = float(atoms_[i].coords[0]);
+        x_[i][1] = float(atoms_[i].coords[1]);
+        x_[i][2] = float(atoms_[i].coords[2]);
     }
-    return (bool)write_xtc(xtcOutput_, numAtoms_, step_, time_, box_, x_, prec_);
+    return exdrOK == write_xtc(xtcOutput_, numAtoms_, step_, time_, box_, x_, prec_);
 }
 
 
@@ -147,7 +120,7 @@ bool Frame::setupFrame(const string &topname, const string &xtcname){
     vector<string> substrs;
     Parser top_parser(topname, ParserFormat::GROMACS);
     while(top_parser.getLineFromSection("atoms", substrs)){
-        numAtomsTrack_ = uint(stoi(substrs[0]));
+        numAtomsTrack_ = stoi(substrs[0]);
     }
     cout << numAtomsTrack_ << " atoms found in TOP/ITP" << endl;
 
@@ -161,13 +134,12 @@ bool Frame::setupFrame(const string &topname, const string &xtcname){
 
         atoms_[i] = Atom(i);
         atoms_[i].atom_type = name;
-        atoms_[i].atom_num = stoi(substrs[0])-1;
+        atoms_[i].atom_num = int(stoi(substrs[0])-1);
         atoms_[i].resname = substrs[3];
         atoms_[i].charge = float(atof(substrs[6].c_str()));
         atoms_[i].mass = float(atof(substrs[7].c_str()));
 
         nameToNum_.emplace(atoms_[i].atom_type, i);
-        numToName_.emplace(i, atoms_[i].atom_type);
 
         atoms_[i].coords[0] = x_[i][0];
         atoms_[i].coords[1] = x_[i][1];
@@ -205,7 +177,7 @@ bool Frame::readNext(){
 }
 
 //TODO this doesn't solve the problem - we need all molecules to be whole
-void Frame::recentreBox(const uint atom_num){
+void Frame::recentreBox(const int atom_num){
     assert(isSetup_);
     assert(atom_num < numAtoms_);
 //    assert(boxType_ == BoxType::CUBIC);
@@ -249,7 +221,7 @@ void Frame::printGRO(const string &filename, int natoms){
     stream << "Generated by CGTOOL : " << name_ << "\n" << natoms << "\n";
     fprintf(gro, "%s", stream.str().c_str());
     double max[3], min[3];
-    for(int i = 0; i < natoms; i++){
+    for(int i=0; i < natoms; i++){
         fprintf(gro, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n",
                 1, "CG", atoms_[i].atom_type.c_str(), i+1,
                 atoms_[i].coords[0], atoms_[i].coords[1], atoms_[i].coords[2]);
@@ -262,19 +234,19 @@ void Frame::printGRO(const string &filename, int natoms){
     fclose(gro);
 }
 
-double Frame::bondLength(const uint a, const uint b){
+double Frame::bondLength(const int a, const int b){
     return sqrt(pow((atoms_[a].coords[0] - atoms_[b].coords[0]), 2) +
             pow((atoms_[a].coords[1] - atoms_[b].coords[1]), 2) +
             pow((atoms_[a].coords[2] - atoms_[b].coords[2]), 2));
 }
 
 double Frame::bondLength(BondStruct &bond) {
-    uint a = bond.atomNums_[0];
-    uint b = bond.atomNums_[1];
+    int a = bond.atomNums_[0];
+    int b = bond.atomNums_[1];
     return bondLength(a, b);
 }
 
-double Frame::bondAngle(const uint a, const uint b, const uint c, const uint d){
+double Frame::bondAngle(const int a, const int b, const int c, const int d){
     double vec1[3], vec2[3], mag1=0.f, mag2=0.f, dot = 0.f, angle=0.f;
     for(int i = 0; i < 3; i++){
         vec1[i] = atoms_[b].coords[i] - atoms_[a].coords[i];
@@ -294,11 +266,11 @@ double Frame::bondAngle(const uint a, const uint b, const uint c, const uint d){
 
 //TODO move this and bondLength into bond_struct.cpp
 double Frame::bondAngle(BondStruct &bond){
-    uint a = bond.atomNums_[0];
-    uint b = bond.atomNums_[1];
-    uint c = bond.atomNums_[2];
+    int a = bond.atomNums_[0];
+    int b = bond.atomNums_[1];
+    int c = bond.atomNums_[2];
     if(bond.atomNums_.size() == 4){
-        uint d = bond.atomNums_[3];
+        int d = bond.atomNums_[3];
         return bondAngle(a, b, c, d);
     }else{
         return bondAngle(a, b, b, c);

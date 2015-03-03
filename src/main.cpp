@@ -19,9 +19,11 @@
 #include "parser.h"
 #include "boltzmann_inverter.h"
 
-#define UPDATE_PROGRESS true
+//#define ELECTRIC_FIELD
+//#define BOLTZMANN_INVERSION
+//#define UPDATE_PROGRESS
+
 #define PROGRESS_UPDATE_FREQ 50
-#define DO_ELECTRIC_FIELD false
 #define ELECTRIC_FIELD_FREQ 100
 
 /* things from std that get used a lot */
@@ -112,13 +114,13 @@ int main(const int argc, const char *argv[]){
     Frame frame = Frame(topname, xtcname);
     CGMap mapping(cfgname);
     Frame cg_frame = mapping.initFrame(frame);
+    cg_frame.setupOutput("out.xtc", "out.top");
     BondSet bond_set(cfgname);
-    FieldMap field(10, 10, 10, mapping.num_beads);
+    FieldMap field(10, 10, 10, mapping.numBeads_);
 
     // read from config
     Parser parser(cfgname);
     vector<string> tokens;
-    bool do_electric_field = parser.findSection("field");
     int num_frames_max = -1;
     if(parser.getLineFromSection("frames", tokens)) num_frames_max = stoi(tokens[0]);
     cout << num_frames_max << " frames max" << endl;
@@ -130,15 +132,18 @@ int main(const int argc, const char *argv[]){
     // Keep reading frames until something goes wrong (run out of frames)
     while(frame.readNext()){
         // Process each frame as we read it, frames are not retained
-        if(i % PROGRESS_UPDATE_FREQ == 0 && UPDATE_PROGRESS){
+        #ifdef UPDATE_PROGRESS
+        if(i % PROGRESS_UPDATE_FREQ == 0){
             cout << "Read " << i << " frames\r";
             std::flush(cout);
         }
+        #endif
         mapping.apply(frame, cg_frame);
-//        cg_frame.writeToXtc("xtcout.xtc");
+        cg_frame.writeToXtc();
 
         // calculate electric field/dipole
-        if(i % ELECTRIC_FIELD_FREQ == 0 && DO_ELECTRIC_FIELD){
+        #ifdef ELECTRIC_FIELD
+        if(i % ELECTRIC_FIELD_FREQ == 0){
             field.setupGrid(frame);
             field.setupGridContracted(frame);
             field.calcFieldMonopolesContracted(frame);
@@ -148,6 +153,7 @@ int main(const int argc, const char *argv[]){
             field.calcTotalDipole(frame);
             field.calcSumDipole();
         }
+        #endif
 
         // calculate bonds and store in BondStructs
         bond_set.calcBondsInternal(cg_frame);
@@ -164,7 +170,9 @@ int main(const int argc, const char *argv[]){
 
     bond_set.calcAvgs();
     bond_set.writeCSV();
+    #ifdef BOLTZMANN_INVERSION
     bond_set.boltzmannInversion();
+    #endif
 
     ITPWriter itp("out.itp");
     itp.printAtoms(mapping);

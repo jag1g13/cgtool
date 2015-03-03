@@ -173,7 +173,7 @@ void FieldMap::calcFieldDipolesContracted(const Frame &frame){
 */
 void FieldMap::calcDipolesDirect(const CGMap &cgmap, const Frame &cg_frame, Frame &aa_frame){
     dipoles_.zero();
-    for(int i=0; i<cgmap.num_beads; i++){
+    for(int i=0; i<cgmap.numBeads_; i++){
         // for each bead in the CG frame
         const BeadMap &bead_type = cgmap.mapping_[i];
         const Atom &cg_atom = cg_frame.atoms_[i];
@@ -207,7 +207,7 @@ void FieldMap::calcDipolesFit(const CGMap &cgmap, const Frame &cg_frame, const F
     // keep track of which dipoles we know
     vector<int> dipoles_calculated;
     // calculate dipoles on all uncharged beads
-    for(int i = 0; i < cgmap.num_beads; i++){
+    for(int i = 0; i < cgmap.numBeads_; i++){
         const BeadMap &bead_type = cgmap.mapping_[i];
         // skip beads that are charged
         if(bead_type.charge > 0.01f || bead_type.charge < -0.01f) continue;
@@ -223,7 +223,7 @@ void FieldMap::calcDipolesFit(const CGMap &cgmap, const Frame &cg_frame, const F
         }
         dipoles_calculated.push_back(i);
     }
-    int num_remaining = cgmap.num_beads - int(dipoles_calculated.size());
+    int num_remaining = cgmap.numBeads_ - int(dipoles_calculated.size());
 
     // calculate residual molecular dipole
     calcTotalDipole(aa_frame);
@@ -232,7 +232,7 @@ void FieldMap::calcDipolesFit(const CGMap &cgmap, const Frame &cg_frame, const F
     totalDipole_ -= sumDipoles_;
 
     // divide residual between remaining beads
-    for(int i = 0; i < cgmap.num_beads; i++){
+    for(int i = 0; i < cgmap.numBeads_; i++){
         const BeadMap &bead_type = cgmap.mapping_[i];
         // skip beads that are NOT charged
         if(bead_type.charge < 0.01f && bead_type.charge > -0.01f) continue;
@@ -243,7 +243,7 @@ void FieldMap::calcDipolesFit(const CGMap &cgmap, const Frame &cg_frame, const F
     }
 
     // calculate magnitudes
-    for(int i = 0; i < cgmap.num_beads; i++){
+    for(int i = 0; i < cgmap.numBeads_; i++){
         dipoles_(i, 5) = float(sqrt(dipoles_(i, 0) * dipoles_(i, 0) +
                 dipoles_(i, 1) * dipoles_(i, 1) +
                 dipoles_(i, 2) * dipoles_(i, 2)));

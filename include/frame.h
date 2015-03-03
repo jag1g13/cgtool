@@ -11,13 +11,11 @@
 
 #include "bondset.h"
 
-typedef unsigned int uint;
-
 /**
 * \brief Struct to hold atom data
 */
 struct Atom{
-    /** A serial number; no longer needed */
+    /** A serial number. no longer needed */
     int atom_num;
     /** Residue number and name in the GRO file */
     std::string resname;
@@ -35,35 +33,7 @@ struct Atom{
     Atom(){coords[0] = 0.f; coords[1] = 0.f; coords[2] = 0.f;};
 };
 
-/**
-* \brief Struct to hold CG bead data; inherits from Atom
-*/
-struct CGBead : Atom{
-    /** Vector of atoms that this CG bead represents */
-    std::vector<std::string> sub_atoms;
-};
-
-/**
-* \brief A residue from the GRO file, contains pointers to atoms
-*/
-struct Residue{
-    /** The name of this Residue */
-    std::string res_name;
-    //char res_name[10];
-    /** Atoms contained within this residue */
-    std::vector<int> atoms;
-    /** Atoms contained within this residue */
-    std::vector<std::string> atom_names;
-    /** The number of atoms in the residue */
-    int num_atoms;
-    /** Constructor to set res_name */
-    Residue(const std::string tmp){res_name = tmp;};
-    /** Blank constructor */
-    Residue(){};
-};
-
 enum class BoxType{CUBIC, TRICLINIC};
-
 
 /**
 * \brief Class to hold a single frame of an XTC file
@@ -78,8 +48,6 @@ protected:
     XDRFILE *xtcInput_ = nullptr;
     /** GROMACS xtc file to export frames */
     XDRFILE *xtcOutput_ = nullptr;
-    /** Vector of Residues; Each Residue contains pointers to atoms */
-    std::vector<Residue> residues_;
     /** XTC precision; not used internally, just for XTC input/output */
     float prec_ = 0.f;
     /** Holds atomic coordinates for GROMACS */
@@ -95,7 +63,7 @@ public:
     /** Has the Frame been properly setup yet? */
     bool isSetup_ = false;
     /** The number of atoms stored in this frame that we find interesting */
-    uint numAtomsTrack_ = 0;
+    int numAtomsTrack_ = 0;
     /** Vector of Atoms; Each Atom contains position and type data */
     std::vector<Atom> atoms_;
     /** The number of atoms stored in this frame */
@@ -108,48 +76,25 @@ public:
     int num_ = 0;
     /** The simulation step corresponding to this frame */
     int step_ = 0;
-    /** Dictionary mapping atom numbers to atom names */
-    std::map<int, std::string> numToName_;
     /** Dictionary mapping atom names to numbers */
     std::map<std::string, int> nameToNum_;
 
 
-    /**
-    * \brief Create Frame passing frame number, number of atoms to store and the frame name
-    *
+    /** \brief Create Frame passing frame number, number of atoms to store and the frame name
     * If we don't know the number of atoms at creation
-    * this can be set later using Frame::allocateAtoms()
-    */
-    Frame(const uint num, const uint natoms, const std::string name);
+    * this can be set later using Frame::allocateAtoms() */
+    Frame(const int num, const int natoms, const std::string name);
 
-    /**
-    * \brief Create Frame passing config files.
-    *
-    * Replaces calls to the function Frame::setupFrame()
-    */
+    /** \brief Create Frame passing config files.
+    * Replaces calls to the function Frame::setupFrame() */
     Frame(const std::string topname, const std::string xtcname);
 
-    /**
-    * \brief Create Frame by copying data from another Frame
-    *
-    * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied.
-    */
+    /** \brief Create Frame by copying data from another Frame
+    * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied. */
     Frame(const Frame &frame);
 
-    /**
-    * \brief Destructor to free memory allocated by GROMACS functions
-    */
+    /** \brief Destructor to free memory allocated by GROMACS functions */
     ~Frame();
-
-//    /**
-//    * \brief Move constructor
-//    */
-//    Frame(Frame&& frame);
-
-//    /** \brief Assignment operator
-//    * Doesn't copy atoms.
-//    */
-//    Frame &operator=(const Frame &frame);
 
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file
@@ -166,13 +111,6 @@ public:
     bool readNext();
 
     /**
-    * \brief Allocate space for a number of atoms
-    *
-    * Used if the number of atoms isn't known at time of creation
-    */
-    int allocateAtoms(const uint natoms);
-
-    /**
     * \brief Prepare to write XTC output.
     * \throws std::runtime_error if memory cannot be allocated for atom array
     * \throws std::runtime_error if output TOP file cannot be opened
@@ -180,16 +118,13 @@ public:
     */
     void setupOutput(const std::string &xtcnameout, const std::string &topnameout);
 
-    /**
-    * \brief Write Frame to XTC output file
-    */
+    /** \brief Write Frame to XTC output file */
     bool writeToXtc();
 
     /** \brief Recentre simulation box on an atom
     * Avoids problems where a residue is split by the periodic boundary,
-    * causing bond lengths to be calculated incorrectly
-    */
-    void recentreBox(const uint atom_num);
+    * causing bond lengths to be calculated incorrectly */
+    void recentreBox(const int atom_num);
 
     /** Print info for all atoms up to n.  Default print all. */
     void printAtoms(int natoms=-1);
@@ -197,30 +132,25 @@ public:
     /** Print all atoms up to n to GRO file.  Default print all. */
     void printGRO(const std::string &filename, int natoms=-1);
 
-    /**
-    * \brief Calculate distance between two atoms
-    */
-    double bondLength(const uint a, const uint b);
+    /** \brief Calculate distance between two atoms */
+    double bondLength(const int a, const int b);
 
     /**
     * \brief Calculate distance between two atoms in a BondStruct object
-    *
-    * Wrapper around float bondLength(uint, uint)
+    * Wrapper around float bondLength(int, int)
     */
     double bondLength(BondStruct &bond);
 
     /**
     * \brief Calculate angle between vectors a->b and c->d
-    *
     * To be used for bond angles (b=c) and dihedrals (b=/=c)
     */
-    double bondAngle(const uint a, const uint b, const uint c, const uint d);
+    double bondAngle(const int a, const int b, const int c, const int d);
 
 
     /**
     * \brief Calculate angle or dihedral between atoms in a BondStruct object
-    *
-    * Wrapper around float bondAngle(uint, uint, uint, uint)
+    * Wrapper around float bondAngle(int, int, int, int)
     */
     double bondAngle(BondStruct &bond);
 };
