@@ -52,13 +52,13 @@ Frame::~Frame(){
     assert(isSetup_);
     isSetup_ = false;
     if(x_ != nullptr) free(x_);
-    if(xtcInput_ != nullptr){
-        xdrfile_close(xtcInput_);
-        xtcInput_ = NULL;
-    }
     if(xtcOutput_ != nullptr){
         xdrfile_close(xtcOutput_);
         xtcOutput_ = NULL;
+    }
+    if(xtcInput_ != nullptr){
+//        xdrfile_close(xtcInput_);
+//        xtcInput_ = NULL;
     }
 }
 
