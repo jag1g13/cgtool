@@ -24,7 +24,7 @@ Frame::Frame(const int num, const int natoms, const string name){
     name_ = name;
     step_ = num;
     numAtoms_ = natoms;
-    atoms_.reserve(uint(natoms));
+    atoms_.reserve(natoms);
 }
 
 Frame::Frame(const Frame &frame){
