@@ -212,7 +212,6 @@ void FieldMap::calcDipolesFit(const CGMap &cgmap, const Frame &cg_frame, const F
         // skip beads that are charged
         if(bead_type.charge > 0.01f || bead_type.charge < -0.01f) continue;
 
-        const Atom &cg_atom = cg_frame.atoms_[i];
         // for each bead in the CG frame
         for(const int &j : bead_type.atom_nums){
             // for each atom inside the bead

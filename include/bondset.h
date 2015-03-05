@@ -20,7 +20,7 @@ class Frame;
 class BondSet{
 protected:
     /** How many frames did we successfully measure */
-    int numFrames_ = 0;
+    int numMeasures_ = 0;
     /** Map of bead names to number - to put numbers into BondStructs */
     std::map<std::string, int> beadNums_;
 
@@ -58,6 +58,8 @@ public:
 
     /** \brief Write all values to CSVs */
     void writeCSV();
+    /** \brief Write last frame's values to CSVs */
+    void writeLastCSV();
 };
 
 #endif

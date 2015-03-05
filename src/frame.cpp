@@ -51,10 +51,10 @@ Frame::Frame(const std::string topname, const std::string xtcname, const std::st
     if(parser.getLineFromSection("residues", tokens)){
         cout << "Found resname in config" << endl;
         numResidues_ = stoi(tokens[0]);
-        mapResname_ = tokens[1];
+        resname_ = tokens[1];
     }else{
         cout << "Resname to map not found in config" << endl;
-        mapResname_ = "";
+        resname_ = "";
         numResidues_ = 1;
     }
     setupFrame(topname, xtcname);
@@ -76,12 +76,11 @@ Frame::~Frame(){
 
 void Frame::setupOutput(const string &xtcname, const string &topname){
     char mode[2] = {'r', 'w'};
-    if(xtcOutput_ == NULL) xtcOutput_ = xdrfile_open(xtcname.c_str(), &mode[1]);
-    if(xtcOutput_ == NULL) throw std::runtime_error("Could not open XTC output");
-    if(x_ == NULL){
-        x_ = (rvec *) malloc(numAtoms_ * sizeof(*x_));
-    }
-    if(x_ == NULL) throw std::runtime_error("Couldn't allocate memory");
+    if(!xtcOutput_) xtcOutput_ = xdrfile_open(xtcname.c_str(), &mode[1]);
+    if(!xtcOutput_) throw std::runtime_error("Could not open XTC output");
+
+    if(!x_) x_ = (rvec *) malloc(numAtoms_ * sizeof(*x_));
+    if(!x_) throw std::runtime_error("Couldn't allocate memory");
 
     std::ofstream top(topname);
     if(!top.is_open()) throw std::runtime_error("Could not open output TOP file");
@@ -89,7 +88,7 @@ void Frame::setupOutput(const string &xtcname, const string &topname){
 }
 
 bool Frame::writeToXtc(){
-    if(!outputSetup_) throw std::runtime_error("Output has not been setup");
+    if(!outputSetup_) throw std::logic_error("Output has not been setup");
     // need to put atomic coordinates back into x_
     // either it's a CG frame and x_ is empty, or it's atomistic but may have been recentred
     for(int i=0; i<numAtoms_; i++){
@@ -100,6 +99,10 @@ bool Frame::writeToXtc(){
     return exdrOK == write_xtc(xtcOutput_, numAtoms_, step_, time_, box_, x_, prec_);
 }
 
+void Frame::openOtherXTC(const Frame &frame){
+    if(xtcInput_) xdrfile_close(xtcInput_);
+    xtcInput_ = frame.xtcInput_;
+}
 
 bool Frame::setupFrame(const string &topname, const string &xtcname){
     if(isSetup_) throw std::logic_error("Frame has already been setup");
@@ -110,16 +113,13 @@ bool Frame::setupFrame(const string &topname, const string &xtcname){
         exit(-1);
     }
     xtcInput_ = xdrfile_open(xtcname.c_str(), &mode[0]);
-//    if(output) xtc_out = xdrfile_open("out.xtc".c_str(), &mode[1]);
     num_ = 0;
 
-    // init system from XTC file - libxdrfile library
+    // Init system from XTC file - libxdrfile library
     x_ = (rvec *)malloc(numAtoms_ * sizeof(*x_));
     status = read_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_);
 
-//    recentreBox(0);
-
-    // print box vectors
+    // Print box vectors
     cout << "Box vectors" << endl;
     for(int i=0; i<3; i++){
         for(int j=0; j<3; j++){
@@ -131,10 +131,16 @@ bool Frame::setupFrame(const string &topname, const string &xtcname){
     // Process topology file
     vector<string> substrs;
     Parser top_parser(topname, ParserFormat::GROMACS);
+    // How many atoms are there?  Per residue?  In total?
     while(top_parser.getLineFromSection("atoms", substrs)){
-        if(substrs[3] == mapResname_) numAtomsPerResidue_ = stoi(substrs[0]);
+        // If we don't have a resname from cfg, be backward compatible
+        if(resname_ != ""){
+            if(substrs[3] == resname_) numAtomsPerResidue_ = stoi(substrs[0]);
+        }else{
+            numAtomsPerResidue_ = stoi(substrs[0]);
+        }
     }
-    cout << numAtomsPerResidue_ << " atoms found in TOP/ITP for " << mapResname_ << endl;
+    cout << numAtomsPerResidue_ << " atoms found in TOP/ITP for " << resname_ << endl;
     numAtomsTrack_ = numResidues_ * numAtomsPerResidue_;
     cout << numAtomsTrack_ << " atoms in total" << endl;
 
@@ -154,12 +160,8 @@ bool Frame::setupFrame(const string &topname, const string &xtcname){
             atoms_[num] = Atom();
             atoms_[num].atom_num = num;
             atoms_[num].atom_type = name;
-            atoms_[num].resname = substrs[3];
-            atoms_[num].resnum = j;
             atoms_[num].charge = charge;
             atoms_[num].mass = mass;
-            // don't need this, can just add j*numAtomsPerResidue_ every time
-//            nameToNum_[j].emplace(atoms_[num].atom_type, num);
 
             atoms_[num].coords[0] = x_[num][0];
             atoms_[num].coords[1] = x_[num][1];
@@ -168,17 +170,10 @@ bool Frame::setupFrame(const string &topname, const string &xtcname){
     }
 
     if(status == exdrOK) isSetup_ = true;
-//    printAtoms(numAtomsTrack_);
     return isSetup_;
 }
 
 bool Frame::readNext(){
-    /**
-    * \brief Read a frame from the XTC file into an existing Frame object
-    *
-    * Reads a frame into a pre-setup Frame object.
-    * The same Frame object should be used for each frame to save time in allocation.
-    */
     assert(isSetup_);
     invalid_ = false;
     int status = read_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_);
@@ -186,9 +181,8 @@ bool Frame::readNext(){
         xdrfile_close(xtcInput_);
         return status == exdrOK;
     }
-//    recentreBox(0);
     for(int i = 0; i < numAtomsTrack_; i++){
-        // overwrite coords of atoms stored in the current Frame
+        // Overwrite coords of atoms stored in the current Frame
         atoms_[i].coords[0] = x_[i][0];
         atoms_[i].coords[1] = x_[i][1];
         atoms_[i].coords[2] = x_[i][2];
@@ -197,11 +191,11 @@ bool Frame::readNext(){
     return status == exdrOK;
 }
 
-//TODO this doesn't solve the problem - we need all molecules to be whole
 void Frame::recentreBox(const int atom_num){
+    throw std::logic_error("Function not implemented");
     assert(isSetup_);
     assert(atom_num < numAtoms_);
-//    assert(boxType_ == BoxType::CUBIC);
+    assert(boxType_ == BoxType::CUBIC);
 
     float res_centre[3];
 
@@ -239,12 +233,12 @@ void Frame::printGRO(const string &filename, int natoms){
         exit(-1);
     }
     std::stringstream stream;
-    stream << "Generated by CGTOOL : " << name_ << "\n" << natoms << "\n";
+    stream << "Generated by CGTOOL : " << resname_ << "\n" << natoms << "\n";
     fprintf(gro, "%s", stream.str().c_str());
     double max[3], min[3];
     for(int i=0; i < natoms; i++){
         fprintf(gro, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n",
-                1, "CG", atoms_[i].atom_type.c_str(), i+1,
+                1+(i/numAtomsPerResidue_), resname_.c_str(), atoms_[i].atom_type.c_str(), i+1,
                 atoms_[i].coords[0], atoms_[i].coords[1], atoms_[i].coords[2]);
         for(int j=0; j < 3; j++){
             min[j] = fmin(min[j], atoms_[i].coords[j]);
@@ -277,11 +271,6 @@ double Frame::bondAngle(const int a, const int b, const int c, const int d){
     mag1 = sqrt(pow(vec1[0], 2) + pow(vec1[1], 2) + pow(vec1[2], 2));
     mag2 = sqrt(pow(vec2[0], 2) + pow(vec2[1], 2) + pow(vec2[2], 2));
     angle = acos(dot / (mag1 * mag2));
-    // if angle is NaN
-    if(angle != angle){
-//        printf("%s %s\n", numToName_[a].c_str(), numToName_[b].c_str());
-        return 0.f;
-    }
     return (180.f - (angle * 180.f / M_PI));
 }
 

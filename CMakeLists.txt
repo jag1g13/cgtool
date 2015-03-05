@@ -29,11 +29,13 @@ INCLUDE(CPack)
 
 MESSAGE("${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -g -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -Wall")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -Wall")
 
 # Should we ignore warnings - default ignore a few
 option(INGORE_SOME_WARNINGS "Don't ignore any warnings" ON)
+set(IGNORED_WARNINGS " -Wno-sign-compare -Wno-unused-variable -Wno-comment")
+set(IGNORED_WARNINGS_ALWAYS " -Wno-sign-compare -Wno-comment")
 
 
 # Platform specifics
@@ -47,12 +49,11 @@ else()
     elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -Og")
         if(IGNORE_SOME_WARNINGS)
-            set(IGNORED_WARNINGS " -Wno-sign-compare -Wno-unused-variable -Wno-comment")
-            set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${IGNORED_WARNINGS})
-            set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${IGNORED_WARNINGS})
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${IGNORED_WARNINGS}")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNORED_WARNINGS}")
         else()
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-comment -Wno-sign-compare")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment -Wno-sign-compare")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${IGNORED_WARNINGS_ALWAYS}")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNORED_WARNINGS_ALWAYS}")
         endif()
     else()
         MESSAGE("Not using GNU or Clang")
@@ -82,6 +83,7 @@ endif()
 
 
 # Find Boost library - required
+set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 set (EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES})

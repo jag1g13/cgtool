@@ -47,11 +47,11 @@ void BondSet::fromFile(const string &filename){
 }
 
 void BondSet::calcBondsInternal(Frame &frame){
-    numFrames_++;
     for(int i=0; i < frame.numResidues_; i++){
         const int offset = i * frame.numAtomsPerResidue_;
-        for(BondStruct &bond : bonds_){
         // Does the structure cross a pbc - will break bond lengths
+        // Added bonus that it detects molecule where mapping is wrong
+        for(BondStruct &bond : bonds_){
             double dist = frame.bondLength(bond, offset);
 //        if(dist > 0.8f * frame.box_[0][0])
             // If any distances > 1nm, molecule is on PBC
@@ -71,6 +71,7 @@ void BondSet::calcBondsInternal(Frame &frame){
         for(BondStruct &bond : dihedrals_){
             bond.values_.push_back(frame.bondAngle(bond, offset));
         }
+        numMeasures_++;
     }
 }
 
@@ -104,7 +105,13 @@ void BondSet::writeCSV(){
     FILE *f_bond = fopen("bonds.csv", "w");
     FILE *f_angle = fopen("angles.csv", "w");
     FILE *f_dihedral = fopen("dihedrals.csv", "w");
-    for(int i=0; i < numFrames_; i++){
+    for(int i=0; i < numMeasures_; i++){
+        #ifdef UPDATE_PROGRESS
+        if(i % 1000 == 0){
+            cout << "Written " << i << " molecules to CSV\r";
+            std::flush(cout);
+        }
+        #endif
         for(BondStruct &bond : bonds_){
             fprintf(f_bond, "%8.4f", bond.values_[i]);
         }
@@ -118,6 +125,7 @@ void BondSet::writeCSV(){
         }
         fprintf(f_dihedral, "\n");
     }
+    cout << "Written " << numMeasures_ << " molecules to CSV" << endl;
     fclose(f_bond);
     fclose(f_angle);
     fclose(f_dihedral);

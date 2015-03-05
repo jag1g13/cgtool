@@ -73,18 +73,15 @@ Frame CGMap::initFrame(const Frame &aa_frame){
     for(auto &bead : mapping_) {
         for(int j=0; j < cg_frame.numResidues_; j++){
             const int num_cg = i + j * cg_frame.numAtomsPerResidue_;
-//            cg_frame.atoms_.push_back(Atom(num_cg));
             cg_frame.atoms_[num_cg].atom_type = bead.name;
             cg_frame.atoms_[num_cg].coords[0] = 0.f;
             cg_frame.atoms_[num_cg].coords[1] = 0.f;
             cg_frame.atoms_[num_cg].coords[2] = 0.f;
         }
 
-        // add bead to dictionaries so we can find it by name
-        //TODO does this support an atom being in multiple beads?
+        // Add bead to dictionaries so we can find it by name
         cg_frame.nameToNum_.emplace(bead.name, i);
         for(auto &atomname : bead.atoms) {
-            // dictionary of atom to bead they're in
             atomname_to_bead_.emplace(atomname, &bead);
         }
 
@@ -109,13 +106,13 @@ Frame CGMap::initFrame(const Frame &aa_frame){
         i++;
     }
 
-    // total number of atoms could include solvent, but it doesn't yet
+    // Total number of atoms could include solvent, but it doesn't yet
     cg_frame.numAtoms_ = i * cg_frame.numResidues_;
     cg_frame.numAtomsTrack_ = i * cg_frame.numResidues_;
 
     for(int i=0; i<aa_frame.numAtomsPerResidue_; i++){
         const Atom *atom = &(aa_frame.atoms_[i]);
-        // if atom is in a bead count it, otherwise ignore
+        // If atom is in a bead count it, otherwise ignore
         if(atomname_to_bead_.count(atom->atom_type)){
             BeadMap *inbead = atomname_to_bead_[atom->atom_type];
             inbead->mass += atom->mass;
@@ -125,8 +122,8 @@ Frame CGMap::initFrame(const Frame &aa_frame){
 
     cg_frame.isSetup_ = true;
     apply(aa_frame, cg_frame);
-    cout << "CG Frame" << endl;
-    cg_frame.printAtoms(cg_frame.numAtomsPerResidue_);
+//    cout << "CG Frame" << endl;
+//    cg_frame.printAtoms(cg_frame.numAtomsPerResidue_);
     cout << "Done init cg_frame" << endl;
 
     return cg_frame;
@@ -139,13 +136,13 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
     cg_frame.time_ = aa_frame.time_;
     cg_frame.step_ = aa_frame.step_;
 
-    // remove 'invalid' marker - for frames where molecule crosses PBC
+    // Remove 'invalid' marker - for frames where molecule crosses PBC
     cg_frame.invalid_ = false;
 
-    // which mapping are we using?
+    // Which mapping are we using?
     switch(mapType_){
         case MapType::ATOM:
-            // if putting beads directly on the first atom in a bead
+            // If putting beads directly on the first atom in a bead
             for(int i = 0; i < mapping_.size(); i++){
                 for(int j=0; j<cg_frame.numResidues_; j++){
                     const int num_cg = i + j*cg_frame.numAtomsPerResidue_;
@@ -158,7 +155,7 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
             break;
 
         case MapType::GC:
-            // put bead at geometric centre of atoms
+            // Put bead at geometric centre of atoms
             for(int i = 0; i < mapping_.size(); i++){
                 for(int j=0; j < cg_frame.numResidues_; j++){
                     const int num_cg = i + j*cg_frame.numAtomsPerResidue_;
@@ -180,7 +177,7 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
             break;
 
         case MapType::CM:
-            // put bead at centre of mass of atoms
+            // Put bead at centre of mass of atoms
             for(int i = 0; i < mapping_.size(); i++){
                 for(int j = 0; j < cg_frame.numResidues_; j++){
                     const int num_cg = i + j * cg_frame.numAtomsPerResidue_;

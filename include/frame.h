@@ -7,8 +7,6 @@
 #include <string>
 #include <map>
 
-#include <string.h>
-
 #include "bondset.h"
 
 /**
@@ -17,10 +15,6 @@
 struct Atom{
     /** A serial number. no longer needed */
     int atom_num;
-    /** Residue name in the itp file */
-    std::string resname;
-    /** Residue number */
-    int resnum;
     /** Atomtype as a string.  I don't want to be dealing with *char */
     std::string atom_type;
     /** Atomic coordinates in x, y, z */
@@ -62,6 +56,15 @@ protected:
     /** What box shape do we have?  Currently must be cubic */
     BoxType boxType_ = BoxType::CUBIC;
 
+    /** \brief Calculate distance between two atoms */
+    double bondLength(const int a, const int b);
+    /** \brief Calculate angle between vectors a->b and c->d
+    * To be used for bond angles (b=c) and dihedrals (b=/=c) */
+    double bondAngle(const int a, const int b, const int c, const int d);
+
+
+
+
 public:
     /** Has the Frame been properly setup yet? */
     bool isSetup_ = false;
@@ -81,14 +84,12 @@ public:
     int step_ = 0;
     /** Map mapping atom names to numbers for each residue */
     std::map<std::string, int> nameToNum_;
-//    /** Vector of maps mapping atom names to numbers for each residue */
-//    std::vector<std::map<std::string, int>> nameToNum_;
     /** What is the resname of the molecule we want to map - column 4 of the itp */
-    std::string mapResname_;
+    std::string resname_;
     /** How many atoms are in this residue? */
-    int numAtomsPerResidue_;
+    int numAtomsPerResidue_ = 0;
     /** How many of this residue are there? */
-    int numResidues_;
+    int numResidues_ = 0;
 
 
     /** \brief Create Frame passing frame number, number of atoms to store and the frame name
@@ -117,7 +118,10 @@ public:
     bool setupFrame(const std::string &topname, const std::string &xtcname);
 
     /**
-    * \brief Read next frame from the open XTC file
+    * \brief Read a frame from the XTC file into an existing Frame object
+    *
+    * Reads a frame into a pre-setup Frame object.
+    * The same Frame object should be used for each frame to save time in allocation.
     */
     bool readNext();
 
@@ -132,32 +136,27 @@ public:
     /** \brief Write Frame to XTC output file */
     bool writeToXtc();
 
+    /** \brief Close the XTC input and use the XTC from another Frame
+    * Intended for parallel read/process.
+    */
+    void openOtherXTC(const Frame &frame);
+
     /** \brief Recentre simulation box on an atom
     * Avoids problems where a residue is split by the periodic boundary,
     * causing bond lengths to be calculated incorrectly */
     void recentreBox(const int atom_num);
 
-    /** Print info for all atoms up to n.  Default print all. */
+    /** \brief Print info for all atoms up to n.  Default print all. */
     void printAtoms(int natoms=-1);
 
-    /** Print all atoms up to n to GRO file.  Default print all. */
+    /** \brief Print all atoms up to n to GRO file.  Default print all. */
     void printGRO(const std::string &filename, int natoms=-1);
-
-    /** \brief Calculate distance between two atoms */
-    double bondLength(const int a, const int b);
 
     /**
     * \brief Calculate distance between two atoms in a BondStruct object
     * Wrapper around float bondLength(int, int)
     */
     double bondLength(BondStruct &bond, const int offset=0);
-
-    /**
-    * \brief Calculate angle between vectors a->b and c->d
-    * To be used for bond angles (b=c) and dihedrals (b=/=c)
-    */
-    double bondAngle(const int a, const int b, const int c, const int d);
-
 
     /**
     * \brief Calculate angle or dihedral between atoms in a BondStruct object
