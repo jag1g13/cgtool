@@ -45,7 +45,18 @@ Frame::Frame(const Frame &frame){
     }
 }
 
-Frame::Frame(const std::string topname, const std::string xtcname){
+Frame::Frame(const std::string topname, const std::string xtcname, const std::string cfgname){
+    Parser parser(cfgname);
+    vector<string> tokens;
+    if(parser.getLineFromSection("residues", tokens)){
+        cout << "Found resname in config" << endl;
+        numResidues_ = stoi(tokens[0]);
+        mapResname_ = tokens[1];
+    }else{
+        cout << "Resname to map not found in config" << endl;
+        mapResname_ = "";
+        numResidues_ = 1;
+    }
     setupFrame(topname, xtcname);
 }
 
@@ -118,10 +129,6 @@ bool Frame::setupFrame(const string &topname, const string &xtcname){
     }
 
     // Process topology file
-    //TODO put this somewhere sensible
-    mapResname_ = "REMP";
-    numResidues_ = 32;
-
     vector<string> substrs;
     Parser top_parser(topname, ParserFormat::GROMACS);
     while(top_parser.getLineFromSection("atoms", substrs)){
@@ -254,9 +261,9 @@ double Frame::bondLength(const int a, const int b){
             pow((atoms_[a].coords[2] - atoms_[b].coords[2]), 2));
 }
 
-double Frame::bondLength(BondStruct &bond) {
-    int a = bond.atomNums_[0];
-    int b = bond.atomNums_[1];
+double Frame::bondLength(BondStruct &bond, const int offset) {
+    int a = bond.atomNums_[0] + offset;
+    int b = bond.atomNums_[1] + offset;
     return bondLength(a, b);
 }
 
@@ -279,12 +286,12 @@ double Frame::bondAngle(const int a, const int b, const int c, const int d){
 }
 
 //TODO move this and bondLength into bond_struct.cpp
-double Frame::bondAngle(BondStruct &bond){
-    int a = bond.atomNums_[0];
-    int b = bond.atomNums_[1];
-    int c = bond.atomNums_[2];
+double Frame::bondAngle(BondStruct &bond, const int offset){
+    int a = bond.atomNums_[0] + offset;
+    int b = bond.atomNums_[1] + offset;
+    int c = bond.atomNums_[2] + offset;
     if(bond.atomNums_.size() == 4){
-        int d = bond.atomNums_[3];
+        int d = bond.atomNums_[3] + offset;
         return bondAngle(a, b, c, d);
     }else{
         return bondAngle(a, b, b, c);

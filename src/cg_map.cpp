@@ -63,7 +63,6 @@ void CGMap::fromFile(string filename){
 
 // is this prototype okay?  does it copy/move?
 Frame CGMap::initFrame(const Frame &aa_frame){
-    cout << "CGMap::initFrame()" << endl;
     // create Frame and copy copiable data
     Frame cg_frame(aa_frame);
     cg_frame.numAtomsPerResidue_ = numBeads_;
@@ -102,6 +101,11 @@ Frame CGMap::initFrame(const Frame &aa_frame){
         // copy values back into beads
         mapping_[i].mass = cg_frame.atoms_[i].mass;
         mapping_[i].charge = cg_frame.atoms_[i].charge;
+        for(int j=0; j < cg_frame.numResidues_; j++){
+            const int num_cg = i + j * cg_frame.numAtomsPerResidue_;
+            cg_frame.atoms_[num_cg].mass = mapping_[i].mass;
+            cg_frame.atoms_[num_cg].charge = mapping_[i].charge;
+        }
         i++;
     }
 

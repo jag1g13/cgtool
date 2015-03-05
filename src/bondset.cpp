@@ -47,30 +47,35 @@ void BondSet::fromFile(const string &filename){
 }
 
 void BondSet::calcBondsInternal(Frame &frame){
-    for(BondStruct &bond : bonds_){
-//        does the structure cross a pbc - will break bond lengths
-        float dist = frame.bondLength(bond);
-//        if(dist > 0.8f * frame.box_[0][0])
-        if(dist > 1.f || dist < 0.01f){
-            frame.invalid_ = true;
-            cout << "Molecule must not be broken by PBC" << endl;
-            cout << "Consider using trjconv -pbc nojump" << endl;
-            return;
-        }
-    }
     numFrames_++;
-    for(BondStruct &bond : bonds_){
-        bond.values_.push_back(frame.bondLength(bond));
-    }
-    for(BondStruct &bond : angles_){
-        bond.values_.push_back(frame.bondAngle(bond));
-    }
-    for(BondStruct &bond : dihedrals_){
-        bond.values_.push_back(frame.bondAngle(bond));
+    for(int i=0; i < frame.numResidues_; i++){
+        const int offset = i * frame.numAtomsPerResidue_;
+        for(BondStruct &bond : bonds_){
+        // Does the structure cross a pbc - will break bond lengths
+            double dist = frame.bondLength(bond, offset);
+//        if(dist > 0.8f * frame.box_[0][0])
+            // If any distances > 1nm, molecule is on PBC
+            if(dist > 1.f || dist < 0.01f){
+                frame.invalid_ = true;
+//                cout << "Molecule must not be broken by PBC" << endl;
+//                cout << "Consider using trjconv -pbc nojump" << endl;
+                return;
+            }
+        }
+        for(BondStruct &bond : bonds_){
+            bond.values_.push_back(frame.bondLength(bond, offset));
+        }
+        for(BondStruct &bond : angles_){
+            bond.values_.push_back(frame.bondAngle(bond, offset));
+        }
+        for(BondStruct &bond : dihedrals_){
+            bond.values_.push_back(frame.bondAngle(bond, offset));
+        }
     }
 }
 
 void BondSet::calcAvgs(){
+    cout << "Bond measure N=" << bonds_[0].values_.size() << endl;
     for(BondStruct &bond : bonds_){
         bond.calcAvg();
     }

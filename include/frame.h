@@ -61,8 +61,6 @@ protected:
     float box_[3][3];
     /** What box shape do we have?  Currently must be cubic */
     BoxType boxType_ = BoxType::CUBIC;
-    /** What is the resname of the molecule we want to map - column 4 of the itp */
-    std::string mapResname_;
 
 public:
     /** Has the Frame been properly setup yet? */
@@ -85,6 +83,8 @@ public:
     std::map<std::string, int> nameToNum_;
 //    /** Vector of maps mapping atom names to numbers for each residue */
 //    std::vector<std::map<std::string, int>> nameToNum_;
+    /** What is the resname of the molecule we want to map - column 4 of the itp */
+    std::string mapResname_;
     /** How many atoms are in this residue? */
     int numAtomsPerResidue_;
     /** How many of this residue are there? */
@@ -98,7 +98,7 @@ public:
 
     /** \brief Create Frame passing config files.
     * Replaces calls to the function Frame::setupFrame() */
-    Frame(const std::string topname, const std::string xtcname);
+    Frame(const std::string topname, const std::string xtcname, const std::string cfgname);
 
     /** \brief Create Frame by copying data from another Frame
     * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied. */
@@ -150,7 +150,7 @@ public:
     * \brief Calculate distance between two atoms in a BondStruct object
     * Wrapper around float bondLength(int, int)
     */
-    double bondLength(BondStruct &bond);
+    double bondLength(BondStruct &bond, const int offset=0);
 
     /**
     * \brief Calculate angle between vectors a->b and c->d
@@ -163,7 +163,7 @@ public:
     * \brief Calculate angle or dihedral between atoms in a BondStruct object
     * Wrapper around float bondAngle(int, int, int, int)
     */
-    double bondAngle(BondStruct &bond);
+    double bondAngle(BondStruct &bond, const int offset=0);
 };
 
 #endif

@@ -105,23 +105,23 @@ int main(const int argc, const char *argv[]){
 
     // Open files and do setup
     split_text_output("Frame setup", start, num_threads);
-    Frame frame = Frame(topname, xtcname);
+    Frame frame = Frame(topname, xtcname, cfgname);
     CGMap mapping(cfgname);
     Frame cg_frame = mapping.initFrame(frame);
     cg_frame.setupOutput("out.xtc", "out.top");
     BondSet bond_set(cfgname);
     FieldMap field(10, 10, 10, mapping.numBeads_);
 
-    // read from config
+    // Read from config
     Parser parser(cfgname);
     vector<string> tokens;
     int num_frames_max = -1;
     if(parser.getLineFromSection("frames", tokens)) num_frames_max = stoi(tokens[0]);
     cout << num_frames_max << " frames max" << endl;
 
+    // Read and process simulation frames
     split_text_output("Reading frames", start, num_threads);
     start = std::clock();
-
     int i = 0;
     // Keep reading frames until something goes wrong (run out of frames)
     while(frame.readNext()){
