@@ -33,11 +33,12 @@ Frame::Frame(const Frame &frame){
     prec_ = frame.prec_;
     time_ = frame.time_;
     step_ = frame.step_;
+    numResidues_ = frame.numResidues_;
     boxType_ = BoxType::CUBIC;
     for(int i=0; i<3; i++){
         for(int j=0; j<3; j++){
             box_[i][j] = frame.box_[i][j];
-            if(box_[i][j] > EPSILON) boxType_ = BoxType::TRICLINIC;
+            if(i!=j && box_[i][j] > EPSILON) boxType_ = BoxType::TRICLINIC;
             // must be cubic box
 //            if(i != j) assert(box_[i][j] < EPSILON);
         }
@@ -117,37 +118,50 @@ bool Frame::setupFrame(const string &topname, const string &xtcname){
     }
 
     // Process topology file
+    //TODO put this somewhere sensible
+    mapResname_ = "REMP";
+    numResidues_ = 32;
+
     vector<string> substrs;
     Parser top_parser(topname, ParserFormat::GROMACS);
     while(top_parser.getLineFromSection("atoms", substrs)){
-        numAtomsTrack_ = stoi(substrs[0]);
+        if(substrs[3] == mapResname_) numAtomsPerResidue_ = stoi(substrs[0]);
     }
-    cout << numAtomsTrack_ << " atoms found in TOP/ITP" << endl;
+    cout << numAtomsPerResidue_ << " atoms found in TOP/ITP for " << mapResname_ << endl;
+    numAtomsTrack_ = numResidues_ * numAtomsPerResidue_;
+    cout << numAtomsTrack_ << " atoms in total" << endl;
 
     atoms_.resize(numAtomsTrack_);
 
-    for(int i=0; i<numAtomsTrack_; i++){
+    for(int i=0; i<numAtomsPerResidue_; i++){
         // read data from topology file for each atom
         // internal atom name is the res # and atom name from top/gro
         top_parser.getLineFromSection("atoms", substrs);
         string name = substrs[2] + substrs[4];
-
-        atoms_[i] = Atom(i);
-        atoms_[i].atom_type = name;
-        atoms_[i].atom_num = int(stoi(substrs[0])-1);
-        atoms_[i].resname = substrs[3];
-        atoms_[i].charge = float(atof(substrs[6].c_str()));
-        atoms_[i].mass = float(atof(substrs[7].c_str()));
-
+        const float charge = float(atof(substrs[6].c_str()));
+        const float mass = float(atof(substrs[7].c_str()));
         nameToNum_.emplace(atoms_[i].atom_type, i);
 
-        atoms_[i].coords[0] = x_[i][0];
-        atoms_[i].coords[1] = x_[i][1];
-        atoms_[i].coords[2] = x_[i][2];
+        for(int j=0; j<numResidues_; j++){
+            int num = i + j*numAtomsPerResidue_;
+            atoms_[num] = Atom();
+            atoms_[num].atom_num = num;
+            atoms_[num].atom_type = name;
+            atoms_[num].resname = substrs[3];
+            atoms_[num].resnum = j;
+            atoms_[num].charge = charge;
+            atoms_[num].mass = mass;
+            // don't need this, can just add j*numAtomsPerResidue_ every time
+//            nameToNum_[j].emplace(atoms_[num].atom_type, num);
+
+            atoms_[num].coords[0] = x_[num][0];
+            atoms_[num].coords[1] = x_[num][1];
+            atoms_[num].coords[2] = x_[num][2];
+        }
     }
 
     if(status == exdrOK) isSetup_ = true;
-    printAtoms(numAtomsTrack_);
+//    printAtoms(numAtomsTrack_);
     return isSetup_;
 }
 

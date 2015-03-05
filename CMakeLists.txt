@@ -1,6 +1,32 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(CGTOOL)
 
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Automated coarse-grain mapping for molecular dynamics")
+set(CPACK_PACKAGE_CONTACT "James Graham <J.A.Graham@soton.co.uk>")
+SET(CPACK_PACKAGE_VENDOR "James Graham")
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
+SET(CPACK_PACKAGE_VERSION_MAJOR "0")
+SET(CPACK_PACKAGE_VERSION_MINOR "2")
+SET(CPACK_PACKAGE_VERSION_PATCH "x")
+SET(CPACK_PACKAGE_INSTALL_DIRECTORY "cgtool")
+IF(WIN32 AND NOT UNIX)
+    # There is a bug in NSI that does not handle full unix paths properly. Make
+    # sure there is at least one set of four (4) backlasshes.
+    SET(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\icon.bmp")
+    SET(CPACK_NSIS_INSTALLED_ICON_NAME "build\\\\cgtool.exe")
+    SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} CGTOOL")
+    SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\bitbucket.org/jag1g13/cgtool")
+    SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\bitbucket.org/jag1g13/cgtool")
+    SET(CPACK_NSIS_CONTACT "J.A.Graham@soton.ac.uk")
+    SET(CPACK_NSIS_MODIFY_PATH ON)
+ELSE(WIN32 AND NOT UNIX)
+    SET(CPACK_STRIP_FILES "build/cgtool")
+    SET(CPACK_SOURCE_STRIP_FILES "")
+ENDIF(WIN32 AND NOT UNIX)
+SET(CPACK_PACKAGE_EXECUTABLES "cgtool")
+INCLUDE(CPack)
+
 MESSAGE("${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -g -Wall")

@@ -13,15 +13,9 @@
 #include "cmd.h"
 #include "frame.h"
 #include "cg_map.h"
-#include "bondset.h"
 #include "field_map.h"
 #include "itp_writer.h"
 #include "parser.h"
-#include "boltzmann_inverter.h"
-
-//#define ELECTRIC_FIELD
-//#define BOLTZMANN_INVERSION
-//#define UPDATE_PROGRESS
 
 #define PROGRESS_UPDATE_FREQ 50
 #define ELECTRIC_FIELD_FREQ 100

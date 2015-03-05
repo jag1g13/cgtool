@@ -17,8 +17,10 @@
 struct Atom{
     /** A serial number. no longer needed */
     int atom_num;
-    /** Residue number and name in the GRO file */
+    /** Residue name in the itp file */
     std::string resname;
+    /** Residue number */
+    int resnum;
     /** Atomtype as a string.  I don't want to be dealing with *char */
     std::string atom_type;
     /** Atomic coordinates in x, y, z */
@@ -32,6 +34,7 @@ struct Atom{
     /** Create a blank Atom instance */
     Atom(){coords[0] = 0.f; coords[1] = 0.f; coords[2] = 0.f;};
 };
+
 
 enum class BoxType{CUBIC, TRICLINIC};
 
@@ -58,6 +61,8 @@ protected:
     float box_[3][3];
     /** What box shape do we have?  Currently must be cubic */
     BoxType boxType_ = BoxType::CUBIC;
+    /** What is the resname of the molecule we want to map - column 4 of the itp */
+    std::string mapResname_;
 
 public:
     /** Has the Frame been properly setup yet? */
@@ -76,8 +81,14 @@ public:
     int num_ = 0;
     /** The simulation step corresponding to this frame */
     int step_ = 0;
-    /** Dictionary mapping atom names to numbers */
+    /** Map mapping atom names to numbers for each residue */
     std::map<std::string, int> nameToNum_;
+//    /** Vector of maps mapping atom names to numbers for each residue */
+//    std::vector<std::map<std::string, int>> nameToNum_;
+    /** How many atoms are in this residue? */
+    int numAtomsPerResidue_;
+    /** How many of this residue are there? */
+    int numResidues_;
 
 
     /** \brief Create Frame passing frame number, number of atoms to store and the frame name
