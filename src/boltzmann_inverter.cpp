@@ -1,5 +1,7 @@
 #include "boltzmann_inverter.h"
 
+#include <flens/flens.cxx>
+
 #include <iostream>
 
 #include <math.h>
@@ -8,6 +10,22 @@
 
 using std::cout;
 using std::endl;
+
+//TODO implement this
+/*
+Shift harmonic so base is at 0,0
+x_n = x_i - x_bar
+y_n = y_i - y(x_bar)
+
+Square root all ys and make negative where x is negative
+Gives a straight line y = sqrt(k) * x
+Do linear least squares
+
+---OR---
+
+Shift harmonic so base is at 0,0
+Fit y = k * x^2 by least squares
+ */
 
 
 void BoltzmannInverter::invertGaussian(){
@@ -18,95 +36,31 @@ void BoltzmannInverter::invertGaussian(){
     const double R = 8.314;
     const int T = 310;
 
-    Array harmonic(bins_);
+    typedef flens::GeMatrix<flens::FullStorage<double> >   GeMatrix;
+    typedef flens::DenseVector<flens::Array<double> >      DenseVector;
+    typedef typename flens::DenseVector<flens::Array<double>>::IndexType  IndexType;
 
-    gaussian_.print(8, 2);
+    const flens::Underscore<IndexType>  _;
+
+    GeMatrix     A(bins_, 3);
+    DenseVector  b(bins_);
+
+    // Setup matrices
     double x = min_ + 0.5*step_;
-    for(int i=0; i<bins_; i++){
-        harmonic(i) = -R * T * log(gaussian_(i) / (x*x));
+    for(int i=1; i<=bins_; i++){
+        b(i) = -R * T * log(gaussian_(i-1) / (x*x));
+        A(i, 1) = 1;
+        A(i, 2) = x;
+        A(i, 3) = x * x;
         x += step_;
     }
-    harmonic.print(12, 2);
-    cout << endl;
 
-    // equation y = kx(x - mean)
-    // may as well fit all coefficients
-    // replace with lapack
-    // A = (xT . x)^-1 . xT . y
-    // where y is harmonic()
-    // replace code here with matrix multiply in Array
+    // Solve least squares using LAPACK
+    flens::lapack::ls(flens::NoTrans, A, b);
+    auto X = b(_(1,3));
 
-    // input arrays
-    Array X(bins_, 3);
-    for(int i=0; i<bins_; i++){
-        X(i, 0) = 1;
-        X(i, 1) = min_ + (i + 0.5) * step_; // in Angstroms
-        X(i, 2) = X(i, 1) * X(i, 1);
-    }
-    X.print(15, 8);
-    cout << endl;
-
-    // output array
-    Array A(3);
-
-    // tmp arrays
-    Array XT(3, bins_);
-    Array XTX(3, 3);
-    Array XTXInv(3, 3);
-
-    for(int i=0; i<3; i++){
-        for(int j=0; j<bins_; j++){
-            XT(i, j) = X(j, i);
-        }
-    }
-
-    for(int i=0; i<3; i++){
-        for(int j=0; j<3; j++){
-            for(int k=0; k<bins_; k++){
-                XTX(i, j) += XT(j, k) * X(k, i);
-            }
-        }
-    }
-
-    double det = 0.;
-    det += XTX(0, 0) * (XTX(1, 1)*XTX(2, 2) - XTX(2, 1)*XTX(1, 2));
-    det -= XTX(1, 0) * (XTX(0, 1)*XTX(2, 2) - XTX(2, 1)*XTX(0, 2));
-    det += XTX(2, 0) * (XTX(0, 1)*XTX(1, 2) - XTX(1, 1)*XTX(0, 2));
-    cout << det << endl;
-    cout << endl;
-    double invdet = 1. / det;
-
-    XTXInv(0,0) =  (XTX(1,1)*XTX(2,2)-XTX(2,1)*XTX(1,2))*invdet;
-    XTXInv(0,1) = -(XTX(0,1)*XTX(2,2)-XTX(0,2)*XTX(2,1))*invdet;
-    XTXInv(0,2) =  (XTX(0,1)*XTX(1,2)-XTX(0,2)*XTX(1,1))*invdet;
-    XTXInv(1,0) = -(XTX(1,0)*XTX(2,2)-XTX(1,2)*XTX(2,0))*invdet;
-    XTXInv(1,1) =  (XTX(0,0)*XTX(2,2)-XTX(0,2)*XTX(2,0))*invdet;
-    XTXInv(1,2) = -(XTX(0,0)*XTX(1,2)-XTX(1,0)*XTX(0,2))*invdet;
-    XTXInv(2,0) =  (XTX(1,0)*XTX(2,1)-XTX(2,0)*XTX(1,1))*invdet;
-    XTXInv(2,1) = -(XTX(0,0)*XTX(2,1)-XTX(2,0)*XTX(0,1))*invdet;
-    XTXInv(2,2) =  (XTX(0,0)*XTX(1,1)-XTX(1,0)*XTX(0,1))*invdet;
-//    XTXInv.print();
-//    cout << endl;
-
-    Array XTXInvXT(3, bins_);
-    for(int i=0; i<3; i++){
-        for(int j=0; j<bins_; j++){
-            for(int k=0; k<3; k++){
-                XTXInvXT(i, j) += XTXInv(i, k) * XT(k, j);
-            }
-        }
-    }
-//    XTXInvXT.print();
-//    cout << endl;
-
-    for(int i=0; i<3; i++){
-        for(int k=0; k<bins_; k++){
-            A(i) += XTXInvXT(i, k) * harmonic(k);
-        }
-//        A(1) = A(1) / A(0);
-    }
-    A.print(15, 3);
-    cout << endl;
+    cout << "x = " << X << endl;
+    cout << "-b/2c = " << -0.5*X(2)/X(3) << endl;
 }
 
 void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
@@ -129,6 +83,7 @@ void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
         if(loc < 0 || loc > bins-1) cout << loc << endl;
         histogram_(loc)++;
     }
+    printGraph(histogram_);
 }
 
 double BoltzmannInverter::gaussianRSquared(){
@@ -145,28 +100,30 @@ double BoltzmannInverter::gaussianRSquared(){
         gaussian_(i) = gau;
         y_bar += int(histogram_(i));
     }
-    gaussian_.print();
+//    gaussian_.print();
 
     y_bar /= bins_;
-    amplitude_ = n_ / gaussian_.sum();
+    integral_ = n_ / gaussian_.sum();
+//    cout << integral_ << endl;
     double ss_res = 0., ss_reg = 0., ss_tot = 0.;
     double sse = 0.;
 
     // second pass to calculate R^2
     for(int i=0; i<bins_; i++){
         int actual = int(histogram_(i));
-        gaussian_(i) *= amplitude_;
+        gaussian_(i) *= integral_;
         const double gau = gaussian_(i);
-//        ss_reg += (gau - y_bar) * (gau - y_bar);
+        ss_reg += (gau - y_bar) * (gau - y_bar);
         ss_res += (gau - actual) * (gau - actual);
         ss_tot += (actual - y_bar) * (actual - y_bar);
-//        sse += (actual - gau) * (actual - gau);
+        sse += (actual - gau) * (actual - gau);
     }
     const double r_sqr = 1 - ss_res / ss_tot;
-//    const double r_sqr2 = ss_reg / ss_tot;
-//    sse = log(sse / n_);
-//    printf("%8.3f%8.3f%12.3f\n", r_sqr, r_sqr2, sse);
-    printf("%8.3f\n", r_sqr);
+    const double r_sqr2 = ss_reg / ss_tot;
+    sse = log(sse / n_);
+    printf("%8.3f%8.3f%12.3f\n", r_sqr, r_sqr2, sse);
+//    printf("%8.3f\n", r_sqr);
+    printGraph(gaussian_);
     return r_sqr;
 }
 
@@ -193,21 +150,21 @@ void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
     }
 
     adev_ /= n;
-    var_ = (var_ - ep*ep/n) / (n - 1);
+    var_ = (var_ - ep*ep/n) / (n);
     sdev_ = sqrt(var_);
     printf("%12.9f%12.9f%12.9f%12.9f\n", mean_, var_, sdev_, max_-min_);
 }
 
-void BoltzmannInverter::printHistogram(const int scale){
+void BoltzmannInverter::printGraph(Array &arr, const int scale){
     int max_num = 0;
     for(int i=0; i<bins_; i++){
-        if(int(histogram_(i)) > max_num) max_num = int(histogram_(i));
+        if(int(arr(i)) > max_num) max_num = int(arr(i));
     }
     // go down rows in terminal and print marker if h_ is greater
     for(int i=scale; i>0; i--){
         printf("%5.3f|", min_);
         for(int j=0; j<bins_; j++){
-            if(histogram_(j)*scale/max_num >= i){
+            if(arr(j)*scale/max_num >= i){
                 printf("#");
             }else{
                 printf(" ");

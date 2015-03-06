@@ -11,19 +11,18 @@ typedef unsigned int uint;
 */
 class BoltzmannInverter{
 protected:
-    /** Pointer to associated BondSet */
-    BondSet *bondSet_;
     /** Store histogram frequencies */
     Array histogram_;
     Array gaussian_;
     uint bins_ = 0, n_ = 0;
     double min_, max_, step_;
-    double amplitude_, mean_, adev_, var_, sdev_;
+    double integral_, mean_, adev_, var_, sdev_;
+
+    /** \brief Print an array/histogram to terminal for debugging */
+    void printGraph(Array &arr, const int scale=10);
 
 public:
     BoltzmannInverter(){};
-    /** \brief Construct a new Boltzmann Inverter and assign a bondset */
-    BoltzmannInverter(BondSet *bondSet){bondSet_ = bondSet;};
 
     /** \brief Perform a Boltzmann Inversion on a single bond parameter */
     void invertGaussian();
@@ -38,9 +37,6 @@ public:
 
     /** \brief Calculate R^2 value for calculated gaussian relative to histogram */
     double gaussianRSquared();
-
-    /** \brief Print the histogram to terminal for debugging */
-    void printHistogram(const int scale=10);
 };
 
 #endif

@@ -64,7 +64,6 @@ message("Using " ${CMAKE_CXX_FLAGS})
 
 link_directories("/usr/local/lib")
 
-
 # Find libxdrfile - compile it if not present - replaces GROMACS library
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 find_library(XDRFILE_LIBRARY NAMES xdrfile
@@ -81,6 +80,7 @@ else()
     #set(SOURCE_FILES ${SOURCE_FILES} ${XDR_FILES})
 endif()
 
+include_directories(/usr/local/include/FLENS)
 
 # Find Boost library - required
 set(Boost_USE_STATIC_LIBS ON)
