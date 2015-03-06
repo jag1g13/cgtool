@@ -27,12 +27,18 @@ Shift harmonic so base is at 0,0
 Fit y = k * x^2 by least squares
  */
 
+BoltzmannInverter::BoltzmannInverter(BondStruct &bond){
+    statisticalMoments(bond.values_);
+    binHistogram(bond, 35);
+    gaussianRSquared();
+    bond.forceConstant_ = invertGaussian();
+}
 
 double BoltzmannInverter::invertGaussian(){
     /* line from Python version
     y_inv = -R * T * np.log(y_fit / (x_fit*x_fit))
      */
-    cout << "invertGaussian" << endl;
+//    cout << "invertGaussian" << endl;
     // R in kJ.K-1.mol-1
     const double R = 8.314 / 1000.;
     const int T = 310;
@@ -57,14 +63,14 @@ double BoltzmannInverter::invertGaussian(){
         A(i, 3) = x * x;
         x += step_;
     }
-    printGraph(harmonic_);
+//    printGraph(harmonic_);
 
     // Solve least squares using LAPACK
     flens::lapack::ls(flens::NoTrans, A, b);
     auto X = b(_(1,3));
 
-    cout << "x = " << X << endl;
-    cout << "-b/2c = " << -0.5*X(2)/X(3) << endl;
+//    cout << "x = " << X << endl;
+//    cout << "-b/2c = " << -0.5*X(2)/X(3) << endl;
     return X(3);
 }
 
@@ -73,7 +79,7 @@ void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
     // histogram for the residual calculation are coming from
     //
     // look up constant variance test to see if you need more data
-    cout << "binHistogram" << endl;
+//    cout << "binHistogram" << endl;
     bins_ = bins;
     histogram_.init(bins);
     gaussian_.init(bins);
@@ -88,11 +94,11 @@ void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
         if(loc < 0 || loc > bins-1) cout << loc << endl;
         histogram_(loc)++;
     }
-    printGraph(histogram_);
+//    printGraph(histogram_);
 }
 
 double BoltzmannInverter::gaussianRSquared(){
-    cout << "gaussianRSquared" << endl;
+//    cout << "gaussianRSquared" << endl;
     const double prefactor = 1 / (sdev_ * sqrt(M_PI_2));
     const double postfactor = 2. / var_;
 //    printf("%12.3f%12.3f%12.3f\n", amplitude_, prefactor, postfactor);
@@ -126,14 +132,14 @@ double BoltzmannInverter::gaussianRSquared(){
     const double r_sqr = 1 - ss_res / ss_tot;
     const double r_sqr2 = ss_reg / ss_tot;
     sse = log(sse / n_);
-    printf("%8.3f%8.3f%12.3f\n", r_sqr, r_sqr2, sse);
+//    printf("%8.3f%8.3f%12.3f\n", r_sqr, r_sqr2, sse);
 //    printf("%8.3f\n", r_sqr);
-    printGraph(gaussian_);
+//    printGraph(gaussian_);
     return r_sqr;
 }
 
 void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
-    cout << "statisticalMoments" << endl;
+//    cout << "statisticalMoments" << endl;
     double sum = 0.0;
     const unsigned long n = vec.size();
 
@@ -158,7 +164,7 @@ void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
     //TODO what's going on here - why does n/2 give a better fit
     var_ = (var_ - ep*ep/n) / (n / 2);
     sdev_ = sqrt(var_);
-    printf("%12.9f%12.9f%12.9f%12.9f\n", mean_, var_, sdev_, max_-min_);
+//    printf("%12.9f%12.9f%12.9f%12.9f\n", mean_, var_, sdev_, max_-min_);
 }
 
 void BoltzmannInverter::printGraph(Array &arr, const int scale){

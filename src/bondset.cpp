@@ -75,27 +75,19 @@ void BondSet::calcBondsInternal(Frame &frame){
     }
 }
 
-void BondSet::calcAvgs(){
+void BondSet::stats(){
     cout << "Bond measure N=" << bonds_[0].values_.size() << endl;
     for(BondStruct &bond : bonds_){
         bond.calcAvg();
+        BoltzmannInverter bi(bond);
     }
     for(BondStruct &bond : angles_){
         bond.calcAvg();
+        BoltzmannInverter bi(bond);
     }
     for(BondStruct &bond : dihedrals_){
         bond.calcAvg();
-    }
-}
-
-void BondSet::boltzmannInversion(){
-    for(BondStruct &bond : bonds_){
-        bond.calcAvg();
-        BoltzmannInverter bi;
-        bi.statisticalMoments(bond.values_);
-        bi.binHistogram(bond, 35);
-        bi.gaussianRSquared();
-        bond.forceConstant_ = bi.invertGaussian();
+        BoltzmannInverter bi(bond);
     }
 }
 

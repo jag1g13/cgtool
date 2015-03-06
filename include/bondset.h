@@ -52,9 +52,7 @@ public:
     void calcBondsInternal(Frame &frame);
 
     /** \brief Calculate averages of all bond measurements */
-    void calcAvgs();
-    /** \brief Perform a boltzmann inversion on each bond */
-    void boltzmannInversion();
+    void stats();
 
     /** \brief Write all values to CSVs */
     void writeCSV();

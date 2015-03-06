@@ -160,11 +160,8 @@ int main(const int argc, const char *argv[]){
     split_text_output("Post processing", start, num_threads);
     cg_frame.printGRO("out.gro");
 
-    bond_set.calcAvgs();
+    bond_set.stats();
     bond_set.writeCSV();
-    #ifdef BOLTZMANN_INVERSION
-    bond_set.boltzmannInversion();
-    #endif
 
     cout << "Printing results to ITP" << endl;
     ITPWriter itp("out.itp");

@@ -24,11 +24,13 @@ protected:
 
 public:
     BoltzmannInverter(){};
+    /** Perform all of the necessary calculations to get a force constant */
+    BoltzmannInverter(BondStruct &bond);
 
     /** \brief Perform a Boltzmann Inversion on a single bond parameter */
     double invertGaussian();
     /** \brief Sort bond time series into histogram bins */
-    void binHistogram(const BondStruct &bond, const int bins=100);
+    void binHistogram(const BondStruct &bond, const int bins=35);
 
     /** \brief Calculate statistical moments of bond data.
     * Mean, standard deviation, skewness and kurtosis.
