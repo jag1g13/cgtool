@@ -94,13 +94,13 @@ void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
         if(loc < 0 || loc > bins-1) cout << loc << endl;
         histogram_(loc)++;
     }
-//    printGraph(histogram_);
+    printGraph(histogram_);
 }
 
 double BoltzmannInverter::gaussianRSquared(){
 //    cout << "gaussianRSquared" << endl;
-    const double prefactor = 1 / (sdev_ * sqrt(M_PI_2));
-    const double postfactor = 2. / var_;
+    const double prefactor = 1. / (sdev_ * sqrt(2. * M_PI));
+    const double postfactor = 1. / (2. * var_);
 //    printf("%12.3f%12.3f%12.3f\n", amplitude_, prefactor, postfactor);
     double y_bar = 0.;
 
@@ -134,7 +134,7 @@ double BoltzmannInverter::gaussianRSquared(){
     sse = log(sse / n_);
 //    printf("%8.3f%8.3f%12.3f\n", r_sqr, r_sqr2, sse);
 //    printf("%8.3f\n", r_sqr);
-//    printGraph(gaussian_);
+    printGraph(gaussian_);
     return r_sqr;
 }
 
@@ -162,9 +162,9 @@ void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
 
     adev_ /= n;
     //TODO what's going on here - why does n/2 give a better fit
-    var_ = (var_ - ep*ep/n) / (n / 2);
+    var_ = var_ / (n - 1);
     sdev_ = sqrt(var_);
-//    printf("%12.9f%12.9f%12.9f%12.9f\n", mean_, var_, sdev_, max_-min_);
+    printf("%12.9f%12.9f%12.9f%12.9f\n", mean_, var_, sdev_, max_-min_);
 }
 
 void BoltzmannInverter::printGraph(Array &arr, const int scale){
