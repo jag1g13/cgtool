@@ -28,12 +28,13 @@ Fit y = k * x^2 by least squares
  */
 
 
-void BoltzmannInverter::invertGaussian(){
+double BoltzmannInverter::invertGaussian(){
     /* line from Python version
     y_inv = -R * T * np.log(y_fit / (x_fit*x_fit))
      */
     cout << "invertGaussian" << endl;
-    const double R = 8.314;
+    // R in kJ.K-1.mol-1
+    const double R = 8.314 / 1000.;
     const int T = 310;
 
     typedef flens::GeMatrix<flens::FullStorage<double> >   GeMatrix;
@@ -46,14 +47,17 @@ void BoltzmannInverter::invertGaussian(){
     DenseVector  b(bins_);
 
     // Setup matrices
+    harmonic_.init(bins_);
     double x = min_ + 0.5*step_;
     for(int i=1; i<=bins_; i++){
         b(i) = -R * T * log(gaussian_(i-1) / (x*x));
+        harmonic_(i-1) = -R * T * log(gaussian_(i-1) / (x*x));
         A(i, 1) = 1;
         A(i, 2) = x;
         A(i, 3) = x * x;
         x += step_;
     }
+    printGraph(harmonic_);
 
     // Solve least squares using LAPACK
     flens::lapack::ls(flens::NoTrans, A, b);
@@ -61,6 +65,7 @@ void BoltzmannInverter::invertGaussian(){
 
     cout << "x = " << X << endl;
     cout << "-b/2c = " << -0.5*X(2)/X(3) << endl;
+    return X(3);
 }
 
 void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
@@ -150,7 +155,8 @@ void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
     }
 
     adev_ /= n;
-    var_ = (var_ - ep*ep/n) / (n);
+    //TODO what's going on here - why does n/2 give a better fit
+    var_ = (var_ - ep*ep/n) / (n / 2);
     sdev_ = sqrt(var_);
     printf("%12.9f%12.9f%12.9f%12.9f\n", mean_, var_, sdev_, max_-min_);
 }

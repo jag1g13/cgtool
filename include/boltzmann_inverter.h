@@ -14,8 +14,9 @@ protected:
     /** Store histogram frequencies */
     Array histogram_;
     Array gaussian_;
-    uint bins_ = 0, n_ = 0;
-    double min_, max_, step_;
+    Array harmonic_;
+    int bins_ = 0, n_ = 0;
+    double min_, max_, step_, maxGau_=0.;
     double integral_, mean_, adev_, var_, sdev_;
 
     /** \brief Print an array/histogram to terminal for debugging */
@@ -25,7 +26,7 @@ public:
     BoltzmannInverter(){};
 
     /** \brief Perform a Boltzmann Inversion on a single bond parameter */
-    void invertGaussian();
+    double invertGaussian();
     /** \brief Sort bond time series into histogram bins */
     void binHistogram(const BondStruct &bond, const int bins=100);
 

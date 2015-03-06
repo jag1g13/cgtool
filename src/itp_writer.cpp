@@ -38,20 +38,20 @@ void ITPWriter::printBonds(const BondSet &bond_set){
         // I don't know what the last integer is
         fprintf(itp_, "%5i %5i %5i %12.5f %12.5e;\n",
                 bond.atomNums_[0]+1, bond.atomNums_[1]+1, 1,
-                bond.avg_, 0.f);
+                bond.avg_, bond.forceConstant_);
     }
     newSection("angles");
     for(const BondStruct &bond : bond_set.angles_){
         fprintf(itp_, "%5i %5i %5i %5i %12.5f %12.5e;\n",
                 bond.atomNums_[0]+1, bond.atomNums_[1]+1,
                 bond.atomNums_[2]+1, 2,
-                bond.avg_, 0.f);
+                bond.avg_, bond.forceConstant_);
     }
     newSection("dihedrals");
     for(const BondStruct &bond : bond_set.dihedrals_){
         fprintf(itp_, "%5i %5i %5i %5i %5i %12.5f %12.5e;\n",
                 bond.atomNums_[0]+1, bond.atomNums_[1]+1,
                 bond.atomNums_[2]+1, bond.atomNums_[3]+1,
-                1, bond.avg_, 0.f);
+                1, bond.avg_, bond.forceConstant_);
     }
 }
