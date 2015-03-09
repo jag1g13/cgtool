@@ -14,6 +14,7 @@ using std::string;
 // resolve circular dependency
 class Frame;
 
+
 /**
 * \brief Class that holds all bond lengths, angles and dihedrals to be calculated
 */

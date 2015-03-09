@@ -11,34 +11,21 @@
 using std::cout;
 using std::endl;
 
-//TODO implement this
-/*
-Shift harmonic so base is at 0,0
-x_n = x_i - x_bar
-y_n = y_i - y(x_bar)
-
-Square root all ys and make negative where x is negative
-Gives a straight line y = sqrt(k) * x
-Do linear least squares
-
----OR---
-
-Shift harmonic so base is at 0,0
-Fit y = k * x^2 by least squares
- */
-
 BoltzmannInverter::BoltzmannInverter(BondStruct &bond){
     statisticalMoments(bond.values_);
-    binHistogram(bond, 35);
-    gaussianRSquared();
+    binHistogram(bond, 55);
+    bond.rsqr_ = gaussianRSquared();
     bond.forceConstant_ = invertGaussian();
+//    printGraph(histogram_);
+    printGraph(gaussian_);
+    printGraph(harmonic_);
+//    printGraph(harmonicFit_);
 }
 
-double BoltzmannInverter::invertGaussian(){
+double BoltzmannInverter::invertGaussian(const bool angle){
     /* line from Python version
     y_inv = -R * T * np.log(y_fit / (x_fit*x_fit))
      */
-//    cout << "invertGaussian" << endl;
     // R in kJ.K-1.mol-1
     const double R = 8.314 / 1000.;
     const int T = 310;
@@ -47,30 +34,37 @@ double BoltzmannInverter::invertGaussian(){
     typedef flens::DenseVector<flens::Array<double> >      DenseVector;
     typedef typename flens::DenseVector<flens::Array<double>>::IndexType  IndexType;
 
-    const flens::Underscore<IndexType>  _;
 
     GeMatrix     A(bins_, 3);
     DenseVector  b(bins_);
 
+    double y_bar = 0.;
+
     // Setup matrices
     harmonic_.init(bins_);
+    const double minHarm = -R * T * log(gaussian_(meanBin_) / (mean_*mean_));
     double x = min_ + 0.5*step_;
+    double xtrans = x - mean_;
     for(int i=1; i<=bins_; i++){
+        y_bar += harmonic_(i-1);
         b(i) = -R * T * log(gaussian_(i-1) / (x*x));
-        harmonic_(i-1) = -R * T * log(gaussian_(i-1) / (x*x));
+//        b(i) = -R * T * log(gaussian_(i-1) / (x*x)) - minHarm;
+        harmonic_(i-1) = b(i);
         A(i, 1) = 1;
         A(i, 2) = x;
-        A(i, 3) = x * x;
+        A(i, 3) = x*x;
+//        A(i, 2) = xtrans;
+//        A(i, 3) = xtrans*xtrans;
         x += step_;
+        xtrans += step_;
     }
-//    printGraph(harmonic_);
+    y_bar /= bins_;
 
     // Solve least squares using LAPACK
     flens::lapack::ls(flens::NoTrans, A, b);
+    const flens::Underscore<IndexType>  _;
     auto X = b(_(1,3));
-
-//    cout << "x = " << X << endl;
-//    cout << "-b/2c = " << -0.5*X(2)/X(3) << endl;
+    cout << "X = " << X << endl;
     return X(3);
 }
 
@@ -79,7 +73,6 @@ void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
     // histogram for the residual calculation are coming from
     //
     // look up constant variance test to see if you need more data
-//    cout << "binHistogram" << endl;
     bins_ = bins;
     histogram_.init(bins);
     gaussian_.init(bins);
@@ -88,13 +81,13 @@ void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
 
     step_ = (max_ - min_) / (bins-1);
 //    printf("%8.3f%8.3f%8.5f\n", min_, max_, step_);
+    meanBin_ = int((mean_ - min_) / step_);
 
     for(const double val : bond.values_){
         int loc = int((val - min_) / step_);
         if(loc < 0 || loc > bins-1) cout << loc << endl;
         histogram_(loc)++;
     }
-    printGraph(histogram_);
 }
 
 double BoltzmannInverter::gaussianRSquared(){
@@ -132,14 +125,12 @@ double BoltzmannInverter::gaussianRSquared(){
     const double r_sqr = 1 - ss_res / ss_tot;
     const double r_sqr2 = ss_reg / ss_tot;
     sse = log(sse / n_);
-//    printf("%8.3f%8.3f%12.3f\n", r_sqr, r_sqr2, sse);
+    printf("%8.3f%8.3f%12.3f\n", r_sqr, r_sqr2, sse);
 //    printf("%8.3f\n", r_sqr);
-    printGraph(gaussian_);
     return r_sqr;
 }
 
 void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
-//    cout << "statisticalMoments" << endl;
     double sum = 0.0;
     const unsigned long n = vec.size();
 
@@ -164,7 +155,7 @@ void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
     //TODO what's going on here - why does n/2 give a better fit
     var_ = var_ / (n - 1);
     sdev_ = sqrt(var_);
-    printf("%12.9f%12.9f%12.9f%12.9f\n", mean_, var_, sdev_, max_-min_);
+    printf("%12.5f%12.5f%12.5f%12.5f\n", mean_, var_, sdev_, max_-min_);
 }
 
 void BoltzmannInverter::printGraph(Array &arr, const int scale){

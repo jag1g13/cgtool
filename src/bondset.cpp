@@ -83,11 +83,11 @@ void BondSet::stats(){
     }
     for(BondStruct &bond : angles_){
         bond.calcAvg();
-        BoltzmannInverter bi(bond);
+        BoltzmannInverter bi(bond, true);
     }
     for(BondStruct &bond : dihedrals_){
         bond.calcAvg();
-        BoltzmannInverter bi(bond);
+        BoltzmannInverter bi(bond, true);
     }
 }
 

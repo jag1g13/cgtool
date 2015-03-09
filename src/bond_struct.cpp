@@ -11,16 +11,24 @@ BondStruct::BondStruct(const int size){
     // keep track of serial number
     num_ = totalNum_;
     totalNum_++;
-//    atomNames_.resize(size);
     atomNums_.resize(size);
+    switch(size){
+        case 2:
+            type_ = BondType::LENGTH;
+            break;
+        case 3:
+            type_ = BondType::ANGLE;
+            break;
+        case 4:
+            type_ = BondType::DIHEDRAL;
+            break;
+    }
 }
 
 BondStruct::BondStruct(const BondStruct &other){
     unsigned long size = other.atomNums_.size();
-//    atomNames_.resize(size);
     atomNums_.resize(size);
     for(unsigned int i = 0; i < size; i++){
-//        atomNames_[i] = other.atomNames_[i];
         atomNums_[i] = other.atomNums_[i];
     }
 }
