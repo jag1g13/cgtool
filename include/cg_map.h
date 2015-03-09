@@ -54,6 +54,8 @@ public:
     int numBeads_;
     /** Vector of BeadMap; holds the mappings for every bead */
     vector<BeadMap> mapping_;
+    /** The name of the molecule being mapped */
+    std::string resName_;
 
     /**
     * \brief Constructor to create a blank instance

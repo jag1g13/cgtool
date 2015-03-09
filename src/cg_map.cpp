@@ -21,10 +21,13 @@ void CGMap::fromFile(string filename){
     // which mapping type was requested - defaults to MapType::GC if not found
     vector<string> substrs;
     Parser parser(filename);
-    if(!parser.getLineFromSection("maptype", substrs)){
-        cout << "Could not find requested mapping type - assuming GC" << endl;
-        mapType_ = MapType::GC;
+    if(parser.getLineFromSection("residues", substrs)){
+        resName_ = substrs[1];
     }else{
+        cout << "Could not find residue name in config file" << endl;
+        exit(0);
+    }
+    if(parser.getLineFromSection("maptype", substrs)){
         if(substrs[0] == "CM"){
             mapType_ = MapType::CM;
             cout << "Using CM mapping" << endl;
@@ -38,6 +41,9 @@ void CGMap::fromFile(string filename){
             cout << "Mapping type not recognised - assuming GC" << endl;
             mapType_ = MapType::GC;
         }
+    }else{
+        cout << "Could not find requested mapping type - assuming GC" << endl;
+        mapType_ = MapType::GC;
     }
 
     // read in the bead mappings

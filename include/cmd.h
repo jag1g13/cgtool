@@ -19,19 +19,13 @@ class CMD{
 protected:
     /** Stores string argument names */
     std::map<std::string, std::string> stringArgs_;
-//    /** Stores string argument default values */
-//    std::vector<std::string> stringArgDefaults_;
-//    /** Stores integer arguments accessed by argument name */
-//    std::map<std::string, int> intArgs_;
-//    /** Stores float arguments accessed by argument name */
-//    std::map<std::string, float> floatArgs_;
-//    /** Stores boolean arguments accessed by argument name */
-//    std::map<std::string, bool> boolArgs_;
-//    /** Stores type of each argument */
-//    std::map<std::string, ArgType> argTypes_;
+
+    /** Stores boolean arguments accessed by argument name */
+    std::map<std::string, bool> boolArgs_;
+
     /** Program help string.  Should be parsed to generate arguments */
     std::string helpString_;
-//    boost::program_options::options_description desc_;
+
     /** Store options from Boost program_options */
     boost::program_options::variables_map options_;
     boost::program_options::options_description desc_;
@@ -41,10 +35,7 @@ public:
     CMD(const std::string &help_string, const int argc, const char *argv[]);
 
     /** \brief Empty constructor, does nothing */
-    CMD();
-
-    /** Print the help text */
-    void help();
+    CMD(){};
 
     /** \brief Return the value of named argument.
     * If argument was not provided by the user the default value will be used.

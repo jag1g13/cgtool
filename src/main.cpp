@@ -9,9 +9,9 @@
 #include "itp_writer.h"
 #include "parser.h"
 
-#ifdef CMD_PARSER
+//#ifdef CMD_PARSER
 #include "cmd.h"
-#endif
+//#endif
 
 #ifdef ELECTRIC_FIELD
 #include "field_map.h"
@@ -38,16 +38,17 @@ int main(const int argc, const char *argv[]){
     clock_t start_time = std::clock();
 
     const string version_string =
-            "CGTOOL v0.2.158:e23f94a3a897";
+            "CGTOOL v0.2.165:652b10ab72f8";
 
     const string help_header =
             "Requires GROMACS .xtc and .top files.\n"
             "Uses a config file to set beads and measure parameters\n\n"
             "Usage:\n";
     const string help_options =
+            "--cfg\tCGTOOL mapping file\tcg.cfg\n"
             "--xtc\tGROMACS xtc file\tmd.xtc\n"
             "--itp\tGROMACS itp file\ttopol.top\n"
-            "--cfg\tCGTOOL mapping file\tcg.cfg";
+            "--dir\tDirectory containing all of the above\t.//";
     const string help_string = help_header + help_options;
 
     // How many threads are we using?
@@ -58,17 +59,15 @@ int main(const int argc, const char *argv[]){
     }
 
     // Get commands
-    #ifdef CMD_PARSER
-    CMD cmd_parser(help_options, argc, argv);
-    #endif
+//    CMD cmd_parser(help_options, argc, argv);
 
     // Where does the user want us to look for input files?
     split_text_output(version_string, start, num_threads);
     string xtcname, topname, cfgname;
     if(argc < 2){
         cout << "Using current directory" << endl;
-        xtcname = "md.xtc";
         cfgname = "tp.config";
+        xtcname = "md.xtc";
         topname = "topol.top";
     }else if(argc == 2){
         string arg_tmp = argv[1];
@@ -78,25 +77,31 @@ int main(const int argc, const char *argv[]){
         }
         cout << "Using directory provided" << endl;
         string dir = string(argv[1]);
-        xtcname = dir + "/md.xtc";
         cfgname = dir + "/tp.config";
+        xtcname = dir + "/md.xtc";
         topname = dir + "/topol.top";
     }else if(argc == 4){
         cout << "Using filenames provided" << endl;
-        xtcname = string(argv[1]);
-        cfgname = string(argv[2]);
+        cfgname = string(argv[1]);
+        xtcname = string(argv[2]);
         topname = string(argv[3]);
     }else{
         cout << "Wrong number of arguments given" << endl;
         exit(0);
     }
+//    cfgname = cmd_parser.getStringArg("cfg");
+//    xtcname = cmd_parser.getStringArg("xtc");
+//    topname = cmd_parser.getStringArg("itp");
+    cout << cfgname << endl;
+    cout << xtcname << endl;
+    cout << topname << endl;
     if(!file_exists(xtcname) || !file_exists(cfgname) || !file_exists(topname)){
         cout << "Input file does not exist" << endl;
         exit(-1);
     }
     cout << "Running with " << num_threads << " thread(s)" << endl;
-    cout << "XTC file: " << xtcname << endl;
     cout << "CFG file: " << cfgname << endl;
+    cout << "XTC file: " << xtcname << endl;
     cout << "TOP file: " << topname << endl;
 
     // Read from config
@@ -164,7 +169,7 @@ int main(const int argc, const char *argv[]){
     bond_set.writeCSV();
 
     cout << "Printing results to ITP" << endl;
-    ITPWriter itp("out.itp");
+    ITPWriter itp("out.itp", frame.resname_);
     itp.printAtoms(mapping);
     itp.printBonds(bond_set);
 

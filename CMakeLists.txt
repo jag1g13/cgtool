@@ -103,17 +103,17 @@ endif(DOXYGEN_FOUND)
 
 # handle conditional compilation of testing features
 option(UPDATE_PROGRESS "Print progress update every few frames" ON)
-option(BOLTZMANN_INVERSION "Do a Boltzmann Inversion to calculate force constants" OFF)
 option(ELECTRIC_FIELD "Calculate dipoles and the electric field" OFF)
+option(CMD_PARSER "Use the CMD module to parse the command line" OFF)
 
 if(UPDATE_PROGRESS)
     add_definitions(-DUPDATE_PROGRESS)
 endif()
-if(BOLTZMANN_INVERSION)
-    add_definitions(-DBOLTZMANN_INVERSION)
-endif()
 if(ELECTRIC_FIELD)
     add_definitions(-DELECTRIC_FIELD)
+endif()
+if(CMD_PARSER)
+    add_definitions(-DCMD_PARSER)
 endif()
 
 

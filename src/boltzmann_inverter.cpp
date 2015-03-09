@@ -12,8 +12,8 @@ BoltzmannInverter::BoltzmannInverter(BondStruct &bond, const bool isAngle){
     bond.rsqr_ = gaussianRSquared();
 //    bool isAngle = (bond.type_ != BondType::LENGTH);
     bond.forceConstant_ = invertGaussian(isAngle);
-    printGraph(histogram_);
-    printGraph(gaussian_);
+//    printGraph(histogram_);
+//    printGraph(gaussian_);
 //    printGraph(harmonic_);
 //    printGraph(harmonicFit_);
 }
