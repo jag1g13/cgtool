@@ -13,7 +13,7 @@ using boost::algorithm::trim;
 
 namespace po = boost::program_options;
 
-CMD::CMD(const string &help_string, const int argc, const char *argv[]){
+CMD::CMD(const string &help_header, const string &help_string, const int argc, const char *argv[]){
     helpString_ = help_string;
     vector<string> lines;
     vector<string> parts(3);
@@ -30,32 +30,29 @@ CMD::CMD(const string &help_string, const int argc, const char *argv[]){
     po::store(po::parse_command_line(argc, argv, desc_), options_);
     po::notify(options_);
     if (options_.count("help")) {
+        cout << help_header;
         cout << desc_ << "\n";
         exit(0);
     }
 }
 
-const std::string &CMD::getStringArg(const std::string &arg){
-    if(options_.count(arg)) return options_[arg].as<string>();
+const std::string CMD::getStringArg(const std::string &arg){
+    if(options_.count(arg)){
+        if(options_.count("dir")){
+            return options_["dir"].as<string>() + "/" + options_[arg].as<string>();
+        }else{
+            return options_[arg].as<string>();
+        }
+    }
     if(stringArgs_.count(arg)){
         if(options_.count("dir")){
-            return options_["dir"].as<string>() + stringArgs_[arg];
+            return options_["dir"].as<string>() + "/" + stringArgs_[arg];
         }else{
             return stringArgs_[arg];
         }
     }
     cout << "Necessary argument not provied" << endl;
     exit(0);
-}
-
-const int CMD::getIntArg(const std::string &arg){
-    throw std::runtime_error("Not implemented");
-
-}
-
-const float CMD::getFloatArg(const std::string &arg){
-    throw std::runtime_error("Not implemented");
-
 }
 
 const bool CMD::getBoolArg(const std::string &arg){

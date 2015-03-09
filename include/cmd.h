@@ -32,7 +32,7 @@ protected:
 
 public:
     /** \brief Constructor to parse the program help text */
-    CMD(const std::string &help_string, const int argc, const char *argv[]);
+    CMD(const std::string &help_header, const std::string &help_string, const int argc, const char *argv[]);
 
     /** \brief Empty constructor, does nothing */
     CMD(){};
@@ -41,19 +41,7 @@ public:
     * If argument was not provided by the user the default value will be used.
     * If there is not default value, print an error
     */
-    const std::string &getStringArg(const std::string &arg);
-
-    /** \brief Return the value of named argument.
-    * If argument was not provided by the user the default value will be used.
-    * If there is not default value, print an error
-    */
-    const int getIntArg(const std::string &arg);
-
-    /** \brief Return the value of named argument.
-    * If argument was not provided by the user the default value will be used.
-    * If there is not default value, print an error
-    */
-    const float getFloatArg(const std::string &arg);
+    const std::string getStringArg(const std::string &arg);
 
     /** \brief Return the value of named argument.
     * If argument was not provided by the user the default value will be used.

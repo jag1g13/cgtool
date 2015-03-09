@@ -144,7 +144,7 @@ if(GTEST_FOUND)
     add_test(GTestArrayAll gtest_array)
 
     # integration test - does it run
-    add_test(Integration1 cgtool ../test_data/ALLA)
+    add_test(Integration1 cgtool --dir ../test_data/ALLA)
 
     enable_testing()
     add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}

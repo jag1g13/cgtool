@@ -49,9 +49,9 @@ Frame::Frame(const std::string topname, const std::string xtcname, const std::st
     Parser parser(cfgname);
     vector<string> tokens;
     if(parser.getLineFromSection("residues", tokens)){
-        cout << "Found resname in config" << endl;
         numResidues_ = stoi(tokens[0]);
         resname_ = tokens[1];
+        cout << "Mapping " << numResidues_ << " " << resname_ << " residue(s)" << endl;
     }else{
         cout << "Resname to map not found in config" << endl;
         resname_ = "";
@@ -140,9 +140,8 @@ bool Frame::setupFrame(const string &topname, const string &xtcname){
             numAtomsPerResidue_ = stoi(substrs[0]);
         }
     }
-    cout << numAtomsPerResidue_ << " atoms found in TOP/ITP for " << resname_ << endl;
+    cout << "Found " << numAtomsPerResidue_ << " atoms in ITP per " << resname_ << endl;
     numAtomsTrack_ = numResidues_ * numAtomsPerResidue_;
-    cout << numAtomsTrack_ << " atoms in total" << endl;
 
     atoms_.resize(numAtomsTrack_);
 
