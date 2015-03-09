@@ -2,27 +2,23 @@
 
 #include <flens/flens.cxx>
 
-#include <iostream>
-
-#include <math.h>
-
-#include "array.h"
-
 using std::cout;
 using std::endl;
+using std::vector;
 
-BoltzmannInverter::BoltzmannInverter(BondStruct &bond){
+BoltzmannInverter::BoltzmannInverter(BondStruct &bond, const bool isAngle){
     statisticalMoments(bond.values_);
     binHistogram(bond, 55);
     bond.rsqr_ = gaussianRSquared();
-    bond.forceConstant_ = invertGaussian();
-//    printGraph(histogram_);
+//    bool isAngle = (bond.type_ != BondType::LENGTH);
+    bond.forceConstant_ = invertGaussian(isAngle);
+    printGraph(histogram_);
     printGraph(gaussian_);
-    printGraph(harmonic_);
+//    printGraph(harmonic_);
 //    printGraph(harmonicFit_);
 }
 
-double BoltzmannInverter::invertGaussian(const bool angle){
+double BoltzmannInverter::invertGaussian(const bool isAngle){
     /* line from Python version
     y_inv = -R * T * np.log(y_fit / (x_fit*x_fit))
      */
@@ -34,37 +30,38 @@ double BoltzmannInverter::invertGaussian(const bool angle){
     typedef flens::DenseVector<flens::Array<double> >      DenseVector;
     typedef typename flens::DenseVector<flens::Array<double>>::IndexType  IndexType;
 
-
     GeMatrix     A(bins_, 3);
     DenseVector  b(bins_);
 
-    double y_bar = 0.;
-
     // Setup matrices
     harmonic_.init(bins_);
-    const double minHarm = -R * T * log(gaussian_(meanBin_) / (mean_*mean_));
     double x = min_ + 0.5*step_;
-    double xtrans = x - mean_;
     for(int i=1; i<=bins_; i++){
-        y_bar += harmonic_(i-1);
-        b(i) = -R * T * log(gaussian_(i-1) / (x*x));
-//        b(i) = -R * T * log(gaussian_(i-1) / (x*x)) - minHarm;
+        const double cosx = cos(x);
+        if(isAngle){
+            b(i) = -R * T * log(gaussian_(i - 1) / (cosx * cosx));
+        }else{
+            b(i) = -R * T * log(gaussian_(i - 1) / (x * x));
+        }
         harmonic_(i-1) = b(i);
-        A(i, 1) = 1;
-        A(i, 2) = x;
-        A(i, 3) = x*x;
-//        A(i, 2) = xtrans;
-//        A(i, 3) = xtrans*xtrans;
+        // Angles in MARTINI are a cos^2 term
+        if(isAngle){
+            A(i, 1) = 1;
+            A(i, 2) = cosx;
+            A(i, 3) = cosx*cosx;
+        }else{
+            A(i, 1) = 1;
+            A(i, 2) = x;
+            A(i, 3) = x*x;
+        }
         x += step_;
-        xtrans += step_;
     }
-    y_bar /= bins_;
 
     // Solve least squares using LAPACK
     flens::lapack::ls(flens::NoTrans, A, b);
     const flens::Underscore<IndexType>  _;
     auto X = b(_(1,3));
-    cout << "X = " << X << endl;
+//    cout << "X = " << X << endl;
     return X(3);
 }
 
@@ -125,7 +122,7 @@ double BoltzmannInverter::gaussianRSquared(){
     const double r_sqr = 1 - ss_res / ss_tot;
     const double r_sqr2 = ss_reg / ss_tot;
     sse = log(sse / n_);
-    printf("%8.3f%8.3f%12.3f\n", r_sqr, r_sqr2, sse);
+//    printf("%8.3f%8.3f%12.3f\n", r_sqr, r_sqr2, sse);
 //    printf("%8.3f\n", r_sqr);
     return r_sqr;
 }
@@ -155,7 +152,7 @@ void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
     //TODO what's going on here - why does n/2 give a better fit
     var_ = var_ / (n - 1);
     sdev_ = sqrt(var_);
-    printf("%12.5f%12.5f%12.5f%12.5f\n", mean_, var_, sdev_, max_-min_);
+//    printf("%12.5f%12.5f%12.5f%12.5f\n", mean_, var_, sdev_, max_-min_);
 }
 
 void BoltzmannInverter::printGraph(Array &arr, const int scale){

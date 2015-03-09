@@ -1,6 +1,7 @@
 #include "bond_struct.h"
 
 #include <iostream>
+#include <stdexcept>
 
 using std::cout;
 using std::endl;
@@ -12,6 +13,7 @@ BondStruct::BondStruct(const int size){
     num_ = totalNum_;
     totalNum_++;
     atomNums_.resize(size);
+    //TODO this doesn't actually pass these through to the Boltzmann Inverter.  Why?
     switch(size){
         case 2:
             type_ = BondType::LENGTH;
@@ -22,6 +24,8 @@ BondStruct::BondStruct(const int size){
         case 4:
             type_ = BondType::DIHEDRAL;
             break;
+        default:
+            throw std::logic_error("BondStruct created with unexpected size");
     }
 }
 

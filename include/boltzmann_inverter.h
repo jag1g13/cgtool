@@ -1,7 +1,9 @@
 #ifndef BOLTZMANN_INVERTER_H_
 #define BOLTZMANN_INVERTER_H_
 
-#include "bondset.h"
+#include <vector>
+
+#include "bond_struct.h"
 #include "array.h"
 
 typedef unsigned int uint;
@@ -23,7 +25,7 @@ protected:
     void printGraph(Array &arr, const int scale=10);
 
     /** \brief Perform a Boltzmann Inversion on a single bond parameter */
-    double invertGaussian(const bool angle=false);
+    double invertGaussian(const bool isAngle=false);
 
     /** \brief Sort bond time series into histogram bins */
     void binHistogram(const BondStruct &bond, const int bins=35);
@@ -40,7 +42,7 @@ protected:
 public:
     BoltzmannInverter(){};
     /** Perform all of the necessary calculations to get a force constant */
-    BoltzmannInverter(BondStruct &bond, const bool angle=false);
+    BoltzmannInverter(BondStruct &bond, const bool isAngle=false);
 };
 
 #endif
