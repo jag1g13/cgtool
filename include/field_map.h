@@ -23,27 +23,27 @@ private:
     /** Dimensions of the field grids (3 ints) */
     std::vector<int> gridDims_;
     /** Array to hold electric field calculated from monopoles */
-    ArrayFloat fieldMonopole_;
+    Array fieldMonopole_;
     /** Array to hold electric field calculated from dipoles */
-    ArrayFloat fieldDipole_;
+    Array fieldDipole_;
     /** \brief Border to leave around molecule in field grid
     * Also the radius of selection for the CHELPG style grid */
     float border_ = 2.f;    // 2nm
     /** Array to hold grid bounds; needs to be reset each frame (or often) */
-    ArrayFloat gridBounds_;
+    Array gridBounds_;
     /** Coordinates of each grid point */
-    ArrayFloat gridCoords_;
+    Array gridCoords_;
     /** Centre of grid */
     std::vector<float> gridCentre_;
-    ArrayFloat gridContracted_;
+    Array gridContracted_;
     int numGridPoints_;
     std::vector<float> fieldMonopoleContracted_;
     std::vector<float> fieldDipoleContracted_;
     int numDipoles_;
     /** Dipole of each atom, coords, vector, magnitude */
-    ArrayFloat dipoles_;
-    ArrayFloat totalDipole_;
-    ArrayFloat sumDipoles_;
+    Array dipoles_;
+    Array totalDipole_;
+    Array sumDipoles_;
 
 public:
     /** Constructor for a blank instance of an electric field map */
@@ -56,7 +56,7 @@ public:
     void setupGrid(const Frame &frame);
 
     /** \brief Calculate the square of the distance between two points */
-    float distSqr(const float *coords, const float x, const float y, const float z);
+    double distSqr(const double *coords, const double x, const double y, const double z);
 
     /** Create a CHELPG style grid using only points in a shell around the molecule */
     void setupGridContracted(const Frame &frame);

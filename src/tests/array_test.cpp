@@ -4,7 +4,7 @@
 
 
 TEST(ArrayTest, InitAccess1d){
-    ArrayFloat array(4);
+    Array array(4);
     ASSERT_FLOAT_EQ(array(0), 0.f);
     ASSERT_FLOAT_EQ(array(1), 0.f);
     ASSERT_FLOAT_EQ(array(2), 0.f);
@@ -12,7 +12,7 @@ TEST(ArrayTest, InitAccess1d){
 }
 
 TEST(ArrayTest, InitAccess2d){
-    ArrayFloat array(2, 2);
+    Array array(2, 2);
     ASSERT_FLOAT_EQ(array(0, 0), 0.f);
     ASSERT_FLOAT_EQ(array(0, 1), 0.f);
     ASSERT_FLOAT_EQ(array(1, 0), 0.f);
@@ -20,7 +20,7 @@ TEST(ArrayTest, InitAccess2d){
 }
 
 TEST(ArrayTest, InitAccess3d){
-    ArrayFloat array(2, 2, 2);
+    Array array(2, 2, 2);
     ASSERT_FLOAT_EQ(array(0, 0, 0), 0.f);
     ASSERT_FLOAT_EQ(array(0, 0, 1), 0.f);
     ASSERT_FLOAT_EQ(array(0, 1, 0), 0.f);
@@ -32,7 +32,7 @@ TEST(ArrayTest, InitAccess3d){
 }
 
 TEST(ArrayTest, NegInd1d){
-    ArrayFloat array(4);
+    Array array(4);
     array(0) = 1.f;
     array(1) = 2.f;
     array(2) = 3.f;
@@ -44,7 +44,7 @@ TEST(ArrayTest, NegInd1d){
 }
 
 TEST(ArrayTest, NegInd2d){
-    ArrayFloat array(2, 2);
+    Array array(2, 2);
     array(0, 0) = 1.f;
     array(0, 1) = 2.f;
     array(1, 0) = 3.f;
@@ -56,7 +56,7 @@ TEST(ArrayTest, NegInd2d){
 }
 
 TEST(ArrayTest, NegInd3d){
-    ArrayFloat array(2, 2, 2);
+    Array array(2, 2, 2);
     array(0, 0, 0) = 1.f;
     array(0, 0, 1) = 2.f;
     array(0, 1, 0) = 3.f;

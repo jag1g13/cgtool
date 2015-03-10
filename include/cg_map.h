@@ -9,6 +9,7 @@
 using std::string;
 using std::vector;
 
+
 /**
 * \brief Struct to hold the mapping for a single CG bead
 */
@@ -50,9 +51,11 @@ protected:
 
 public:
     /** Number of beads defined */
-    int num_beads;
+    int numBeads_;
     /** Vector of BeadMap; holds the mappings for every bead */
     vector<BeadMap> mapping_;
+    /** The name of the molecule being mapped */
+    std::string resName_;
 
     /**
     * \brief Constructor to create a blank instance
