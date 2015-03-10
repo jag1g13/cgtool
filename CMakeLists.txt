@@ -101,10 +101,12 @@ if(DOXYGEN_FOUND)
 endif(DOXYGEN_FOUND)
 
 
-# handle conditional compilation of testing features
+# Handle conditional compilation of testing features
 option(UPDATE_PROGRESS "Print progress update every few frames" ON)
+option(NO_CMD_PARSER "Disable the default command line parser if not using Boost program_options" OFF)
 option(ELECTRIC_FIELD "Calculate dipoles and the electric field" OFF)
-option(CMD_PARSER "Use the CMD module to parse the command line" OFF)
+option(OUTPUT_CSV "Print all bond measures to CSV - slow" OFF)
+
 
 if(UPDATE_PROGRESS)
     add_definitions(-DUPDATE_PROGRESS)
@@ -112,8 +114,11 @@ endif()
 if(ELECTRIC_FIELD)
     add_definitions(-DELECTRIC_FIELD)
 endif()
-if(CMD_PARSER)
-    add_definitions(-DCMD_PARSER)
+if(NO_CMD_PARSER)
+    add_definitions(-DNO_CMD_PARSER)
+endif()
+if(OUTPUT_CSV)
+    add_definitions(-DOUTPUT_CSV)
 endif()
 
 

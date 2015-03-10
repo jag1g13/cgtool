@@ -26,8 +26,10 @@ void BondSet::fromFile(const string &filename){
         i++;
     }
 
+    i = 0;
     while(parser.getLineFromSection("length", substrs)){
         bonds_.emplace_back(BondStruct(2));
+        bonds_.back().num_ = i;
         for(int j = 0; j < 2; j++){
             bonds_.back().atomNums_[j] = beadNums_[substrs[j]];
         }
@@ -48,20 +50,21 @@ void BondSet::fromFile(const string &filename){
 
 void BondSet::calcBondsInternal(Frame &frame){
     for(int i=0; i < frame.numResidues_; i++){
+        bool res_okay = true;
         const int offset = i * frame.numAtomsPerResidue_;
         // Does the structure cross a pbc - will break bond lengths
         // Added bonus that it detects molecule where mapping is wrong
         for(BondStruct &bond : bonds_){
             double dist = frame.bondLength(bond, offset);
-//        if(dist > 0.8f * frame.box_[0][0])
             // If any distances > 1nm, molecule is on PBC
             if(dist > 1.f || dist < 0.01f){
-                frame.invalid_ = true;
-//                cout << "Molecule must not be broken by PBC" << endl;
-//                cout << "Consider using trjconv -pbc nojump" << endl;
-                return;
+                res_okay = false;
+                break;
             }
         }
+        // Molecule is broken, skip
+        if(!res_okay) continue;
+
         for(BondStruct &bond : bonds_){
             bond.values_.push_back(frame.bondLength(bond, offset));
         }
@@ -75,8 +78,8 @@ void BondSet::calcBondsInternal(Frame &frame){
     }
 }
 
-void BondSet::stats(){
-    cout << "Bond measure N=" << bonds_[0].values_.size() << endl;
+void BondSet::BoltzmannInversion(){
+    cout << "Bond parameters N=" << bonds_[0].values_.size() << endl;
     for(BondStruct &bond : bonds_){
         bond.calcAvg();
         BoltzmannInverter bi(bond);
@@ -103,15 +106,15 @@ void BondSet::writeCSV(){
         }
         #endif
         for(BondStruct &bond : bonds_){
-            fprintf(f_bond, "%8.4f", bond.values_[i]);
+            fprintf(f_bond, "%8.3f", bond.values_[i]);
         }
         fprintf(f_bond, "\n");
         for(BondStruct &bond : angles_){
-            fprintf(f_angle, "%8.4f", bond.values_[i]);
+            fprintf(f_angle, "%8.3f", bond.values_[i]);
         }
         fprintf(f_angle, "\n");
         for(BondStruct &bond : dihedrals_){
-            fprintf(f_dihedral, "%8.4f", bond.values_[i]);
+            fprintf(f_dihedral, "%8.3f", bond.values_[i]);
         }
         fprintf(f_dihedral, "\n");
     }

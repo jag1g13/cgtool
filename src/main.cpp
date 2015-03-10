@@ -9,9 +9,9 @@
 #include "itp_writer.h"
 #include "parser.h"
 
-//#ifdef CMD_PARSER
+#ifndef NO_CMD_PARSER
 #include "cmd.h"
-//#endif
+#endif
 
 #ifdef ELECTRIC_FIELD
 #include "field_map.h"
@@ -37,7 +37,7 @@ int main(const int argc, const char *argv[]){
     clock_t start = std::clock();
 
     const string version_string =
-            "CGTOOL v0.2.166:0a45ca0a2a3f";
+            "CGTOOL v0.2.167:82b4f0e76304";
 
     const string help_header =
             "CGTOOL James Graham <J.A.Graham@soton.ac.uk> University of Southampton\n\n"
@@ -49,8 +49,7 @@ int main(const int argc, const char *argv[]){
             "bond parameters to be calculated as well as serveral other options.\n\n"
             "Usage:\n"
             "cgtool --dir <path to files>\n"
-            "cgtool --cfg <cfg file> --xtc <xtc file> --itp <itp file>\n\n"
-            "Arguments:\n";
+            "cgtool --cfg <cfg file> --xtc <xtc file> --itp <itp file>\n";
     const string help_options =
             "--cfg\tCGTOOL mapping file\ttp.config\n"
             "--xtc\tGROMACS XTC file\tmd.xtc\n"
@@ -66,10 +65,38 @@ int main(const int argc, const char *argv[]){
 
     // Get input files
     split_text_output(version_string, start, num_threads);
+    // If not using command line parser, replace with a simple one
+    // Do this so we can compile without Boost program_options
+    #ifdef NO_CMD_PARSER
+    string cfgname, xtcname, topname;
+    if(argc > 1 && (string(argv[1]) == "-h" || string(argv[1]) == "--help")){
+        cout << help_header << endl;
+        exit(0);
+    }
+    if(argc == 3){
+        if(string(argv[1]) == "--dir"){
+            string dir = string(argv[2]);
+            cfgname = dir + "/tp.config";
+            xtcname = dir + "/md.xtc";
+            topname = dir + "/topol.top";
+        }
+    }else if(argc == 7){
+        if(string(argv[1]) == "--cfg" && string(argv[3]) == "--xtc" && string(argv[5]) == "--itp"){
+            cfgname = string(argv[2]);
+            xtcname = string(argv[4]);
+            topname = string(argv[6]);
+        }
+    }else{
+        cout << "Wrong number of arguments provided" << endl;
+        exit(-1);
+    }
+    #else
     CMD cmd_parser(help_header, help_options, argc, argv);
-    string cfgname = cmd_parser.getStringArg("cfg");
-    string xtcname = cmd_parser.getStringArg("xtc");
-    string topname = cmd_parser.getStringArg("itp");
+    string cfgname = cmd_parser.getFileArg("cfg");
+    string xtcname = cmd_parser.getFileArg("xtc");
+    string topname = cmd_parser.getFileArg("itp");
+    #endif
+
     cout << "Running with " << num_threads << " thread(s)" << endl;
     cout << "CFG file: " << cfgname << endl;
     cout << "XTC file: " << xtcname << endl;
@@ -143,10 +170,12 @@ int main(const int argc, const char *argv[]){
     // Post processing
     split_text_output("Post processing", start, num_threads);
     cg_frame.printGRO("out.gro");
-    bond_set.stats();
+    bond_set.BoltzmannInversion();
 
     // This bit is slow - IO limited
+    #ifdef OUTPUT_CSV
     bond_set.writeCSV();
+    #endif
 
     cout << "Printing results to ITP" << endl;
     ITPWriter itp("out.itp", frame.resname_);

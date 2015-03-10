@@ -261,15 +261,15 @@ double Frame::bondLength(BondStruct &bond, const int offset) {
 }
 
 double Frame::bondAngle(const int a, const int b, const int c, const int d){
-    double vec1[3], vec2[3], mag1=0.f, mag2=0.f, dot = 0.f, angle=0.f;
+    double vec1[3], vec2[3], dot = 0.;
     for(int i = 0; i < 3; i++){
         vec1[i] = atoms_[b].coords[i] - atoms_[a].coords[i];
         vec2[i] = atoms_[d].coords[i] - atoms_[c].coords[i];
         dot += vec1[i] * vec2[i];
     }
-    mag1 = sqrt(pow(vec1[0], 2) + pow(vec1[1], 2) + pow(vec1[2], 2));
-    mag2 = sqrt(pow(vec2[0], 2) + pow(vec2[1], 2) + pow(vec2[2], 2));
-    angle = acos(dot / (mag1 * mag2));
+    const double mag1 = sqrt(pow(vec1[0], 2) + pow(vec1[1], 2) + pow(vec1[2], 2));
+    const double mag2 = sqrt(pow(vec2[0], 2) + pow(vec2[1], 2) + pow(vec2[2], 2));
+    const double angle = acos(dot / (mag1 * mag2));
     return (180.f - (angle * 180.f / M_PI));
 }
 

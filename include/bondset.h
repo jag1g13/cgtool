@@ -52,13 +52,13 @@ public:
     */
     void calcBondsInternal(Frame &frame);
 
-    /** \brief Calculate averages of all bond measurements */
-    void stats();
+    /** \brief Perform Boltzmann Inversion on all bond_structs. */
+    void BoltzmannInversion();
 
-    /** \brief Write all values to CSVs */
+    /** \brief Write all bond parameters to CSVs.
+    * SLOW.  This takes about the same amount of time as the complete
+    * XTC input -> Boltzmann Inversion process so is turned off by default. */
     void writeCSV();
-    /** \brief Write last frame's values to CSVs */
-    void writeLastCSV();
 };
 
 #endif

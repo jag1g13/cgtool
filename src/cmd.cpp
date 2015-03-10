@@ -18,6 +18,7 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
     vector<string> lines;
     vector<string> parts(3);
 
+    // Split help string and parse it into options and default values
     desc_.add_options()("help", "show this help text");
     boost::split(lines, helpString_, boost::is_any_of("\n"));
     for(const string &line : lines){
@@ -27,23 +28,35 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
         stringArgs_.emplace(arg, parts[2]);
     }
 
-    po::store(po::parse_command_line(argc, argv, desc_), options_);
+    try{
+        po::store(po::parse_command_line(argc, argv, desc_), options_);
+    }catch(po::error e){
+        cout << "Unrecognised command line argument\n" << endl;
+        exit(-1);
+    }
+
+    //command_line_parser(argc, argv).options(desc).allow_unregistered().run();
     po::notify(options_);
     if (options_.count("help")) {
-        cout << help_header;
-        cout << desc_ << "\n";
+        cout << help_header << endl;
+        cout << "Arguments:" << endl;
+        cout << desc_ << endl;
         exit(0);
     }
 }
 
-const std::string CMD::getStringArg(const std::string &arg){
+const std::string CMD::getFileArg(const std::string &arg){
+    // Was the argument passed in from the command line?
     if(options_.count(arg)){
+        // All strings are file paths - append <dir> if user gave it
         if(options_.count("dir")){
             return options_["dir"].as<string>() + "/" + options_[arg].as<string>();
         }else{
             return options_[arg].as<string>();
         }
     }
+
+    // Does the argument have a default value?
     if(stringArgs_.count(arg)){
         if(options_.count("dir")){
             return options_["dir"].as<string>() + "/" + stringArgs_[arg];
@@ -51,6 +64,8 @@ const std::string CMD::getStringArg(const std::string &arg){
             return stringArgs_[arg];
         }
     }
+
+    // Can't find it - error
     cout << "Necessary argument not provied" << endl;
     exit(0);
 }
