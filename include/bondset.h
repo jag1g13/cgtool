@@ -14,13 +14,14 @@ using std::string;
 // resolve circular dependency
 class Frame;
 
+
 /**
 * \brief Class that holds all bond lengths, angles and dihedrals to be calculated
 */
 class BondSet{
 protected:
     /** How many frames did we successfully measure */
-    int numFrames_ = 0;
+    int numMeasures_ = 0;
     /** Map of bead names to number - to put numbers into BondStructs */
     std::map<std::string, int> beadNums_;
 
@@ -51,12 +52,12 @@ public:
     */
     void calcBondsInternal(Frame &frame);
 
-    /** \brief Calculate averages of all bond measurements */
-    void calcAvgs();
-    /** \brief Perform a boltzmann inversion on each bond */
-    void boltzmannInversion();
+    /** \brief Perform Boltzmann Inversion on all bond_structs. */
+    void BoltzmannInversion();
 
-    /** \brief Write all values to CSVs */
+    /** \brief Write all bond parameters to CSVs.
+    * SLOW.  This takes about the same amount of time as the complete
+    * XTC input -> Boltzmann Inversion process so is turned off by default. */
     void writeCSV();
 };
 

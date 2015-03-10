@@ -1,32 +1,27 @@
+
 #include <iostream>
-#include <fstream>
 #include <vector>
-#include <numeric>
-#include <stdexcept>
 #include <ctime>
-#include <map>
-#include <algorithm>
 
 #include <sys/stat.h>
-//#include <omp.h>
 
-#include "cmd.h"
 #include "frame.h"
 #include "cg_map.h"
-#include "bondset.h"
-#include "field_map.h"
 #include "itp_writer.h"
 #include "parser.h"
-#include "boltzmann_inverter.h"
 
-#define UPDATE_PROGRESS true
-#define PROGRESS_UPDATE_FREQ 50
-#define DO_ELECTRIC_FIELD false
+#ifndef NO_CMD_PARSER
+#include "cmd.h"
+#endif
+
+#ifdef ELECTRIC_FIELD
+#include "field_map.h"
+#endif
+
+#define PROGRESS_UPDATE_FREQ 100
 #define ELECTRIC_FIELD_FREQ 100
 
 /* things from std that get used a lot */
-using std::ifstream;
-using std::ofstream;
 using std::string;
 using std::cout;
 using std::cin;
@@ -35,110 +30,128 @@ using std::vector;
 using std::clock_t;
 
 /* prototype functions */
-vector<float> calc_avg(const vector<vector<float>> &vec);
-void printToCSV(ofstream *file, const vector<float> &vec);
 void split_text_output(const string, const clock_t, const int num_threads);
 bool file_exists(const string name);
-bool fix_PBC(const string name);
 
 
 int main(const int argc, const char *argv[]){
     clock_t start = std::clock();
-    clock_t start_time = std::clock();
 
     const string version_string =
-            "CGTOOL v0.2.149:72a9a7be9ee9";
+            "CGTOOL v0.3.168:511e525ddeb1";
 
     const string help_header =
-            "Requires GROMACS .xtc and .top files.\n"
-            "Uses a config file to set beads and measure parameters\n\n"
-            "Usage:\n";
+            "CGTOOL James Graham <J.A.Graham@soton.ac.uk> University of Southampton\n\n"
+            "Performs mapping from atomistic to coarse-grained molecular dynamics\n"
+            "trajectories and outputs a GROMACS ITP file containing the full mapping,\n"
+            "equilibrium bond parameters and force constants.\n\n"
+            "Requires GROMACS XTC and ITP files for the atomistic simulation and a\n"
+            "configuration file as input.  The config file provides the mapping and\n"
+            "bond parameters to be calculated as well as serveral other options.\n\n"
+            "Usage:\n"
+            "cgtool --dir <path to files>\n"
+            "cgtool --cfg <cfg file> --xtc <xtc file> --itp <itp file>\n";
     const string help_options =
-            "--xtc\tGROMACS xtc file\tmd.xtc\n"
-            "--itp\tGROMACS itp file\ttopol.top\n"
-            "--cfg\tCGTOOL mapping file\tcg.cfg";
-    const string help_string = help_header + help_options;
+            "--cfg\tCGTOOL mapping file\ttp.config\n"
+            "--xtc\tGROMACS XTC file\tmd.xtc\n"
+            "--itp\tGROMACS ITP file\ttopol.top\n"
+            "--dir\tDirectory containing all of the above\t.//";
 
-    // clang doesn't like this - it doesn't seem to do OpenMP functions?
-    int num_threads = 1;
-//    #pragma omp parallel
-//    #pragma omp master
-//    {
-//        num_threads = omp_get_num_threads();
-//    }
-//    cout << "Running with " << num_threads << " threads" << endl;
-
-    // get commands
-//    CMD cmd_parser(help_options, argc, argv);
-
-    // Where does the user want us to look for input files?
-    split_text_output(version_string, start, num_threads);
-    string xtcname, topname, cfgname;
-    if(argc < 2){
-        cout << "Using current directory" << endl;
-        xtcname = "md.xtc";
-        cfgname = "tp.config";
-        topname = "topol.top";
-    } else if(argc == 2){
-        string arg_tmp = argv[1];
-        if(arg_tmp == "-h" || arg_tmp == "--help"){
-            cout << help_string << endl;
-            exit(0);
-        }
-        cout << "Using directory provided" << endl;
-        string dir = string(argv[1]);
-        xtcname = dir + "/md.xtc";
-        cfgname = dir + "/tp.config";
-        topname = dir + "/topol.top";
-    } else if(argc == 4){
-        cout << "Using filenames provided" << endl;
-        xtcname = string(argv[1]);
-        cfgname = string(argv[2]);
-        topname = string(argv[3]);
-    } else{
-        cout << "Wrong number of arguments given" << endl;
-        throw std::runtime_error("Wrong number of arguments");
+    // How many threads are we using?
+    int num_threads = 0;
+    #pragma omp parallel reduction(+: num_threads)
+    {
+        num_threads = 1;
     }
+
+    // Get input files
+    split_text_output(version_string, start, num_threads);
+    // If not using command line parser, replace with a simple one
+    // Do this so we can compile without Boost program_options
+    #ifdef NO_CMD_PARSER
+    string cfgname, xtcname, topname;
+    if(argc > 1 && (string(argv[1]) == "-h" || string(argv[1]) == "--help")){
+        cout << help_header << endl;
+        exit(0);
+    }
+    if(argc == 3){
+        if(string(argv[1]) == "--dir"){
+            string dir = string(argv[2]);
+            cfgname = dir + "/tp.config";
+            xtcname = dir + "/md.xtc";
+            topname = dir + "/topol.top";
+        }
+    }else if(argc == 7){
+        if(string(argv[1]) == "--cfg" && string(argv[3]) == "--xtc" && string(argv[5]) == "--itp"){
+            cfgname = string(argv[2]);
+            xtcname = string(argv[4]);
+            topname = string(argv[6]);
+        }
+    }else{
+        cout << "Wrong number of arguments provided" << endl;
+        exit(-1);
+    }
+    #else
+    CMD cmd_parser(help_header, help_options, argc, argv);
+    string cfgname = cmd_parser.getFileArg("cfg");
+    string xtcname = cmd_parser.getFileArg("xtc");
+    string topname = cmd_parser.getFileArg("itp");
+    #endif
+
+    cout << "Running with " << num_threads << " thread(s)" << endl;
+    cout << "CFG file: " << cfgname << endl;
+    cout << "XTC file: " << xtcname << endl;
+    cout << "ITP file: " << topname << endl;
     if(!file_exists(xtcname) || !file_exists(cfgname) || !file_exists(topname)){
         cout << "Input file does not exist" << endl;
-        throw std::runtime_error("File doesn't exist");
+        exit(-1);
     }
-    cout << "XTC file: " << xtcname << endl;
-    cout << "CFG file: " << cfgname << endl;
-    cout << "TOP file: " << topname << endl;
+
+    // Read number of frames from config, if not found read them all
+    Parser parser(cfgname);
+    vector<string> tokens;
+    int num_frames_max = -1;
+    if(parser.getLineFromSection("frames", tokens)) num_frames_max = stoi(tokens[0]);
 
     // Open files and do setup
     split_text_output("Frame setup", start, num_threads);
-    Frame frame = Frame(topname, xtcname);
+    Frame frame = Frame(topname, xtcname, cfgname);
     CGMap mapping(cfgname);
     Frame cg_frame = mapping.initFrame(frame);
+    cg_frame.setupOutput("out.xtc", "out.top");
     BondSet bond_set(cfgname);
-    FieldMap field(10, 10, 10, mapping.num_beads);
 
-    // read from config
-    Parser parser(cfgname);
-    vector<string> tokens;
-    bool do_electric_field = parser.findSection("field");
-    int num_frames_max = -1;
-    if(parser.getLineFromSection("frames", tokens)) num_frames_max = stoi(tokens[0]);
-    cout << num_frames_max << " frames max" << endl;
+    #ifdef ELECTRIC_FIELD
+    FieldMap field(10, 10, 10, mapping.numBeads_);
+    #endif
 
+    // Read and process simulation frames
     split_text_output("Reading frames", start, num_threads);
     start = std::clock();
+    if(num_frames_max == -1){
+        cout << "Reading all frames from XTC" << endl;
+    }else{
+        cout << num_frames_max << " frames from XTC" << endl;
+    }
 
     int i = 0;
-    // Keep reading frames until something goes wrong (run out of frames)
-    while(frame.readNext()){
+    // Keep reading frames until something goes wrong (run out of frames) or hit limit
+    bool okay = true;
+    while(okay && (i++ < num_frames_max || num_frames_max==-1)){
+        okay = frame.readNext();
         // Process each frame as we read it, frames are not retained
-        if(i % PROGRESS_UPDATE_FREQ == 0 && UPDATE_PROGRESS){
+        #ifdef UPDATE_PROGRESS
+        if(i % PROGRESS_UPDATE_FREQ == 0){
             cout << "Read " << i << " frames\r";
             std::flush(cout);
         }
+        #endif
         mapping.apply(frame, cg_frame);
-//        cg_frame.writeToXtc("xtcout.xtc");
+        cg_frame.writeToXtc();
 
-        // calculate electric field/dipole
-        if(i % ELECTRIC_FIELD_FREQ == 0 && DO_ELECTRIC_FIELD){
+        // Calculate electric field/dipole
+        #ifdef ELECTRIC_FIELD
+        if(i % ELECTRIC_FIELD_FREQ == 0){
             field.setupGrid(frame);
             field.setupGridContracted(frame);
             field.calcFieldMonopolesContracted(frame);
@@ -148,46 +161,47 @@ int main(const int argc, const char *argv[]){
             field.calcTotalDipole(frame);
             field.calcSumDipole();
         }
+        #endif
 
-        // calculate bonds and store in BondStructs
+        // Calculate bonds and store in BondStructs
         bond_set.calcBondsInternal(cg_frame);
-
-        if(i == num_frames_max && num_frames_max != -1) break;
-        i++;
     }
-    cout << "Read " << i << " frames" << endl;
+    cout << "Read " << i-1 << " frames" << endl;
 
     // Post processing
     split_text_output("Post processing", start, num_threads);
-    // output cg residue
-    cg_frame.printGRO("cg.gro");
+    cg_frame.printGRO("out.gro");
+    bond_set.BoltzmannInversion();
 
-    bond_set.calcAvgs();
+    // This bit is slow - IO limited
+    #ifdef OUTPUT_CSV
     bond_set.writeCSV();
-//    bond_set.boltzmannInversion();
+    #endif
 
-    ITPWriter itp("out.itp");
+    cout << "Printing results to ITP" << endl;
+    ITPWriter itp("out.itp", frame.resname_);
     itp.printAtoms(mapping);
     itp.printBonds(bond_set);
 
-    // print something so I can check results by eye - can be removed later
-    for(const BondStruct &bond : bond_set.bonds_){
-        printf("%8.4f", bond.avg_);
+    // Print something so I can check results by eye - can be removed later
+    for(int i=0; i<6 && i<bond_set.bonds_.size(); i++){
+        printf("%8.4f", bond_set.bonds_[i].avg_);
     }
+    if(bond_set.bonds_.size() > 6) printf("  ...");
     cout << endl;
 
     // Final timer
-    split_text_output("Total time", start_time, num_threads);
+    split_text_output("Finished", start, num_threads);
     return 0;
 }
 
 
 void split_text_output(const string name, const clock_t start, const int num_threads){
     clock_t now = std::clock();
-    // if time has passed, how much?  Ignore small times
+    // If time has passed, how much?  Ignore small times
     if((float) (now - start) / CLOCKS_PER_SEC > 0.1){
         cout << "--------------------" << endl;
-        cout << float(now - start) / (CLOCKS_PER_SEC * num_threads) << " seconds" << endl;
+        cout << float(now - start) / (CLOCKS_PER_SEC * 1) << " seconds" << endl;
     }
     cout << "====================" << endl;
     cout << name << endl;
@@ -199,9 +213,3 @@ bool file_exists(const string name){
     return (stat(name.c_str(), &buffer) == 0);
 }
 
-/** call trjconv to fix PBC problems until I work out how to do it myself */
-bool fix_PBC(const string name){
-    std::stringstream stream;
-    stream << "trjconv -f " << name << ".xtc -o " << name << "_nojump.xtc -pbc nojump";
-    return bool(system(stream.str().c_str()));
-}

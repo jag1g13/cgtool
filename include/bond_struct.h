@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "array.h"
+enum class BondType{LENGTH, ANGLE, DIHEDRAL};
 
 /**
 * \brief Class to hold atoms in bonds, angles and dihedrals.
@@ -13,8 +13,6 @@ class BondStruct{
 protected:
     /** Keep track of serial number */
     static int totalNum_;
-    /** Serial number, count includes all bond lengths, angles and dihedrals */
-    int num_;
 
 public:
     /** The values of the bond parameter (length, angle, dih) for each Frame */
@@ -25,6 +23,13 @@ public:
     double avg_ = 0.;
     /** Force constant */
     double forceConstant_ = 0.;
+    /** \brief R^2 of fitting gaussian to bond distribution
+    * A low value indicates that the bond is probably bimodal */
+    double rsqr_ = 0.;
+    /** What type of bond measure is it?  Length, angle or dihedral */
+    BondType type_;
+    /** Serial number, count includes all bond lengths, angles and dihedrals */
+    int num_;
 
     /** Constructor to set size (bond/angle/dihedral) */
     BondStruct(const int size);
