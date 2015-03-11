@@ -8,10 +8,11 @@ using std::cout;
 using std::endl;
 using std::vector;
 
-ITPWriter::ITPWriter(const string &name, const string &resName){
-    name_ = name;
+ITPWriter::ITPWriter(const string &resName, string itpname){
+    if(itpname == "") itpname = resName + "CG.itp";
+    name_ = itpname;
     resName_ = resName;
-    itp_ = std::fopen(name.c_str(), "w");
+    itp_ = std::fopen(name_.c_str(), "w");
     if(itp_ == NULL){
         cout << "Could not open itp file for writing" << endl;
         exit(-1);

@@ -118,7 +118,7 @@ int main(const int argc, const char *argv[]){
     Frame frame = Frame(topname, xtcname, cfgname);
     CGMap mapping(cfgname);
     Frame cg_frame = mapping.initFrame(frame);
-    cg_frame.setupOutput("out.xtc", "out.top");
+    cg_frame.setupOutput();
     BondSet bond_set(cfgname);
 
     #ifdef ELECTRIC_FIELD
@@ -170,7 +170,7 @@ int main(const int argc, const char *argv[]){
 
     // Post processing
     split_text_output("Post processing", start, num_threads);
-    cg_frame.printGRO("out.gro");
+    cg_frame.printGRO();
     bond_set.BoltzmannInversion();
 
     // This bit is slow - IO limited
@@ -179,7 +179,7 @@ int main(const int argc, const char *argv[]){
     #endif
 
     cout << "Printing results to ITP" << endl;
-    ITPWriter itp("out.itp", frame.resname_);
+    ITPWriter itp(frame.resname_);
     itp.printAtoms(mapping);
     itp.printBonds(bond_set);
 

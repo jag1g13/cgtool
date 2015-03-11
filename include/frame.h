@@ -131,7 +131,7 @@ public:
     * \throws std::runtime_error if output TOP file cannot be opened
     * Allocate necessary atom array and create TOP file.
     */
-    void setupOutput(const std::string &xtcnameout, const std::string &topnameout);
+    void setupOutput(std::string xtcnameout="", std::string top="");
 
     /** \brief Write Frame to XTC output file */
     bool writeToXtc();
@@ -150,7 +150,7 @@ public:
     void printAtoms(int natoms=-1);
 
     /** \brief Print all atoms up to n to GRO file.  Default print all. */
-    void printGRO(const std::string &filename, int natoms=-1);
+    void printGRO(std::string filename="", int natoms=-1);
 
     /**
     * \brief Calculate distance between two atoms in a BondStruct object

@@ -32,7 +32,7 @@ protected:
 
 public:
     /** Create an ITP file and prepare to write */
-    ITPWriter(const std::string &name, const std::string &resName);
+    ITPWriter(const std::string &resName, std::string itpname="");
 
     /** Create a new section in the ITP file */
     void newSection(const std::string &section_name);

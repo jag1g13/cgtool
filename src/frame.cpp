@@ -33,6 +33,7 @@ Frame::Frame(const Frame &frame){
     prec_ = frame.prec_;
     time_ = frame.time_;
     step_ = frame.step_;
+    resname_ = frame.resname_;
     numResidues_ = frame.numResidues_;
     boxType_ = BoxType::CUBIC;
     for(int i=0; i<3; i++){
@@ -74,8 +75,10 @@ Frame::~Frame(){
     }
 }
 
-void Frame::setupOutput(const string &xtcname, const string &topname){
+void Frame::setupOutput(string xtcname, string topname){
     char mode[2] = {'r', 'w'};
+    if(xtcname == "") xtcname = resname_ + "CG.xtc";
+    if(topname == "") topname = resname_ + "CG.top";
     if(!xtcOutput_) xtcOutput_ = xdrfile_open(xtcname.c_str(), &mode[1]);
     if(!xtcOutput_) throw std::runtime_error("Could not open XTC output");
 
@@ -84,6 +87,12 @@ void Frame::setupOutput(const string &xtcname, const string &topname){
 
     std::ofstream top(topname);
     if(!top.is_open()) throw std::runtime_error("Could not open output TOP file");
+    top << "; Include forcefield parameters" << endl;
+    top << "#include " << resname_ << "CG.itp" << endl << endl;
+    top << "[ system ]" << endl;
+    top << resname_ << endl << endl;
+    top << "[ molecules ]" << endl;
+    top << resname_ << "\t\t" << numResidues_ << endl;
     outputSetup_ = true;
 }
 
@@ -107,6 +116,8 @@ void Frame::openOtherXTC(const Frame &frame){
 bool Frame::setupFrame(const string &topname, const string &xtcname){
     if(isSetup_) throw std::logic_error("Frame has already been setup");
     char mode[2] = {'r', 'w'};
+
+    // How many atoms?  Prepare Frame for reading
     int status = read_xtc_natoms(xtcname.c_str(), &numAtoms_);
     if(status != exdrOK){
         cout << "Could not open input XTC file" << endl;
@@ -140,9 +151,9 @@ bool Frame::setupFrame(const string &topname, const string &xtcname){
             numAtomsPerResidue_ = stoi(substrs[0]);
         }
     }
+
     cout << "Found " << numAtomsPerResidue_ << " atoms in ITP per " << resname_ << endl;
     numAtomsTrack_ = numResidues_ * numAtomsPerResidue_;
-
     atoms_.resize(numAtomsTrack_);
 
     for(int i=0; i<numAtomsPerResidue_; i++){
@@ -223,8 +234,9 @@ void Frame::printAtoms(int natoms){
     }
 }
 
-void Frame::printGRO(const string &filename, int natoms){
+void Frame::printGRO(string filename, int natoms){
     assert(isSetup_);
+    if(filename == "") filename = resname_ + "CG.gro";
     if(natoms == -1) natoms = numAtomsTrack_;
     FILE *gro = std::fopen(filename.c_str(), "w");
     if(gro == nullptr){
