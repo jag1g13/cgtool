@@ -46,18 +46,9 @@ Frame::Frame(const Frame &frame){
     }
 }
 
-Frame::Frame(const std::string topname, const std::string xtcname, const std::string cfgname){
-    Parser parser(cfgname);
-    vector<string> tokens;
-    if(parser.getLineFromSection("residues", tokens)){
-        numResidues_ = stoi(tokens[0]);
-        resname_ = tokens[1];
-        cout << "Mapping " << numResidues_ << " " << resname_ << " residue(s)" << endl;
-    }else{
-        cout << "Resname to map not found in config" << endl;
-        resname_ = "";
-        numResidues_ = 1;
-    }
+Frame::Frame(const std::string &topname, const std::string &xtcname, const std::string &resname, const int numResidues){
+    resname_ = resname;
+    numResidues_ = numResidues;
     setupFrame(topname, xtcname);
 }
 

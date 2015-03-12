@@ -9,21 +9,12 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-Parser::Parser() {
-
-}
-
 Parser::Parser(const string filename, const ParserFormat format) {
+    //TODO preprocess file to include ITPs
     format_ = format;
     filename_ = filename;
-    if (!openFile(filename)) throw std::runtime_error("File " + filename + " could not be opened");
-}
-
-bool Parser::openFile(const string filename){
-    //TODO preprocess file to include ITPs
-    filename_ = filename;
     file_.open(filename);
-    return file_.is_open();
+    if (!file_.is_open()) throw std::runtime_error("File " + filename + " could not be opened");
 }
 
 bool Parser::getLine(string &section, vector <string> &tokens){
@@ -60,25 +51,6 @@ bool Parser::findSection(const string find){
         if(!getLine(section, token_buffer)) return false;
     }
     return true;
-}
-
-bool Parser::findNextSection(){
-    while(true){
-        eof_ = !getline(file_, line_);
-        if(eof_) return false;                              // stop if we hit eof
-        switch(format_){
-            case ParserFormat::GROMACS:
-                if(line_[0] == '['){                        // line is a section header
-                    section_ = line_.substr(line_.find_first_of('[')+1, line_.find_last_of(']')-1);
-                    boost::trim(section_);
-                    return true;
-                }
-                break;
-
-            case ParserFormat::LAMMPS:
-                throw std::runtime_error("Not implemented");
-        }
-    }
 }
 
 bool Parser::getLineFromSection(const string find, vector<string> &tokens){

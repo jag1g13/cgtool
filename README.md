@@ -8,7 +8,7 @@ This program is very much work-in-progress and is not yet extensively tested.
 
 Required to compile:
 
-* Boost C++ libraries including program_options
+* Boost C++ libraries including program\_options
 * FLENS linear algebra headers (will be included in repo in the future)
 * CMake 2.8.4 or newer
 * GCC or Clang compiler supporting the C++11 standard
@@ -28,9 +28,9 @@ To compile the program:
 
 To use the program:
 
-* Help text is available with 'cgtool --help'
-* The program should be called using 'cgtool --dir <path to files>' or 'cgtool --cfg <cfg file> --xtc <xtc file> --itp <itp file>'
-* A config file is required which specifies the mapping to be applied, in the format seen in the test_data directory
+* Help text is available with 'cgtool `--`help'
+* The program should be called using 'cgtool `--`dir &lt;path to files&gt;' or 'cgtool `--`cfg &lt;cfg file&gt; `--`xtc &lt;xtc file&gt; `--`itp &lt;itp file&gt;'
+* A config file is required which specifies the mapping to be applied, in the format seen in the test\_data directory
 
 ### Testing ###
 The Bitbucket repo is polled every 15 minutes by a Jenkins build server for unit and integration testing.  Builds are tested on Ubuntu Linux and Mac OSX.

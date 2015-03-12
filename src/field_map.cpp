@@ -2,20 +2,20 @@
 
 #include <cmath>
 #include <iostream>
+#include <fstream>
 
 using std::min;
 using std::max;
 using std::vector;
 using std::cout;
 using std::endl;
+using std::ofstream;
 
 FieldMap::FieldMap(){
 }
 
 FieldMap::FieldMap(const int a, const int b, const int c, const int ndipoles){
-    gridDims_.reserve(3);
     gridDims_[0] = a; gridDims_[1] = b; gridDims_[2] = c;
-    gridCentre_.reserve(3);
     fieldMonopole_.init(a, b, c, false);
     fieldDipole_.init(a, b, c, false);
     gridBounds_.init(3, 2, 1, false);
@@ -27,6 +27,19 @@ FieldMap::FieldMap(const int a, const int b, const int c, const int ndipoles){
     gridContracted_.init(a*b*c, 4, 1, true);
     totalDipole_.init(6, 1, 1, false);
     sumDipoles_.init(6, 1, 1, false);
+}
+
+void FieldMap::calculate(const Frame &aa_frame, const Frame &cg_frame, const CGMap &cgmap){
+    frameNum_ = aa_frame.num_;
+    if(frameNum_ != cg_frame.num_) throw std::logic_error("Frame numbers do not match");
+    setupGrid(aa_frame);
+    setupGridContracted(aa_frame);
+    calcFieldMonopolesContracted(aa_frame);
+    calcDipolesDirect(cgmap, cg_frame, aa_frame);
+//    calcDipolesFit(cgmap, cg_frame, aa_frame);
+    calcFieldDipolesContracted(cg_frame);
+    calcTotalDipole(aa_frame);
+    calcSumDipole();
 }
 
 void FieldMap::setupGrid(const Frame &frame){
@@ -60,8 +73,8 @@ void FieldMap::setupGrid(const Frame &frame){
 
 void FieldMap::setupGridContracted(const Frame &frame){
     double radmin2, dist2;
-    float rmax2 = border_ * border_;    // use an rmax equal to border_ around molecule
-    float vrad2 = 0.1f * 0.1f;       // reject if within 1A of an atom (inside atomic radius)
+    double rmax2 = border_ * border_;    // use an rmax equal to border_ around molecule
+    double vrad2 = 0.1 * 0.1;       // reject if within 1A of an atom (inside atomic radius)
     bool accepted;
     int accepted_count = 0, close_count = 0, far_count = 0;
     vector<double> coords(3);
@@ -112,12 +125,12 @@ void FieldMap::calcFieldMonopolesContracted(const Frame &frame){
     }
 }
 
-inline float dot(const float *A, const float* B){
+inline double dot(const double A[3], const double B[3]){
     return A[0]*B[0] + A[1]*B[1] + A[2]*B[2];
 }
 
-inline float abs(const float* vec){
-    return float(sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]));
+inline double abs(const double vec[3]){
+    return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 }
 
 void FieldMap::printFields(){
@@ -129,8 +142,8 @@ void FieldMap::printFields(){
 
 //TODO dipole field - to check that they're right - pretty much done, needs testing
 void FieldMap::calcFieldDipolesContracted(const Frame &frame){
-    float vec_a[3], vec_b[3];
-    float abs_a;
+    double vec_a[3], vec_b[3];
+    double abs_a;
 //    cout << numGridPoints_ << endl;
 //    cout << frame->numAtomsTrack_ << endl;
 #pragma omp parallel for
@@ -145,7 +158,7 @@ void FieldMap::calcFieldDipolesContracted(const Frame &frame){
                 vec_b[k] = dipoles_(j, k);
             }
             abs_a = abs(vec_a);
-            float cos_dip_angle = dot(vec_a, vec_b) / (dipoles_(j, 5) * abs_a);
+            double cos_dip_angle = dot(vec_a, vec_b) / (dipoles_(j, 5) * abs_a);
             // If it's NaN, there's no dipole - don't add anything to the field
             if(cos_dip_angle != cos_dip_angle) cos_dip_angle = 0.f;
             fieldDipoleContracted_[i] += dipoles_(j, 5) * cos_dip_angle / (abs_a*abs_a);
@@ -171,7 +184,7 @@ void FieldMap::calcFieldDipolesContracted(const Frame &frame){
 * from atomic point charges to determine validity.  They may need to be rescaled.
 * I don't see a better way to do this.
 */
-void FieldMap::calcDipolesDirect(const CGMap &cgmap, const Frame &cg_frame, Frame &aa_frame){
+void FieldMap::calcDipolesDirect(const CGMap &cgmap, const Frame &cg_frame, const Frame &aa_frame){
     dipoles_.zero();
     for(int i=0; i<cgmap.numBeads_; i++){
         // for each bead in the CG frame
@@ -180,7 +193,7 @@ void FieldMap::calcDipolesDirect(const CGMap &cgmap, const Frame &cg_frame, Fram
 
         for(const int &j : bead_type.atom_nums){
             // for each atom inside the bead
-            float charge = aa_frame.atoms_[j].charge;
+            double charge = aa_frame.atoms_[j].charge;
             // rescale charges so bead charge is zero
 //            charge -= cg_atom.charge / bead_type.num_atoms;
             // this is how GMX_DIPOLE does it
@@ -189,15 +202,15 @@ void FieldMap::calcDipolesDirect(const CGMap &cgmap, const Frame &cg_frame, Fram
             dipoles_(i, 1) += aa_frame.atoms_[j].coords[1] * charge;
             dipoles_(i, 2) += aa_frame.atoms_[j].coords[2] * charge;
         }
-        float charge = cg_frame.atoms_[i].charge;
+        double charge = cg_frame.atoms_[i].charge;
         dipoles_(i, 0) -= cg_frame.atoms_[i].coords[0] * charge;
         dipoles_(i, 1) -= cg_frame.atoms_[i].coords[1] * charge;
         dipoles_(i, 2) -= cg_frame.atoms_[i].coords[2] * charge;
 
         // calculate magnitude here
-        dipoles_(i, 5) = float(sqrt(dipoles_(i, 0)*dipoles_(i, 0) +
+        dipoles_(i, 5) = sqrt(dipoles_(i, 0)*dipoles_(i, 0) +
                               dipoles_(i, 1)*dipoles_(i, 1) +
-                              dipoles_(i, 2)*dipoles_(i, 2)));
+                              dipoles_(i, 2)*dipoles_(i, 2));
     }
     printDipoles();
 }
@@ -215,7 +228,7 @@ void FieldMap::calcDipolesFit(const CGMap &cgmap, const Frame &cg_frame, const F
         // for each bead in the CG frame
         for(const int &j : bead_type.atom_nums){
             // for each atom inside the bead
-            float charge = aa_frame.atoms_[j].charge;
+            double charge = aa_frame.atoms_[j].charge;
             dipoles_(i, 0) += aa_frame.atoms_[j].coords[0] * charge;
             dipoles_(i, 1) += aa_frame.atoms_[j].coords[1] * charge;
             dipoles_(i, 2) += aa_frame.atoms_[j].coords[2] * charge;
@@ -243,9 +256,9 @@ void FieldMap::calcDipolesFit(const CGMap &cgmap, const Frame &cg_frame, const F
 
     // calculate magnitudes
     for(int i = 0; i < cgmap.numBeads_; i++){
-        dipoles_(i, 5) = float(sqrt(dipoles_(i, 0) * dipoles_(i, 0) +
-                dipoles_(i, 1) * dipoles_(i, 1) +
-                dipoles_(i, 2) * dipoles_(i, 2)));
+        dipoles_(i, 5) = sqrt(dipoles_(i, 0) * dipoles_(i, 0) +
+                              dipoles_(i, 1) * dipoles_(i, 1) +
+                              dipoles_(i, 2) * dipoles_(i, 2));
     }
 //    printDipoles();
 }
@@ -255,14 +268,14 @@ void FieldMap::calcTotalDipole(const Frame &aa_frame, int num_atoms){
     if(num_atoms == -1) num_atoms = aa_frame.numAtomsTrack_;
     totalDipole_.zero();
     for(int i=0; i < num_atoms; i++){
-        float charge = aa_frame.atoms_[i].charge;
+        double charge = aa_frame.atoms_[i].charge;
         totalDipole_(0) += aa_frame.atoms_[i].coords[0] * charge;
         totalDipole_(1) += aa_frame.atoms_[i].coords[1] * charge;
         totalDipole_(2) += aa_frame.atoms_[i].coords[2] * charge;
     }
-    totalDipole_(5) = float(sqrt(totalDipole_(0)*totalDipole_(0) +
-            totalDipole_(1)*totalDipole_(1) +
-            totalDipole_(2)*totalDipole_(2)));
+    totalDipole_(5) = sqrt(totalDipole_(0)*totalDipole_(0) +
+                           totalDipole_(1)*totalDipole_(1) +
+                           totalDipole_(2)*totalDipole_(2));
 }
 
 void FieldMap::calcSumDipole(){
@@ -274,9 +287,9 @@ void FieldMap::calcSumDipole(){
     }
 
     // calc magnitude
-    sumDipoles_(5) = float(sqrt(sumDipoles_(0)*sumDipoles_(0) +
-            sumDipoles_(1)*sumDipoles_(1) +
-            sumDipoles_(2)*sumDipoles_(2)));
+    sumDipoles_(5) = sqrt(sumDipoles_(0)*sumDipoles_(0) +
+                          sumDipoles_(1)*sumDipoles_(1) +
+                          sumDipoles_(2)*sumDipoles_(2));
 }
 
 void FieldMap::printDipoles(){
@@ -287,6 +300,13 @@ void FieldMap::printDipoles(){
     sumDipoles_.print(8, 4, constants::ENM2DEBYE);
 }
 
+void FieldMap::printFieldsToFile(){
+    ofstream faa("field" + std::to_string(frameNum_) + "_aa.csv");
+    if(!faa.is_open()) throw std::runtime_error("Could not open file to write electric field");
+    ofstream fcg("field" + std::to_string(frameNum_) + "_cg.csv");
+    if(!fcg.is_open()) throw std::runtime_error("Could not open file to write electric field");
+}
+
 //TODO move this outside the class - it doesn't need to be here
 double FieldMap::distSqr(const double *coords, const double x, const double y, const double z) {
     double tmpx = coords[0] - x;
@@ -295,7 +315,8 @@ double FieldMap::distSqr(const double *coords, const double x, const double y, c
     return tmpx*tmpx + tmpy*tmpy + tmpz*tmpz;
 }
 
-void polar(const float *cart, float *polar){
+void polar(const double cart[3], double polar[3]){
+    throw std::logic_error("Not implemented yet");
 
 }
 

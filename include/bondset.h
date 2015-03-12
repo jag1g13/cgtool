@@ -22,6 +22,8 @@ class BondSet{
 protected:
     /** How many frames did we successfully measure */
     int numMeasures_ = 0;
+    /** How many residues are being mapped using the same mapping? */
+    int numResidues_ = 1;
     /** Map of bead names to number - to put numbers into BondStructs */
     std::map<std::string, int> beadNums_;
 

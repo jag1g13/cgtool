@@ -62,8 +62,19 @@ protected:
     * To be used for bond angles (b=c) and dihedrals (b=/=c) */
     double bondAngle(const int a, const int b, const int c, const int d);
 
+    /**
+    * \brief Create Frame, allocate atoms and read in data from start of XTC file
+    * \throws logic_error if Frame has already been setup
+    *
+    * Uses libxdrfile to get number of atoms and allocate storage.
+    * This function uses this data to create a Frame object to process this data.
+    */
+    bool setupFrame(const std::string &topname, const std::string &xtcname);
 
-
+    /** \brief Recentre simulation box on an atom
+    * Avoids problems where a residue is split by the periodic boundary,
+    * causing bond lengths to be calculated incorrectly */
+    void recentreBox(const int atom_num);
 
 public:
     /** Has the Frame been properly setup yet? */
@@ -84,12 +95,14 @@ public:
     int step_ = 0;
     /** Map mapping atom names to numbers for each residue */
     std::map<std::string, int> nameToNum_;
-    /** What is the resname of the molecule we want to map - column 4 of the itp */
-    std::string resname_;
     /** How many atoms are in this residue? */
     int numAtomsPerResidue_ = 0;
+
+    //TODO make these private
     /** How many of this residue are there? */
     int numResidues_ = 0;
+    /** What is the resname of the molecule we want to map - column 4 of the itp */
+    std::string resname_;
 
 
     /** \brief Create Frame passing frame number, number of atoms to store and the frame name
@@ -99,23 +112,15 @@ public:
 
     /** \brief Create Frame passing config files.
     * Replaces calls to the function Frame::setupFrame() */
-    Frame(const std::string topname, const std::string xtcname, const std::string cfgname);
+    Frame(const std::string &topname, const std::string &xtcname, const std::string &resname, const int numResidues=1);
 
     /** \brief Create Frame by copying data from another Frame
     * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied. */
     Frame(const Frame &frame);
 
-    /** \brief Destructor to free memory allocated by GROMACS functions */
+    /** \brief Destructor to free memory allocated by XDR functions */
     ~Frame();
 
-    /**
-    * \brief Create Frame, allocate atoms and read in data from start of XTC file
-    * \throws logic_error if Frame has already been setup
-    *
-    * Uses libxdrfile to get number of atoms and allocate storage.
-    * This function uses this data to create a Frame object to process this data.
-    */
-    bool setupFrame(const std::string &topname, const std::string &xtcname);
 
     /**
     * \brief Read a frame from the XTC file into an existing Frame object
@@ -140,11 +145,6 @@ public:
     * Intended for parallel read/process.
     */
     void openOtherXTC(const Frame &frame);
-
-    /** \brief Recentre simulation box on an atom
-    * Avoids problems where a residue is split by the periodic boundary,
-    * causing bond lengths to be calculated incorrectly */
-    void recentreBox(const int atom_num);
 
     /** \brief Print info for all atoms up to n.  Default print all. */
     void printAtoms(int natoms=-1);

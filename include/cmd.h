@@ -8,7 +8,8 @@
 enum class ArgType{STRING, INT, FLOAT, BOOL};
 
 /**
-* \brief Object to handle input to programs from the command line
+* \brief Object to handle input to programs from the command line.
+*
 * Parses the help text of the program to extract command line arguments.
 * Parses the command line input of the program and stores all arguments into a dictionary.
 * The program can query these dictionaries for the presence and values of arguments.

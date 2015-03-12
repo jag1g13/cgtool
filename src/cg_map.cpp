@@ -10,9 +10,6 @@
 using std::cout;
 using std::endl;
 
-CGMap::CGMap(){
-}
-
 CGMap::CGMap(string filename){
     fromFile(filename);
 }

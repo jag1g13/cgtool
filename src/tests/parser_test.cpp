@@ -2,27 +2,6 @@
 
 #include "gtest/gtest.h"
 
-TEST(ParserTest, OpenFile){
-    Parser parser;
-    ASSERT_TRUE(parser.openFile("../test_data/ALLA/tp.config"));
-}
-
-TEST(ParserTest, GetLine){
-    Parser parser("../test_data/ALLA/tp.config");
-    std::vector<std::string> tokens;
-    std::string section;
-    ASSERT_TRUE(parser.getLine(section, tokens));
-    ASSERT_EQ(section, "residues");
-    ASSERT_EQ(tokens[0], "1");
-}
-
-TEST(ParserTest, FindNextSection){
-    Parser parser("../test_data/ALLA/tp.config");
-    // there are 6 sections in this file
-    for(int i=0; i<6; i++) ASSERT_TRUE(parser.findNextSection());
-    ASSERT_FALSE(parser.findNextSection());
-}
-
 TEST(ParserTest, FindSectionTrue){
     Parser parser("../test_data/ALLA/tp.config");
     ASSERT_TRUE(parser.findSection("mapping"));
@@ -34,6 +13,7 @@ TEST(ParserTest, FindSectionFalse){
 }
 
 TEST(ParserTest, GetLineFromSectionTrue){
+    // Indirectly tests Parser::getLine() by checking tokens
     Parser parser("../test_data/ALLA/tp.config");
     std::vector<std::string> tokens;
     // can we find the section and does it read the right data?

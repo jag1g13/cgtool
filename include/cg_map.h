@@ -49,6 +49,13 @@ protected:
     * Default is geometric centre of component atoms. */
     MapType mapType_ = MapType::GC;
 
+    /**
+    * \brief Read in CG mapping from file
+    *
+    * Will throw std::runtime_error if file cannot be opened
+    */
+    void fromFile(const string filename);
+
 public:
     /** Number of beads defined */
     int numBeads_;
@@ -60,19 +67,12 @@ public:
     /**
     * \brief Constructor to create a blank instance
     */
-    CGMap();
+    CGMap(){};
 
     /**
     * \brief Constructor to create an instance from the mapping file provided
     */
     CGMap(const string filename);
-
-    /**
-    * \brief Read in CG mapping from file
-    *
-    * Will throw std::runtime_error if file cannot be opened
-    */
-    void fromFile(const string filename);
 
     /**
     * \brief Setup a CG Frame object that has already been declared

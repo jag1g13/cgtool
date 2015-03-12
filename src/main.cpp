@@ -14,9 +14,9 @@
 #include "cmd.h"
 #endif
 
-#ifdef ELECTRIC_FIELD
+//#ifdef ELECTRIC_FIELD
 #include "field_map.h"
-#endif
+//#endif
 
 #define PROGRESS_UPDATE_FREQ 100
 #define ELECTRIC_FIELD_FREQ 100
@@ -111,19 +111,34 @@ int main(const int argc, const char *argv[]){
     Parser parser(cfgname);
     vector<string> tokens;
     int num_frames_max = -1;
+    int numResidues = 1;
+    string resname = "";
     if(parser.getLineFromSection("frames", tokens)) num_frames_max = stoi(tokens[0]);
+    if(parser.getLineFromSection("residues", tokens)){
+        numResidues = stoi(tokens[0]);
+        resname = tokens[1];
+        cout << "Mapping " << numResidues << " " << resname << " residue(s)" << endl;
+    }else{
+        cout << "Resname to map not found in config" << endl;
+    }
 
     // Open files and do setup
     split_text_output("Frame setup", start, num_threads);
-    Frame frame = Frame(topname, xtcname, cfgname);
+    Frame frame(topname, xtcname, resname, numResidues);
+
     CGMap mapping(cfgname);
     Frame cg_frame = mapping.initFrame(frame);
-    cg_frame.setupOutput();
+
+    bool nomap = true;
+    if(!cmd_parser.getBoolArg("nomap")){
+        nomap = false;
+        cg_frame.setupOutput();
+    }
     BondSet bond_set(cfgname);
 
-    #ifdef ELECTRIC_FIELD
+//    #ifdef ELECTRIC_FIELD
     FieldMap field(10, 10, 10, mapping.numBeads_);
-    #endif
+//    #endif
 
     // Read and process simulation frames
     split_text_output("Reading frames", start, num_threads);
@@ -146,31 +161,29 @@ int main(const int argc, const char *argv[]){
             std::flush(cout);
         }
         #endif
-        mapping.apply(frame, cg_frame);
-        cg_frame.writeToXtc();
 
-        // Calculate electric field/dipole
-        #ifdef ELECTRIC_FIELD
-        if(i % ELECTRIC_FIELD_FREQ == 0){
-            field.setupGrid(frame);
-            field.setupGridContracted(frame);
-            field.calcFieldMonopolesContracted(frame);
-            field.calcDipolesDirect(mapping, cg_frame, frame);
-//            field.calcDipolesFit(mapping, cg_frame, frame);
-            field.calcFieldDipolesContracted(cg_frame);
-            field.calcTotalDipole(frame);
-            field.calcSumDipole();
+        if(nomap == false){
+            mapping.apply(frame, cg_frame);
+            cg_frame.writeToXtc();
         }
-        #endif
+
+        // Calculate electric field/dipoles
+//        #ifdef ELECTRIC_FIELD
+        if(i % ELECTRIC_FIELD_FREQ == 0) field.calculate(frame, cg_frame, mapping);
+//        #endif
 
         // Calculate bonds and store in BondStructs
-        bond_set.calcBondsInternal(cg_frame);
+        if(nomap){
+            bond_set.calcBondsInternal(frame);
+        }else{
+            bond_set.calcBondsInternal(cg_frame);
+        }
     }
     cout << "Read " << i-1 << " frames" << endl;
 
     // Post processing
     split_text_output("Post processing", start, num_threads);
-    cg_frame.printGRO();
+    if(nomap == false) cg_frame.printGRO();
     bond_set.BoltzmannInversion();
 
     // This bit is slow - IO limited

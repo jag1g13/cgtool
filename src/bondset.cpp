@@ -17,39 +17,41 @@ using std::fprintf;
 
 
 void BondSet::fromFile(const string &filename){
-    vector<string> substrs;
+    vector<string> tokens;
     Parser parser(filename);
 
     int i = 0;
-    while(parser.getLineFromSection("mapping", substrs)){
-        beadNums_.emplace(substrs[0], i);
+    while(parser.getLineFromSection("mapping", tokens)){
+        beadNums_.emplace(tokens[0], i);
         i++;
     }
 
+    if(parser.getLineFromSection("residues", tokens)) numResidues_ = stoi(tokens[0]);
+
     i = 0;
-    while(parser.getLineFromSection("length", substrs)){
+    while(parser.getLineFromSection("length", tokens)){
         bonds_.emplace_back(BondStruct(2));
         bonds_.back().num_ = i;
         for(int j = 0; j < 2; j++){
-            bonds_.back().atomNums_[j] = beadNums_[substrs[j]];
+            bonds_.back().atomNums_[j] = beadNums_[tokens[j]];
         }
     }
-    while(parser.getLineFromSection("angle", substrs)){
+    while(parser.getLineFromSection("angle", tokens)){
         angles_.emplace_back(BondStruct(3));
         for(int j = 0; j < 3; j++){
-            angles_.back().atomNums_[j] = beadNums_[substrs[j]];
+            angles_.back().atomNums_[j] = beadNums_[tokens[j]];
         }
     }
-    while(parser.getLineFromSection("dihedral", substrs)){
+    while(parser.getLineFromSection("dihedral", tokens)){
         dihedrals_.emplace_back(BondStruct(4));
         for(int j = 0; j < 4; j++){
-            dihedrals_.back().atomNums_[j] = beadNums_[substrs[j]];
+            dihedrals_.back().atomNums_[j] = beadNums_[tokens[j]];
         }
     }
 }
 
 void BondSet::calcBondsInternal(Frame &frame){
-    for(int i=0; i < frame.numResidues_; i++){
+    for(int i=0; i < numResidues_; i++){
         bool res_okay = true;
         const int offset = i * frame.numAtomsPerResidue_;
         // Does the structure cross a pbc - will break bond lengths

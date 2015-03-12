@@ -21,20 +21,20 @@ namespace constants{
 class FieldMap{
 private:
     /** Dimensions of the field grids (3 ints) */
-    std::vector<int> gridDims_;
+    int gridDims_[3];
     /** Array to hold electric field calculated from monopoles */
     Array fieldMonopole_;
     /** Array to hold electric field calculated from dipoles */
     Array fieldDipole_;
     /** \brief Border to leave around molecule in field grid
     * Also the radius of selection for the CHELPG style grid */
-    float border_ = 2.f;    // 2nm
+    double border_ = 2.f;    // 2nm
     /** Array to hold grid bounds; needs to be reset each frame (or often) */
     Array gridBounds_;
     /** Coordinates of each grid point */
     Array gridCoords_;
     /** Centre of grid */
-    std::vector<float> gridCentre_;
+    double gridCentre_[3];
     Array gridContracted_;
     int numGridPoints_;
     std::vector<float> fieldMonopoleContracted_;
@@ -44,13 +44,8 @@ private:
     Array dipoles_;
     Array totalDipole_;
     Array sumDipoles_;
-
-public:
-    /** Constructor for a blank instance of an electric field map */
-    FieldMap();
-
-    /** Constructor for FieldMap to perform setup */
-    FieldMap(const int a, const int b, const int c, const int natoms=0);
+    /** Frame number */
+    int frameNum_ = 0;
 
     /** Determine grid bounds from a Frame object and do setup each time */
     void setupGrid(const Frame &frame);
@@ -69,7 +64,7 @@ public:
 
     /** \brief Calculate dipoles on beads directly from frame
     * Modifies charges in atomistic Frame */
-    void calcDipolesDirect(const CGMap &cgmap, const Frame &cg_frame, Frame &aa_frame);
+    void calcDipolesDirect(const CGMap &cgmap, const Frame &cg_frame, const Frame &aa_frame);
 
     /** \brief Calculate dipoles on CG beads from an atomistic Frame
     * Calculates bead dipoles directly for uncharged beads.
@@ -89,13 +84,27 @@ public:
 
     /** Print the electric fields */
     void printFields();
+
+    /** Print the electric fields to files */
+    void printFieldsToFile();
+
+public:
+    /** Constructor for a blank instance of an electric field map */
+    FieldMap();
+
+    /** Constructor for FieldMap to perform setup */
+    FieldMap(const int a, const int b, const int c, const int natoms=0);
+
+    /** \brief Run all electric field calculations */
+    void calculate(const Frame &aa_frame, const Frame &cg_frame, const CGMap &cgmap);
+
 };
 
 /** 3d vector dot product */
-inline float dot(const float *A, const float *B);
+inline double dot(const double A[3], const double B[3]);
 /** 3d vector magnitude */
-inline float abs(const float* vec);
+inline double abs(const double vec[3]);
 /** 3d polar coordinate conversion */
-void polar(const float *cart, float *polar);
+void polar(const double cart[3], double polar[3]);
 
 #endif
