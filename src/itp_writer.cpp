@@ -24,6 +24,10 @@ ITPWriter::ITPWriter(const string &resName, string itpname){
     fprintf(itp_, "%s %12i\n", resName_.c_str(), 1);
 }
 
+ITPWriter::~ITPWriter(){
+    if(itp_ != NULL) std::fclose(itp_);
+}
+
 void ITPWriter::newSection(const string &section_name){
     section_ = section_name;
     fprintf(itp_, "\n[ %s ]\n", section_.c_str());

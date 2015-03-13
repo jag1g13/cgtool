@@ -17,6 +17,10 @@ Parser::Parser(const string filename, const ParserFormat format) {
     if (!file_.is_open()) throw std::runtime_error("File " + filename + " could not be opened");
 }
 
+Parser::~Parser(){
+    if(file_.is_open()) file_.close();
+}
+
 bool Parser::getLine(string &section, vector <string> &tokens){
     while(true){
         eof_ = !getline(file_, line_);

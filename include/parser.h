@@ -43,6 +43,9 @@ public:
     */
     Parser(const std::string filename, const ParserFormat format=ParserFormat::GROMACS);
 
+    /** Destructor to close file */
+    ~Parser();
+
     /** \brief Search through a config file for a particular section
     * Returns false if section cannot be found
     */

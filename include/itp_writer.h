@@ -34,6 +34,9 @@ public:
     /** Create an ITP file and prepare to write */
     ITPWriter(const std::string &resName, std::string itpname="");
 
+    /** Close output file in destructor */
+    ~ITPWriter();
+
     /** Create a new section in the ITP file */
     void newSection(const std::string &section_name);
 

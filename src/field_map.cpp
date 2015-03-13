@@ -23,7 +23,7 @@ FieldMap::FieldMap(const int a, const int b, const int c, const int ndipoles){
     numDipoles_ = ndipoles;
     //TODO init this later
     dipoles_.init(ndipoles, 6, 1, false);
-    //TODO try out Boost arrays, are they faster/better?
+    //TODO try out Boost/FLENS arrays, are they faster/better?
     gridContracted_.init(a*b*c, 4, 1, true);
     totalDipole_.init(6, 1, 1, false);
     sumDipoles_.init(6, 1, 1, false);
@@ -40,6 +40,7 @@ void FieldMap::calculate(const Frame &aa_frame, const Frame &cg_frame, const CGM
     calcFieldDipolesContracted(cg_frame);
     calcTotalDipole(aa_frame);
     calcSumDipole();
+    printFieldsToFile();
 }
 
 void FieldMap::setupGrid(const Frame &frame){
@@ -150,8 +151,8 @@ void FieldMap::calcFieldDipolesContracted(const Frame &frame){
     for(int i=0; i < numGridPoints_; i++) {
         fieldDipoleContracted_[i] = 0.f;
         // for charge on the cg bead
-//        fieldDipoleContracted_[i] += dipoles_(j, 5) / (abs_a*abs_a);
         for(int j=0; j < frame.numAtomsTrack_; j++){
+//            fieldDipoleContracted_[i] += dipoles_(j, 5) / (abs_a*abs_a);
 //            cout << "j=" << j << endl;
             for(int k=0; k<3; k++) {
                 vec_a[k] = gridContracted_(i, k) - frame.atoms_[j].coords[k];
@@ -301,10 +302,24 @@ void FieldMap::printDipoles(){
 }
 
 void FieldMap::printFieldsToFile(){
-    ofstream faa("field" + std::to_string(frameNum_) + "_aa.csv");
-    if(!faa.is_open()) throw std::runtime_error("Could not open file to write electric field");
-    ofstream fcg("field" + std::to_string(frameNum_) + "_cg.csv");
-    if(!fcg.is_open()) throw std::runtime_error("Could not open file to write electric field");
+    const string aa_file = "field" + std::to_string(frameNum_) + "_aa.csv";
+    const string cg_file = "field" + std::to_string(frameNum_) + "_cg.csv";
+    cout << aa_file << endl << cg_file << endl;
+    FILE *faa = std::fopen(aa_file.c_str(), "w");
+    if(faa == NULL) throw std::runtime_error("Could not open file to write electric field");
+    FILE *fcg = std::fopen(cg_file.c_str(), "w");
+    if(fcg == NULL) throw std::runtime_error("Could not open file to write electric field");
+
+    for(int i=0; i<numGridPoints_; i++){
+        fprintf(faa, "%12.7f%12.7f%12.7f%12.7f\n",
+                gridContracted_(i, 0), gridContracted_(i, 1),
+                gridContracted_(i, 2), fieldMonopoleContracted_[i]);
+        fprintf(fcg, "%12.7f%12.7f%12.7f%12.7f\n",
+                gridContracted_(i, 0), gridContracted_(i, 1),
+                gridContracted_(i, 2), fieldDipoleContracted_[i]);
+    }
+    std::fclose(faa);
+    std::fclose(fcg);
 }
 
 //TODO move this outside the class - it doesn't need to be here
