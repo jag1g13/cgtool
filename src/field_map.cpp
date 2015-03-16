@@ -74,11 +74,11 @@ void FieldMap::setupGrid(const Frame &frame){
 
 void FieldMap::setupGridContracted(const Frame &frame){
     double radmin2, dist2;
-    double rmax2 = border_ * border_;    // use an rmax equal to border_ around molecule
+    const double rmax2 = border_ * border_;    // use an rmax equal to border_ around molecule
     double vrad2 = 0.1 * 0.1;       // reject if within 1A of an atom (inside atomic radius)
     bool accepted;
     int accepted_count = 0, close_count = 0, far_count = 0;
-    vector<double> coords(3);
+    double coords[3];
     gridContracted_.appendedRows_ = 0;
 
 #pragma omp parallel for
@@ -91,7 +91,7 @@ void FieldMap::setupGridContracted(const Frame &frame){
                 radmin2 = 500.f;
                 accepted = true;
                 for(int ii=0; ii < frame.numAtomsTrack_; ii++){
-                    dist2 = distSqr(frame.atoms_[ii].coords, coords[0], coords[1], coords[2]);
+                    dist2 = distSqr(frame.atoms_[ii].coords, coords);
                     radmin2 = min(radmin2, dist2);
                     if(dist2 < vrad2){
                         accepted = false;
@@ -116,12 +116,16 @@ void FieldMap::setupGridContracted(const Frame &frame){
 }
 
 void FieldMap::calcFieldMonopolesContracted(const Frame &frame){
-#pragma omp parallel for
+    double coords[3];
+#pragma omp parallel for private(coords)
     for(int i=0; i < numGridPoints_; i++) {
         fieldMonopoleContracted_[i] = 0.f;
         for(Atom atom : frame.atoms_) {
+            coords[0] = gridContracted_(i, 0);
+            coords[1] = gridContracted_(i, 1);
+            coords[2] = gridContracted_(i, 2);
             fieldMonopoleContracted_[i] += atom.charge /
-                    distSqr(atom.coords, gridContracted_(i, 0), gridContracted_(i, 1), gridContracted_(i, 2));
+                    distSqr(atom.coords, coords);
         }
     }
 }
@@ -145,34 +149,35 @@ void FieldMap::printFields(){
 void FieldMap::calcFieldDipolesContracted(const Frame &frame){
     double vec_a[3], vec_b[3];
     double abs_a;
+    double coords[3];
 //    cout << numGridPoints_ << endl;
 //    cout << frame->numAtomsTrack_ << endl;
-#pragma omp parallel for
+#pragma omp parallel for private(coords, vec_a, vec_b, abs_a)
     for(int i=0; i < numGridPoints_; i++) {
         fieldDipoleContracted_[i] = 0.f;
         // for charge on the cg bead
         for(int j=0; j < frame.numAtomsTrack_; j++){
 //            fieldDipoleContracted_[i] += dipoles_(j, 5) / (abs_a*abs_a);
-//            cout << "j=" << j << endl;
             for(int k=0; k<3; k++) {
+                coords[k] = gridContracted_(i, k);
                 vec_a[k] = gridContracted_(i, k) - frame.atoms_[j].coords[k];
                 vec_b[k] = dipoles_(j, k);
             }
             abs_a = abs(vec_a);
             double cos_dip_angle = dot(vec_a, vec_b) / (dipoles_(j, 5) * abs_a);
             // If it's NaN, there's no dipole - don't add anything to the field
-            if(cos_dip_angle != cos_dip_angle) cos_dip_angle = 0.f;
+            if(cos_dip_angle != cos_dip_angle) cos_dip_angle = 0.;
             fieldDipoleContracted_[i] += dipoles_(j, 5) * cos_dip_angle / (abs_a*abs_a);
             // Do I need to include the field from the charge on the bead?
-//            fieldDipoleContracted_[i] += frame->atoms_[j].charge /
-//                    distSqr(frame->atoms_[j].coords, gridContracted_(i, 0), gridContracted_(i, 1), gridContracted_(i, 2));
+            fieldDipoleContracted_[i] += frame.atoms_[j].charge /
+                    distSqr(frame.atoms_[j].coords, coords);
         }
     }
 
     #pragma omp master
     {
-//        StatsBox sb = vector_stats(&fieldMonopoleContracted_, &fieldDipoleContracted_);
-//        cout << "\tRMS: " << sb.rms << "\tRRMS: " << sb.rrms << endl;
+        StatsBox sb = vector_stats(fieldMonopoleContracted_, fieldDipoleContracted_);
+        cout << "\tRMS: " << sb.rmsd << "\tRRMS: " << sb.nrmsd << endl;
     }
 }
 
@@ -323,11 +328,10 @@ void FieldMap::printFieldsToFile(){
 }
 
 //TODO move this outside the class - it doesn't need to be here
-double FieldMap::distSqr(const double *coords, const double x, const double y, const double z) {
-    double tmpx = coords[0] - x;
-    double tmpy = coords[1] - y;
-    double tmpz = coords[2] - z;
-    return tmpx*tmpx + tmpy*tmpy + tmpz*tmpz;
+inline double FieldMap::distSqr(const double *c1, const double *c2) {
+    return  (c1[0]-c2[0])*(c1[0]-c2[0]) +
+            (c1[1]-c2[1])*(c1[1]-c2[1]) +
+            (c1[2]-c2[2])*(c1[2]-c2[2]);
 }
 
 void polar(const double cart[3], double polar[3]){

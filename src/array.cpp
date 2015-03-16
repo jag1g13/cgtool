@@ -67,8 +67,9 @@ void Array::append(const vector<double> &vec){
     appendedRows_++;
 }
 
-void Array::append(const double *vec, const int len){
-    if(!fast_){
+void Array::append(const double *vec, int len){
+    if(len == -1) len = size_[1];
+    if(!fast_) {
         assert(allocated_);
         assert(dimensions_ == 2);
         assert(len <= size_[1]);
@@ -271,22 +272,24 @@ Array& Array::operator+=(const Array &other){
 }
 
 //TODO fix this with openmp - currently shows -nan
-StatsBox vector_stats(const vector<double> *a, const vector<double> *b){
-    assert(a->size() == b->size());
-    const int N = a->size();
-    assert(a->size() != 0);
-    assert(b->size() != 0);
+StatsBox vector_stats(const vector<double> &a, const vector<double> &b){
+    assert(a.size() == b.size());
+    const int N = a.size();
+    assert(a.size() != 0);
+    assert(b.size() != 0);
     StatsBox result;
     double sumsqr = 0.f;
-    for(int i=0; i<a->size(); i++){
-        sumsqr += ((*a)[i] - (*b)[i]) * ((*a)[i] - (*b)[i]);
-        result.mean_a += (*a)[i];
-        result.mean_b += (*b)[i];
+    for(int i=0; i<a.size(); i++){
+        sumsqr += (a[i] - b[i]) * (a[i] - b[i]);
+        result.min_a = fmin(result.min_a, a[i]);
+        result.max_a = fmax(result.max_a, a[i]);
+//        result.mean_a += a[i];
+//        result.mean_b += b[i];
     }
-    result.mean_a /= N;
-    result.mean_b /= N;
-    result.mean_diff = double(fabs(result.mean_a - result.mean_b));
-    result.rms = double((sqrt(sumsqr / N)));
-    result.rrms = double(fabs(result.rms / (result.mean_a)));
+//    result.mean_a /= N;
+//    result.mean_b /= N;
+//    result.mean_diff = fabs(result.mean_a - result.mean_b);
+    result.rmsd = sqrt(sumsqr / N);
+    result.nrmsd = result.rmsd / (result.max_a - result.min_a);
     return result;
 }

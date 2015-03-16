@@ -61,7 +61,7 @@ public:
 
     /** \brief Append a row to the array into the next blank row.
     * Copies len doubles from *vec.  Doesn't have to fill the row.*/
-    void append(const double *vec, const int len);
+    void append(const double *vec, int len=-1);
 
     /** 1 dimensional access to the array */
     double& operator()(int x);
@@ -105,18 +105,22 @@ public:
 
 struct StatsBox{
     /** RMS difference between items */
-    double rms = 0.f;
+    double rmsd = 0.;
     /** RRMS difference between items - RMS / mean value */
-    double rrms = 0.f;
+    double nrmsd = 0.;
     /** Mean difference between items */
-    double mean_diff = 0.f;
+    double mean_diff = 0.;
     /** Mean of values in array A */
-    double mean_a = 0.f;
+    double mean_a = 0.;
     /** Mean of values in array B */
-    double mean_b = 0.f;
+    double mean_b = 0.;
+    /** Minimum value of a **/
+    double min_a = 10000000;
+    /** Maximum value of a **/
+    double max_a = -100000000;
 };
 
-double vector_rms(const std::vector<double> *a, const std::vector<double> *b);
-StatsBox vector_stats(const std::vector<double> *a, const std::vector<double> *b);
+double vector_rms(const std::vector<double> &a, const std::vector<double> &b);
+StatsBox vector_stats(const std::vector<double> &a, const std::vector<double> &b);
 
 #endif

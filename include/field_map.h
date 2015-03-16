@@ -37,8 +37,8 @@ private:
     double gridCentre_[3];
     Array gridContracted_;
     int numGridPoints_;
-    std::vector<float> fieldMonopoleContracted_;
-    std::vector<float> fieldDipoleContracted_;
+    std::vector<double> fieldMonopoleContracted_;
+    std::vector<double> fieldDipoleContracted_;
     int numDipoles_;
     /** Dipole of each atom, coords, vector, magnitude */
     Array dipoles_;
@@ -51,7 +51,7 @@ private:
     void setupGrid(const Frame &frame);
 
     /** \brief Calculate the square of the distance between two points */
-    double distSqr(const double *coords, const double x, const double y, const double z);
+    inline double distSqr(const double *c1, const double *c2);
 
     /** Create a CHELPG style grid using only points in a shell around the molecule */
     void setupGridContracted(const Frame &frame);
