@@ -46,12 +46,13 @@ private:
     Array sumDipoles_;
     /** Frame number */
     int frameNum_ = 0;
+    /** Number of atoms in a single aa residue */
+    int aaNumAtoms_ = 0;
+    /** Number of atoms in a single cg residue */
+    int cgNumAtoms_ = 0;
 
     /** Determine grid bounds from a Frame object and do setup each time */
     void setupGrid(const Frame &frame);
-
-    /** \brief Calculate the square of the distance between two points */
-    inline double distSqr(const double *c1, const double *c2);
 
     /** Create a CHELPG style grid using only points in a shell around the molecule */
     void setupGridContracted(const Frame &frame);
@@ -66,15 +67,8 @@ private:
     * Modifies charges in atomistic Frame */
     void calcDipolesDirect(const CGMap &cgmap, const Frame &cg_frame, const Frame &aa_frame);
 
-    /** \brief Calculate dipoles on CG beads from an atomistic Frame
-    * Calculates bead dipoles directly for uncharged beads.
-    * The residual molecular dipole is calculated and divided between the
-    * remaining charged beads.  Weighting is determined by fitting to the electric field.
-    */
-    void calcDipolesFit(const CGMap &cgmap, const Frame &cg_frame, const Frame &aa_frame);
-
     /** Calculate the total dipole of the system/residue */
-    void calcTotalDipole(const Frame &aa_frame, int num_atoms=-1);
+    void calcTotalDipole(const Frame &aa_frame);
 
     /** Calculate the sum of calculated dipoles */
     void calcSumDipole();
@@ -100,6 +94,8 @@ public:
 
 };
 
+/** \brief Calculate the square of the distance between two points */
+inline double distSqr(const double c1[3], const double c2[3]);
 /** 3d vector dot product */
 inline double dot(const double A[3], const double B[3]);
 /** 3d vector magnitude */

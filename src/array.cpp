@@ -10,9 +10,6 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-Array::Array(){
-}
-
 //TODO turn this into a copy constructor
 Array::Array(const int a, const int b, const int c, const bool fast){
     fast_ = fast;
@@ -82,7 +79,7 @@ void Array::append(const double *vec, int len){
 }
 
 double& Array::operator()(int x){
-    if(!fast_) {
+    if(!fast_){
         assert(allocated_);
         assert(dimensions_ >= 1);
         if(x < 0) x = size_[0] + x;
@@ -95,36 +92,19 @@ double& Array::operator()(int x){
     return array_[x];
 }
 
-//double* Array::operator()(int x){
-//    if(!fast_) {
-//        assert(allocated_);
-//        assert(dimensions_ >= 1);
-//        if(x < 0) x = size_[0] + x;
-//        assert(x < size_[0] && x >= 0);
-//        /* if 2d array return ref to a row */
-//        if(dimensions_ == 2){
-//            return array_ + (x * size_[1]);
-//        }
-//    }
-//    return array_ + x;
-//}
-
 double& Array::operator()(int x, int y) {
-    if(fast_){
-        return array_[x * sizey_ + y];
-    }else{
+    if(!fast_){
         assert(allocated_);
         assert(dimensions_ == 2 || dimensions_ == 3);
         if(x < 0) x = size_[0] + x;
         if(y < 0) y = size_[1] + y;
-//        printf("%5i%5i%5i\n", size_[0], size_[1], size_[2]);
-//        printf("%5i%5i\n", x, y);
         assert(x < size_[0] && x >= 0);
         assert(y < size_[1] && y >= 0);
         /* if 3d array return ref to a row */
         if(dimensions_ == 3) return array_[x * size_[1] * size_[2] + y * size_[2]];
         return array_[x * sizey_ + y];
     }
+    return array_[x * sizey_ + y];
 }
 
 double& Array::operator()(int x, int y, int z){
@@ -140,6 +120,15 @@ double& Array::operator()(int x, int y, int z){
     }
     return array_[x * sizey_ * sizez_ + y * sizez_ + z];
 }
+
+void Array::linspace(const int n, const double min, const double max){
+    assert(allocated_);
+    assert(dimensions_ == 1);
+    for(int i=0; i<n; i++){
+        array_[i] = min + i*(max-min)/(n-1);
+    }
+}
+
 
 void Array::linspace(const int a, const int n, const double min, const double max){
     assert(allocated_);
@@ -162,14 +151,6 @@ void Array::linspace(const int a, const int b, const int n, const double min, co
     }
 }
 
-void Array::linspace(const int n, const double min, const double max){
-    assert(allocated_);
-    assert(dimensions_ == 1);
-    for(int i=0; i<n; i++){
-        array_[i] = min + i*(max-min)/(n-1);
-    }
-}
-
 void Array::zero(){
     assert(allocated_);
     for(int i=0; i<elems_; i++){
@@ -179,7 +160,7 @@ void Array::zero(){
 
 void Array::print(const int width, const int prec, const double scale){
     assert(allocated_);
-    if(dimensions_ == 3) throw std::runtime_error("Not implemented");
+    // Print if 1d or 2d, otherwise ignore
 
     if(dimensions_ == 1){
         for(int i=0; i<sizex_; i++){
@@ -215,7 +196,6 @@ double Array::sum(){
     return sum;
 }
 
-
 bool operator==(const Array &a, const Array &b){
     assert(a.allocated_);
     assert(b.allocated_);
@@ -232,27 +212,16 @@ bool operator==(const Array &a, const Array &b){
     return equal;
 }
 
-double rms(const Array *a, const Array *b){
+double rmsd(const Array &a, const Array &b){
     // Both arrays need to be allocated and the same size
-    assert(a->allocated_);
-    assert(b->allocated_);
-    assert(a->elems_ == b->elems_);
-    double sum = 0.f;
-    for(int i=0; i<a->elems_; i++){
-        sum += (a->array_[i] - b->array_[i]) * (a->array_[i] - b->array_[i]);
+    assert(a.allocated_);
+    assert(b.allocated_);
+    assert(a.elems_ == b.elems_);
+    double sum = 0.;
+    for(int i=0; i<a.elems_; i++){
+        sum += (a.array_[i] - b.array_[i]) * (a.array_[i] - b.array_[i]);
     }
-    return double(sqrt(sum / a->elems_));
-}
-
-double vector_rms(const vector<double> *a, const vector<double> *b){
-    assert(a->size() == b->size());
-    assert(a->size() != 0);
-    assert(b->size() != 0);
-    double sum = 0.f;
-    for(int i=0; i<a->size(); i++){
-        sum += ((*a)[i] - (*b)[i]) * ((*a)[i] - (*b)[i]);
-    }
-    return double(sqrt(sum / a->size()));
+    return sqrt(sum / a.elems_);
 }
 
 Array& Array::operator-=(const Array &other){
@@ -271,7 +240,6 @@ Array& Array::operator+=(const Array &other){
     return (*this);
 }
 
-//TODO fix this with openmp - currently shows -nan
 StatsBox vector_stats(const vector<double> &a, const vector<double> &b){
     assert(a.size() == b.size());
     const int N = a.size();
@@ -279,16 +247,16 @@ StatsBox vector_stats(const vector<double> &a, const vector<double> &b){
     assert(b.size() != 0);
     StatsBox result;
     double sumsqr = 0.f;
-    for(int i=0; i<a.size(); i++){
+    for(int i=0; i<N; i++){
         sumsqr += (a[i] - b[i]) * (a[i] - b[i]);
+        result.mean_a += a[i];
+        result.mean_b += b[i];
         result.min_a = fmin(result.min_a, a[i]);
         result.max_a = fmax(result.max_a, a[i]);
-//        result.mean_a += a[i];
-//        result.mean_b += b[i];
     }
-//    result.mean_a /= N;
-//    result.mean_b /= N;
-//    result.mean_diff = fabs(result.mean_a - result.mean_b);
+    result.mean_a /= N;
+    result.mean_b /= N;
+    result.diff_means = fabs(result.mean_a - result.mean_b);
     result.rmsd = sqrt(sumsqr / N);
     result.nrmsd = result.rmsd / (result.max_a - result.min_a);
     return result;
