@@ -34,11 +34,10 @@ void FieldMap::calculate(const Frame &aa_frame, const Frame &cg_frame, const CGM
     if(frameNum_ != cg_frame.num_) throw std::logic_error("Frame numbers do not match");
     aaNumAtoms_ = aa_frame.numAtomsPerResidue_;
     cgNumAtoms_ = cg_frame.numAtomsPerResidue_;
+    calcDipolesDirect(cgmap, cg_frame, aa_frame);
     setupGrid(aa_frame);
     setupGridContracted(aa_frame);
     calcFieldMonopolesContracted(aa_frame);
-    calcDipolesDirect(cgmap, cg_frame, aa_frame);
-//    calcDipolesFit(cgmap, cg_frame, aa_frame);
     calcFieldDipolesContracted(cg_frame);
     calcTotalDipole(aa_frame);
     calcSumDipole();
@@ -87,14 +86,14 @@ void FieldMap::setupGridContracted(const Frame &frame){
 
     gridContracted_.resetAppendedRows();
 
-#pragma omp parallel for
+//    #pragma omp parallel for private(coords, radmin2, dist2, accepted) reduction(+: accepted_count, far_count, close_count)
     for(int i=0; i < gridDims_[0]; i++){
         coords[0] = gridCoords_(0, i);
         for(int j=0; j < gridDims_[1]; j++){
             coords[1] = gridCoords_(1, j);
             for(int k=0; k < gridDims_[2]; k++){
                 coords[2] = gridCoords_(2, k);
-                radmin2 = 500.f;
+                radmin2 = 500.;
                 accepted = true;
                 for(int ii=0; ii < aaNumAtoms_; ii++){
                     dist2 = distSqr(frame.atoms_[ii].coords, coords);
@@ -110,8 +109,11 @@ void FieldMap::setupGridContracted(const Frame &frame){
                     continue;
                 }
                 if(accepted){
-                    gridContracted_.append(coords);
-                    ++accepted_count;
+//                    #pragma omp critical
+                    {
+                        gridContracted_.append(coords);
+                        ++accepted_count;
+                    }
                 }
             }
         }
@@ -124,9 +126,9 @@ void FieldMap::setupGridContracted(const Frame &frame){
 void FieldMap::calcFieldMonopolesContracted(const Frame &frame){
     double coords[3];
 #pragma omp parallel for private(coords)
-    for(int i=0; i < numGridPoints_; i++) {
+    for(int i=0; i < numGridPoints_; i++){
         fieldMonopoleContracted_[i] = 0.;
-        for(int j=0; j<aaNumAtoms_; j++) {
+        for(int j=0; j<aaNumAtoms_; j++){
             coords[0] = gridContracted_(i, 0);
             coords[1] = gridContracted_(i, 1);
             coords[2] = gridContracted_(i, 2);

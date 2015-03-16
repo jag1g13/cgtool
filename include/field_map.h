@@ -11,7 +11,6 @@ namespace constants{
     const float ENM2DEBYE = 2.0819434f;
 }
 
-//TODO tidy up this monster - partially done
 /**
 * \brief Class to hold and operate on electric field maps
 *
@@ -28,7 +27,7 @@ private:
     Array fieldDipole_;
     /** \brief Border to leave around molecule in field grid
     * Also the radius of selection for the CHELPG style grid */
-    double border_ = 2.f;    // 2nm
+    double border_ = 1.;    // 1nm
     /** Array to hold grid bounds; needs to be reset each frame (or often) */
     Array gridBounds_;
     /** Coordinates of each grid point */

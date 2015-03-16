@@ -136,9 +136,9 @@ int main(const int argc, const char *argv[]){
     }
     BondSet bond_set(cfgname);
 
-//    #ifdef ELECTRIC_FIELD
-    FieldMap field(25, 25, 25, mapping.numBeads_);
-//    #endif
+    #ifdef ELECTRIC_FIELD
+    FieldMap field(100, 100, 100, mapping.numBeads_);
+    #endif
 
     // Read and process simulation frames
     split_text_output("Reading frames", start, num_threads);
@@ -168,9 +168,9 @@ int main(const int argc, const char *argv[]){
         }
 
         // Calculate electric field/dipoles
-//        #ifdef ELECTRIC_FIELD
+        #ifdef ELECTRIC_FIELD
         if(i % ELECTRIC_FIELD_FREQ == 0) field.calculate(frame, cg_frame, mapping);
-//        #endif
+        #endif
 
         // Calculate bonds and store in BondStructs
         if(nomap){

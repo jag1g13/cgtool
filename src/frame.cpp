@@ -79,7 +79,7 @@ void Frame::setupOutput(string xtcname, string topname){
     std::ofstream top(topname);
     if(!top.is_open()) throw std::runtime_error("Could not open output TOP file");
     top << "; Include forcefield parameters" << endl;
-    top << "#include " << resname_ << "CG.itp" << endl << endl;
+    top << "#include \"" << resname_ << "CG.itp\"" << endl << endl;
     top << "[ system ]" << endl;
     top << resname_ << endl << endl;
     top << "[ molecules ]" << endl;
