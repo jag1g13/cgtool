@@ -10,20 +10,16 @@
 using std::cout;
 using std::endl;
 
-CGMap::CGMap(string filename){
+CGMap::CGMap(const string &filename, const string &resname, const int numResidues){
+    resname_ = resname;
+    numResidues_ = numResidues;
     fromFile(filename);
 }
 
-void CGMap::fromFile(string filename){
+void CGMap::fromFile(const string &filename){
     // which mapping type was requested - defaults to MapType::GC if not found
     vector<string> substrs;
     Parser parser(filename);
-    if(parser.getLineFromSection("residues", substrs)){
-        resName_ = substrs[1];
-    }else{
-        cout << "Could not find residue name in config file" << endl;
-        exit(0);
-    }
     if(parser.getLineFromSection("maptype", substrs)){
         if(substrs[0] == "CM"){
             mapType_ = MapType::CM;
@@ -69,12 +65,12 @@ Frame CGMap::initFrame(const Frame &aa_frame){
     // create Frame and copy copiable data
     Frame cg_frame(aa_frame);
     cg_frame.numAtomsPerResidue_ = numBeads_;
-    cg_frame.atoms_.resize(cg_frame.numResidues_ * cg_frame.numAtomsPerResidue_);
+    cg_frame.atoms_.resize(numResidues_ * cg_frame.numAtomsPerResidue_);
 
     // create atom for each CG bead
     int i = 0;
     for(auto &bead : mapping_) {
-        for(int j=0; j < cg_frame.numResidues_; j++){
+        for(int j=0; j < numResidues_; j++){
             const int num_cg = i + j * cg_frame.numAtomsPerResidue_;
             cg_frame.atoms_[num_cg].atom_type = bead.name;
             cg_frame.atoms_[num_cg].coords[0] = 0.f;
@@ -101,7 +97,7 @@ Frame CGMap::initFrame(const Frame &aa_frame){
         // copy values back into beads
         mapping_[i].mass = cg_frame.atoms_[i].mass;
         mapping_[i].charge = cg_frame.atoms_[i].charge;
-        for(int j=0; j < cg_frame.numResidues_; j++){
+        for(int j=0; j < numResidues_; j++){
             const int num_cg = i + j * cg_frame.numAtomsPerResidue_;
             cg_frame.atoms_[num_cg].mass = mapping_[i].mass;
             cg_frame.atoms_[num_cg].charge = mapping_[i].charge;
@@ -110,8 +106,8 @@ Frame CGMap::initFrame(const Frame &aa_frame){
     }
 
     // Total number of atoms could include solvent, but it doesn't yet
-    cg_frame.numAtoms_ = i * cg_frame.numResidues_;
-    cg_frame.numAtomsTrack_ = i * cg_frame.numResidues_;
+    cg_frame.numAtoms_ = i * numResidues_;
+    cg_frame.numAtomsTrack_ = i * numResidues_;
 
     for(int i=0; i<aa_frame.numAtomsPerResidue_; i++){
         const Atom *atom = &(aa_frame.atoms_[i]);
@@ -147,7 +143,7 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
         case MapType::ATOM:
             // If putting beads directly on the first atom in a bead
             for(int i = 0; i < mapping_.size(); i++){
-                for(int j=0; j<cg_frame.numResidues_; j++){
+                for(int j=0; j < numResidues_; j++){
                     const int num_cg = i + j*cg_frame.numAtomsPerResidue_;
                     const int num_aa = mapping_[i].atom_nums[0] + j*aa_frame.numAtomsPerResidue_;
                     cg_frame.atoms_[num_cg].coords[0] = aa_frame.atoms_[num_aa].coords[0];
@@ -160,7 +156,7 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
         case MapType::GC:
             // Put bead at geometric centre of atoms
             for(int i = 0; i < mapping_.size(); i++){
-                for(int j=0; j < cg_frame.numResidues_; j++){
+                for(int j=0; j < numResidues_; j++){
                     const int num_cg = i + j*cg_frame.numAtomsPerResidue_;
                     cg_frame.atoms_[num_cg].coords[0] = 0.f;
                     cg_frame.atoms_[num_cg].coords[1] = 0.f;
@@ -182,7 +178,7 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
         case MapType::CM:
             // Put bead at centre of mass of atoms
             for(int i = 0; i < mapping_.size(); i++){
-                for(int j = 0; j < cg_frame.numResidues_; j++){
+                for(int j = 0; j < numResidues_; j++){
                     const int num_cg = i + j * cg_frame.numAtomsPerResidue_;
                     cg_frame.atoms_[num_cg].coords[0] = 0.f;
                     cg_frame.atoms_[num_cg].coords[1] = 0.f;

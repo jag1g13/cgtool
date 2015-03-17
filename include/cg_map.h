@@ -48,13 +48,17 @@ protected:
     /** \brief What type of mapping are we going to apply?  CM, GC, or atom centred
     * Default is geometric centre of component atoms. */
     MapType mapType_ = MapType::GC;
+    /** Residue name */
+    std::string resname_;
+    /** Number of residues being mapped */
+    int numResidues_ = 0;
 
     /**
     * \brief Read in CG mapping from file
     *
     * Will throw std::runtime_error if file cannot be opened
     */
-    void fromFile(const string filename);
+    void fromFile(const std::string &filename);
 
 public:
     /** Number of beads defined */
@@ -72,7 +76,7 @@ public:
     /**
     * \brief Constructor to create an instance from the mapping file provided
     */
-    CGMap(const string filename);
+    CGMap(const std::string &filename, const std::string &resname, const int numResidues);
 
     /**
     * \brief Setup a CG Frame object that has already been declared

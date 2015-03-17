@@ -29,6 +29,7 @@ void BondSet::fromFile(const string &filename){
     if(parser.getLineFromSection("residues", tokens)) numResidues_ = stoi(tokens[0]);
 
     i = 0;
+    //TODO Can emplace_back() be replaced?
     while(parser.getLineFromSection("length", tokens)){
         bonds_.emplace_back(BondStruct(2));
         bonds_.back().num_ = i;

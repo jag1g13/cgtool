@@ -42,7 +42,7 @@ void FieldMap::calculate(const Frame &aa_frame, const Frame &cg_frame, const CGM
     calcTotalDipole(aa_frame);
     calcSumDipole();
     printDipoles();
-    printFieldsToFile();
+//    printFieldsToFile();
     StatsBox sb = vector_stats(fieldMonopoleContracted_, fieldDipoleContracted_);
     cout << "\tRMS: " << sb.rmsd << "\tRRMS: " << sb.nrmsd << endl;
 }

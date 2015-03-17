@@ -55,6 +55,10 @@ protected:
     float box_[3][3];
     /** What box shape do we have?  Currently must be cubic */
     BoxType boxType_ = BoxType::CUBIC;
+    /** How many of this residue are there? */
+    int numResidues_ = 0;
+    /** What is the resname of the molecule we want to map - column 4 of the itp */
+    std::string resname_;
 
     /** \brief Calculate distance between two atoms */
     double bondLength(const int a, const int b);
@@ -98,11 +102,6 @@ public:
     /** How many atoms are in this residue? */
     int numAtomsPerResidue_ = 0;
 
-    //TODO make these private
-    /** How many of this residue are there? */
-    int numResidues_ = 0;
-    /** What is the resname of the molecule we want to map - column 4 of the itp */
-    std::string resname_;
 
 
     /** \brief Create Frame passing frame number, number of atoms to store and the frame name

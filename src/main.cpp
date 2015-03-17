@@ -30,7 +30,7 @@ using std::vector;
 using std::clock_t;
 
 /* prototype functions */
-void split_text_output(const string, const clock_t, const int num_threads);
+void split_text_output(const string, const clock_t, const int num_threads=1);
 bool file_exists(const string name);
 
 
@@ -126,7 +126,7 @@ int main(const int argc, const char *argv[]){
     split_text_output("Frame setup", start, num_threads);
     Frame frame(topname, xtcname, resname, numResidues);
 
-    CGMap mapping(cfgname);
+    CGMap mapping(cfgname, resname, numResidues);
     Frame cg_frame = mapping.initFrame(frame);
 
     bool nomap = true;
@@ -192,7 +192,7 @@ int main(const int argc, const char *argv[]){
     #endif
 
     cout << "Printing results to ITP" << endl;
-    ITPWriter itp(frame.resname_);
+    ITPWriter itp(resname);
     itp.printAtoms(mapping);
     itp.printBonds(bond_set);
 
@@ -214,7 +214,7 @@ void split_text_output(const string name, const clock_t start, const int num_thr
     // If time has passed, how much?  Ignore small times
     if((float) (now - start) / CLOCKS_PER_SEC > 0.1){
         cout << "--------------------" << endl;
-        cout << float(now - start) / (CLOCKS_PER_SEC * 1) << " seconds" << endl;
+        cout << float(now - start) / (CLOCKS_PER_SEC * num_threads) << " seconds" << endl;
     }
     cout << "====================" << endl;
     cout << name << endl;
