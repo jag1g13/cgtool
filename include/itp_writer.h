@@ -28,6 +28,7 @@ protected:
             "; Topology prepared automatically using CGTOOL\n"
             "; James Graham <J.A.Graham@soton.ac.uk> 2015\n"
             "; University of Southampton\n"
+            "; https://bitbucket.org/jag1g13/cgtool\n"
             ";\n";
 
 public:

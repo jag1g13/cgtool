@@ -45,7 +45,7 @@ public:
     void resetAppendedRows(){appendedRows_ = 0;};
 
     /** \brief Constructor which allocates the array automatically.
-    * The array is zeroed after allocation. */
+    * The array is zeroed after allocation.  Calls init(). */
     Array(const int a, const int b=1, const int c=1, const bool fast=false);
 
     /** \brief Empty constructor for Array, does nothing */

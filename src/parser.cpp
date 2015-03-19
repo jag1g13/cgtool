@@ -21,11 +21,11 @@ Parser::~Parser(){
     if(file_.is_open()) file_.close();
 }
 
-bool Parser::getLine(string &section, vector <string> &tokens){
+bool Parser::getLine(vector <string> &tokens){
     while(true){
         eof_ = !getline(file_, line_);
-        boost::trim(line_);
         if(eof_) return !eof_;                              // stop if we hit eof
+        boost::trim(line_);
         if(line_[0] == ';' || line_[0] == '#') continue;    // skip comments
         if(line_ == "") continue;                           // line is empty, ignore it
         switch(format_){
@@ -44,23 +44,22 @@ bool Parser::getLine(string &section, vector <string> &tokens){
     }
     boost::split(tokens, line_, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
     for(string tok : tokens) boost::trim(tok);
-    section = section_;
     return !eof_;       // return true if there is still file to read
 }
 
 bool Parser::findSection(const string find){
-    string section = "";
     vector<string> token_buffer;
-    while(section != find){
-        if(!getLine(section, token_buffer)) return false;
+    while(section_ != find){
+        if(!getLine(token_buffer)) return false;
     }
     return true;
 }
 
 bool Parser::getLineFromSection(const string find, vector<string> &tokens){
-    //TODO don't read in anything if there isn't a line - why does it do this?
-    string section_buffer;
-    while(getLine(section_buffer, tokens)){
+    // We're looking for a new section - it might be above the last one
+    if(find != findPrevious_) rewind();
+    findPrevious_ = find;
+    while(getLine(tokens)){
         if(section_ == find) return true;
     }
     rewind();

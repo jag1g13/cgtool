@@ -20,6 +20,8 @@ private:
     std::string line_;
     /** The section of the file currently being read */
     std::string section_ = "";
+    /** The section that was last searched for. */
+    std::string findPrevious_ = "";
     /** Is EOF? */
     bool eof_;
     /** Expected file format - GROMACS style or LAMMPS style */
@@ -31,7 +33,7 @@ private:
     * Will skip over empty lines and comments and read section headers transparently
     * Parses the next data line and fills a vector<string> of tokens
     */
-    bool getLine(std::string &section, std::vector<std::string> &tokens);
+    bool getLine(std::vector<std::string> &tokens);
 
     /** \brief Rewind to start of file */
     void rewind();

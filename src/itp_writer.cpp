@@ -1,6 +1,7 @@
 #include "itp_writer.h"
 
 #include <iostream>
+#include <ctime>
 
 using std::string;
 using std::fprintf;
@@ -18,6 +19,9 @@ ITPWriter::ITPWriter(const string &resName, string itpname){
         exit(-1);
     }
     fprintf(itp_, "%s", header_.c_str());
+    time_t now = time(0);
+    char *dt = ctime(&now);
+    fprintf(itp_, "; %s;\n", dt);
 
     newSection("moleculetype");
     fprintf(itp_, ";molecule name  nrexcl\n");
