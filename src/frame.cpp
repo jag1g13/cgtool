@@ -257,9 +257,11 @@ void Frame::printGRO(string filename, int natoms){
 }
 
 double Frame::bondLength(const int a, const int b){
-    return sqrt(pow((atoms_[a].coords[0] - atoms_[b].coords[0]), 2) +
-            pow((atoms_[a].coords[1] - atoms_[b].coords[1]), 2) +
-            pow((atoms_[a].coords[2] - atoms_[b].coords[2]), 2));
+    double vec[3];
+    vec[0] = atoms_[a].coords[0] - atoms_[b].coords[0];
+    vec[1] = atoms_[a].coords[1] - atoms_[b].coords[1];
+    vec[2] = atoms_[a].coords[2] - atoms_[b].coords[2];
+    return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 }
 
 double Frame::bondLength(BondStruct &bond, const int offset) {
@@ -275,8 +277,8 @@ double Frame::bondAngle(const int a, const int b, const int c, const int d){
         vec2[i] = atoms_[d].coords[i] - atoms_[c].coords[i];
         dot += vec1[i] * vec2[i];
     }
-    const double mag1 = sqrt(pow(vec1[0], 2) + pow(vec1[1], 2) + pow(vec1[2], 2));
-    const double mag2 = sqrt(pow(vec2[0], 2) + pow(vec2[1], 2) + pow(vec2[2], 2));
+    const double mag1 = sqrt(vec1[0]*vec1[0] + vec1[1]*vec1[1] + vec1[2]*vec1[2]);
+    const double mag2 = sqrt(vec2[0]*vec2[0] + vec2[1]*vec2[1] + vec2[2]*vec2[2]);
     const double angle = acos(dot / (mag1 * mag2));
     return (180.f - (angle * 180.f / M_PI));
 }
