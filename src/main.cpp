@@ -3,12 +3,12 @@
 #include <vector>
 #include <ctime>
 
-#include <sys/stat.h>
-
 #include "frame.h"
 #include "cg_map.h"
 #include "itp_writer.h"
 #include "parser.h"
+
+#include "small_functions.h"
 
 #ifndef NO_CMD_PARSER
 #include "cmd.h"
@@ -30,8 +30,6 @@ using std::vector;
 using std::clock_t;
 
 /* prototype functions */
-void split_text_output(const string, const clock_t, const int num_threads=1);
-bool file_exists(const string name);
 
 
 int main(const int argc, const char *argv[]){
@@ -98,7 +96,6 @@ int main(const int argc, const char *argv[]){
     string topname = cmd_parser.getFileArg("itp");
     #endif
 
-    cout << "Running with " << num_threads << " thread(s)" << endl;
     cout << "CFG file: " << cfgname << endl;
     cout << "XTC file: " << xtcname << endl;
     cout << "ITP file: " << topname << endl;
@@ -137,6 +134,7 @@ int main(const int argc, const char *argv[]){
     BondSet bond_set(cfgname);
 
     #ifdef ELECTRIC_FIELD
+    cout << "Doing electrostatics with " << num_threads << " thread(s)" << endl;
     FieldMap field(100, 100, 100, mapping.numBeads_);
     #endif
 
@@ -208,21 +206,4 @@ int main(const int argc, const char *argv[]){
     return 0;
 }
 
-
-void split_text_output(const string name, const clock_t start, const int num_threads){
-    clock_t now = std::clock();
-    // If time has passed, how much?  Ignore small times
-    if((float) (now - start) / CLOCKS_PER_SEC > 0.1){
-        cout << "--------------------" << endl;
-        cout << float(now - start) / (CLOCKS_PER_SEC * num_threads) << " seconds" << endl;
-    }
-    cout << "====================" << endl;
-    cout << name << endl;
-    cout << "--------------------" << endl;
-}
-
-bool file_exists(const string name){
-    struct stat buffer;
-    return (stat(name.c_str(), &buffer) == 0);
-}
 

@@ -34,7 +34,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 
 # Should we ignore warnings - default ignore a few
 option(INGORE_SOME_WARNINGS "Don't ignore any warnings" ON)
-set(IGNORED_WARNINGS " -Wno-sign-compare -Wno-unused-variable -Wno-comment")
+set(IGNORED_WARNINGS " -Wno-sign-compare -Wno-unused-variable -Wno-comment -Wno-unused-but-set-variable")
 set(IGNORED_WARNINGS_ALWAYS " -Wno-sign-compare -Wno-comment")
 
 
@@ -140,7 +140,7 @@ if(GTEST_FOUND)
     # test bondset
     add_executable(gtest_bondset src/bondset.cpp src/boltzmann_inverter.cpp
                    src/bond_struct.cpp src/array.cpp  src/frame.cpp src/parser.cpp
-                   src/tests/bondset_test.cpp ${XDR_FILES})
+                   src/tests/bondset_test.cpp src/small_functions.cpp ${XDR_FILES})
     target_link_libraries (gtest_bondset ${GTEST_BOTH_LIBRARIES} ${EXTRA_LIBS})
     add_test(GTestBondSetAll gtest_bondset)
     # test array

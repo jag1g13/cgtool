@@ -38,7 +38,7 @@ bool Parser::getLine(vector <string> &tokens){
                 break;
 
             case ParserFormat::LAMMPS:
-                throw std::runtime_error("Not implemented");
+                throw std::logic_error("Not implemented");
             };
         break;                                              // line isn't empty, accept it
     }

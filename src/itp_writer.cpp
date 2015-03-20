@@ -3,6 +3,8 @@
 #include <iostream>
 #include <ctime>
 
+#include "small_functions.h"
+
 using std::string;
 using std::fprintf;
 using std::cout;
@@ -13,6 +15,7 @@ ITPWriter::ITPWriter(const string &resName, string itpname){
     if(itpname == "") itpname = resName + "CG.itp";
     name_ = itpname;
     resName_ = resName;
+    backup_old_file(name_.c_str());
     itp_ = std::fopen(name_.c_str(), "w");
     if(itp_ == NULL){
         cout << "Could not open itp file for writing" << endl;

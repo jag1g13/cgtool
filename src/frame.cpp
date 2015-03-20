@@ -9,6 +9,7 @@
 #include "xdrfile_xtc.h"
 
 #include "parser.h"
+#include "small_functions.h"
 
 #define EPSILON 0.00001
 
@@ -70,11 +71,13 @@ void Frame::setupOutput(string xtcname, string topname){
     char mode[2] = {'r', 'w'};
     if(xtcname == "") xtcname = resname_ + "CG.xtc";
     if(topname == "") topname = resname_ + "CG.top";
+    backup_old_file(xtcname);
+    backup_old_file(topname);
     if(!xtcOutput_) xtcOutput_ = xdrfile_open(xtcname.c_str(), &mode[1]);
     if(!xtcOutput_) throw std::runtime_error("Could not open XTC output");
 
     if(!x_) x_ = (rvec *) malloc(numAtoms_ * sizeof(*x_));
-    if(!x_) throw std::runtime_error("Couldn't allocate memory");
+    if(!x_) throw std::runtime_error("Couldn't allocate memory for XTC output");
 
     std::ofstream top(topname);
     if(!top.is_open()) throw std::runtime_error("Could not open output TOP file");
@@ -84,6 +87,7 @@ void Frame::setupOutput(string xtcname, string topname){
     top << resname_ << endl << endl;
     top << "[ molecules ]" << endl;
     top << resname_ << "\t\t" << numResidues_ << endl;
+    top.close();
     outputSetup_ = true;
 }
 
@@ -229,6 +233,7 @@ void Frame::printGRO(string filename, int natoms){
     assert(isSetup_);
     if(filename == "") filename = resname_ + "CG.gro";
     if(natoms == -1) natoms = numAtomsTrack_;
+    backup_old_file(filename);
     FILE *gro = std::fopen(filename.c_str(), "w");
     if(gro == nullptr){
         cout << "Could not open gro file for writing" << endl;
