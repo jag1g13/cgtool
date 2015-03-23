@@ -6,30 +6,26 @@
 
 #include "frame.h"
 
-using std::string;
-using std::vector;
-
-
 /**
 * \brief Struct to hold the mapping for a single CG bead
 */
 struct BeadMap{
     /** The name of this CG bead */
-    string name;
+    std::string name;
     /** The number of the CG bead */
     int num;
     /** The particle type of the bead - e.g. MARTINI P4, C2, etc. */
-    string type;
+    std::string type;
     /** The number of atoms this bead contains */
     int num_atoms;
     /** The atoms which should be mapped into this bead */
-    vector<string> atoms;
+    std::vector<std::string> atoms;
     /** The atoms which should be mapped into this bead, by order in Frame */
-    vector<int> atom_nums;
+    std::vector<int> atom_nums;
     /** Total mass of bead */
-    float mass;
+    double mass;
     /** Total charge on bead */
-    float charge;
+    double charge;
 };
 
 enum class MapType{CM, GC, ATOM};
@@ -44,7 +40,7 @@ enum class MapType{CM, GC, ATOM};
 class CGMap{
 protected:
     /** Dictionary mapping an atom to the bead it should be mapped into */
-    std::map<string, BeadMap*> atomname_to_bead_;
+    std::map<std::string, BeadMap*> atomname_to_bead_;
     /** \brief What type of mapping are we going to apply?  CM, GC, or atom centred
     * Default is geometric centre of component atoms. */
     MapType mapType_ = MapType::GC;
@@ -56,7 +52,7 @@ protected:
     /**
     * \brief Read in CG mapping from file
     *
-    * Will throw std::runtime_error if file cannot be opened
+    * \throws std::runtime_error if file cannot be opened
     */
     void fromFile(const std::string &filename);
 
@@ -88,8 +84,8 @@ public:
     /**
     * \brief Apply CG mapping to an atomistic Frame
     *
+    * \throws std::runtime_error if Frame hasn't been setup.
     * Requires that initFrame has already been called to setup the CG Frame.
-    * Will throw std::runtime_error if Frame hasn't been setup.
     */
     bool apply(const Frame &aa_frame, Frame &cg_frame);
 };

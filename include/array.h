@@ -4,6 +4,7 @@
 #include <vector>
 
 
+//TODO try out Boost/FLENS arrays, are they better?
 /**
 * \brief Array of doubles with safety features.
 *
@@ -115,6 +116,7 @@ struct StatsBox{
     double mean_a = 0.;
     /** Mean of values in array B */
     double mean_b = 0.;
+    //TODO work out better bounds here
     /** Minimum value of a **/
     double min_a = 100000000;
     /** Maximum value of a **/

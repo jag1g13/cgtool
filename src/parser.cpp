@@ -24,13 +24,18 @@ Parser::~Parser(){
 bool Parser::getLine(vector <string> &tokens){
     while(true){
         eof_ = !getline(file_, line_);
-        if(eof_) return !eof_;                              // stop if we hit eof
+        // Stop if we hit eof
+        if(eof_) return !eof_;
         boost::trim(line_);
-        if(line_[0] == ';' || line_[0] == '#') continue;    // skip comments
-        if(line_ == "") continue;                           // line is empty, ignore it
+        // Skip comments
+        if(line_[0] == ';' || line_[0] == '#') continue;
+        // Line is empty, ignore it
+        if(line_ == "") continue;
+
         switch(format_){
             case ParserFormat::GROMACS:
-                if(line_[0] == '['){                        // line is a section header
+                // Line is a section header
+                if(line_[0] == '['){
                     section_ = line_.substr(line_.find_first_of('[')+1, line_.find_last_of(']')-1);
                     boost::trim(section_);
                     continue;
@@ -40,11 +45,17 @@ bool Parser::getLine(vector <string> &tokens){
             case ParserFormat::LAMMPS:
                 throw std::logic_error("Not implemented");
             };
-        break;                                              // line isn't empty, accept it
+
+        // Line isn't empty, accept it
+        break;
     }
+
+    // Separate and trim whitespace from tokens
     boost::split(tokens, line_, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-    for(string tok : tokens) boost::trim(tok);
-    return !eof_;       // return true if there is still file to read
+    for(string &tok : tokens) boost::trim(tok);
+
+    // Return true if there is still file to read
+    return !eof_;
 }
 
 bool Parser::findSection(const string find){
@@ -67,7 +78,7 @@ bool Parser::getLineFromSection(const string find, vector<string> &tokens){
 }
 
 void Parser::rewind(){
-    // clear eof and rewind
+    // Clear eof and rewind
     eof_ = false;
     file_.clear();
     file_.seekg(0, std::ios::beg);

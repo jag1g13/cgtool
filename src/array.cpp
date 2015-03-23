@@ -110,9 +110,9 @@ void Array::linspace(const int n, const double min, const double max){
     assert(allocated_);
     assert(dimensions_ == 1);
     assert(n <= size_[0]);
-    for(int i=0; i<n; i++){
-        array_[i] = min + i*(max-min)/(n-1);
-    }
+    const double step = (max - min) / (n - 1);
+
+    for(int i=0; i<n; i++) array_[i] = min + i*step;
 }
 
 
@@ -122,9 +122,9 @@ void Array::linspace(const int a, const int n, const double min, const double ma
     assert(a < size_[0]);
     assert(n <= size_[1]);
     double *tmp = array_ + a*size_[1];
-    for(int i=0; i<n; i++){
-        tmp[i] = min + i*(max-min)/(n-1);
-    }
+    const double step = (max - min) / (n - 1);
+
+    for(int i=0; i<n; i++) tmp[i] = min + i*step;
 }
 
 void Array::linspace(const int a, const int b, const int n, const double min, const double max){
@@ -133,14 +133,14 @@ void Array::linspace(const int a, const int b, const int n, const double min, co
     assert(a < size_[0]);
     assert(b < size_[1]);
     double *tmp = array_ + a*size_[1]*size_[2] + b*size_[2];
-    for(int i=0; i<n; i++){
-        tmp[i] = min + i*(max-min)/(n-1);
-    }
+    const double step = (max - min) / (n - 1);
+
+    for(int i=0; i<n; i++) tmp[i] = min + i*step;
 }
 
 void Array::zero(){
     assert(allocated_);
-    for(int i=0; i<elems_; i++) array_[i] = 0.f;
+    for(int i=0; i<elems_; i++) array_[i] = 0.;
 }
 
 void Array::print(const int width, const int prec, const double scale){
@@ -149,7 +149,7 @@ void Array::print(const int width, const int prec, const double scale){
 
     if(dimensions_ == 1){
         for(int i=0; i<sizex_; i++){
-            printf("%*.*f", width, prec, scale*array_[i]);
+            printf("%*.*f", width, prec, scale * array_[i]);
         }
         cout << endl;
     }
@@ -182,9 +182,10 @@ double Array::sum(){
 }
 
 bool operator==(const Array &a, const Array &b){
+    // Both arrays need to be allocated
     assert(a.allocated_);
     assert(b.allocated_);
-    assert(a.elems_ == b.elems_);
+    if(a.elems_ != b.elems_) return false;
     bool equal = true;
 
     // if any elements are different, arrays are different
@@ -198,7 +199,7 @@ bool operator==(const Array &a, const Array &b){
 }
 
 double rmsd(const Array &a, const Array &b){
-    // Both arrays need to be allocated and the same size
+    // Both arrays need to be allocated and the same size - not shape
     assert(a.allocated_);
     assert(b.allocated_);
     assert(a.elems_ == b.elems_);
@@ -212,7 +213,6 @@ double rmsd(const Array &a, const Array &b){
 Array& Array::operator-=(const Array &other){
     assert(elems_ == other.elems_);
     assert(dimensions_ == other.dimensions_);
-    // could assert that it's the same shape, but might be useful in the future
     for(int i=0; i<elems_; i++) array_[i] -= other.array_[i];
     return (*this);
 }
@@ -220,7 +220,6 @@ Array& Array::operator-=(const Array &other){
 Array& Array::operator+=(const Array &other){
     assert(elems_ == other.elems_);
     assert(dimensions_ == other.dimensions_);
-    // could assert that it's the same shape, but might be useful in the future
     for(int i=0; i<elems_; i++) array_[i] += other.array_[i];
     return (*this);
 }
@@ -231,7 +230,7 @@ StatsBox vector_stats(const vector<double> &a, const vector<double> &b){
     assert(a.size() != 0);
     assert(b.size() != 0);
     StatsBox result;
-    double sumsqr = 0.f;
+    double sumsqr = 0.;
     for(int i=0; i<N; i++){
         sumsqr += (a[i] - b[i]) * (a[i] - b[i]);
         result.mean_a += a[i];

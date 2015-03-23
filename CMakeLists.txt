@@ -30,7 +30,7 @@ INCLUDE(CPack)
 MESSAGE("CXX ${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 MESSAGE("C   ${CMAKE_SYSTEM_NAME} ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -msse2 -ffast-math")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 
 # Should we ignore warnings - default ignore a few
@@ -150,9 +150,17 @@ if(GTEST_FOUND)
     add_test(GTestArrayAll gtest_array)
 
     # integration test - does it run
-    add_test(Integration1 cgtool --dir ../test_data/ALLA)
+    add_test(IntegrationRUN cgtool --dir ../test_data/ALLA)
+
+    # Integration test - check output files
+    add_test(IntegrationITP ${CMAKE_COMMAND} -E compare_files
+       ${CMAKE_SOURCE_DIR}/build/ALLACG.itp ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.itp)
+    add_test(IntegrationGRO ${CMAKE_COMMAND} -E compare_files
+        ${CMAKE_SOURCE_DIR}/build/ALLACG.gro ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.gro)
+    add_test(IntegrationTOP ${CMAKE_COMMAND} -E compare_files
+        ${CMAKE_SOURCE_DIR}/build/ALLACG.top ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.top)
 
     enable_testing()
     add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-                      DEPENDS gtest_parser gtest_bondset cgtool)
+                      DEPENDS gtest_parser gtest_bondset gtest_array cgtool)
 endif()

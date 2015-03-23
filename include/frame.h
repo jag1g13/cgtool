@@ -73,7 +73,7 @@ protected:
     * Uses libxdrfile to get number of atoms and allocate storage.
     * This function uses this data to create a Frame object to process this data.
     */
-    bool setupFrame(const std::string &topname, const std::string &xtcname);
+    bool setupFrame(const std::string &topname, const std::string &xtcname, const std::string &groname);
 
     /** \brief Recentre simulation box on an atom
     * Avoids problems where a residue is split by the periodic boundary,
@@ -111,7 +111,7 @@ public:
 
     /** \brief Create Frame passing config files.
     * Replaces calls to the function Frame::setupFrame() */
-    Frame(const std::string &topname, const std::string &xtcname, const std::string &resname, const int numResidues=1);
+    Frame(const std::string &topname, const std::string &xtcname, const std::string &groname, const std::string &resname, const int numResidues=1);
 
     /** \brief Create Frame by copying data from another Frame
     * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied. */

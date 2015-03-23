@@ -10,10 +10,6 @@ enum class BondType{LENGTH, ANGLE, DIHEDRAL};
 * \brief Class to hold atoms in bonds, angles and dihedrals.
 */
 class BondStruct{
-protected:
-    /** Keep track of serial number */
-    static int totalNum_;
-
 public:
     /** The values of the bond parameter (length, angle, dih) for each Frame */
     std::vector<double> values_;
@@ -28,18 +24,13 @@ public:
     double rsqr_ = 0.;
     /** What type of bond measure is it?  Length, angle or dihedral */
     BondType type_;
-    /** Serial number, count includes all bond lengths, angles and dihedrals */
-    int num_;
 
     /** Constructor to set size (bond/angle/dihedral) */
     BondStruct(const int size);
     /** Blank constructor */
-    BondStruct(){num_ = totalNum_; totalNum_++;};
+    BondStruct(){};
     /** Copy constructor - required to push into vectors */
     BondStruct(const BondStruct &other);
-
-    /** Calculate average of the bonds */
-    void calcAvg();
 };
 
 #endif

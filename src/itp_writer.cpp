@@ -1,7 +1,7 @@
 #include "itp_writer.h"
 
 #include <iostream>
-#include <ctime>
+#include <cmath>
 
 #include "small_functions.h"
 
@@ -16,15 +16,17 @@ ITPWriter::ITPWriter(const string &resName, string itpname){
     name_ = itpname;
     resName_ = resName;
     backup_old_file(name_.c_str());
+
     itp_ = std::fopen(name_.c_str(), "w");
     if(itp_ == NULL){
         cout << "Could not open itp file for writing" << endl;
         exit(-1);
     }
     fprintf(itp_, "%s", header_.c_str());
-    time_t now = time(0);
-    char *dt = ctime(&now);
-    fprintf(itp_, "; %s;\n", dt);
+    // Would like timestamp, but it conflicts with testing - can't diff a file with timestamp
+//    time_t now = time(0);
+//    char *dt = ctime(&now);
+//    fprintf(itp_, "; %s;\n", dt);
 
     newSection("moleculetype");
     fprintf(itp_, ";molecule name  nrexcl\n");
@@ -43,12 +45,12 @@ void ITPWriter::newSection(const string &section_name){
 void ITPWriter::printAtoms(const CGMap &map, const bool isMartini){
     newSection("atoms");
     fprintf(itp_, ";  num  bead type  resnr  resname  bead  cg nr    charge    mass\n");
-    double charge = 0.;
     for(BeadMap bead : map.mapping_){
         // MARTINI only has charge on 'Q' beads
+        double charge;
         if(isMartini){
             if(bead.type[0] == 'Q'){
-                charge = int(bead.charge);
+                charge = std::round(bead.charge);
             }else{
                 charge = 0.;
             }
@@ -79,6 +81,7 @@ void ITPWriter::printBonds(const BondSet &bond_set){
                 bond.atomNums_[0]+1, bond.atomNums_[1]+1, 1,
                 bond.avg_, bond.forceConstant_, bond.rsqr_);
     }
+
     newSection("angles");
     fprintf(itp_, ";atom1 atom2 atom3  type equilibrium  force const; unimodality\n");
     for(const BondStruct &bond : bond_set.angles_){
@@ -87,6 +90,7 @@ void ITPWriter::printBonds(const BondSet &bond_set){
                 bond.atomNums_[2]+1, 2,
                 bond.avg_, bond.forceConstant_, bond.rsqr_);
     }
+
     newSection("dihedrals");
     fprintf(itp_, ";atom1 atom2 atom3 atom4  type equilibrium  force const  mult; unimodality\n");
     for(const BondStruct &bond : bond_set.dihedrals_){

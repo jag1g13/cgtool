@@ -32,7 +32,7 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
         po::store(po::parse_command_line(argc, argv, desc_), options_);
     }catch(po::error e){
         cout << "Unrecognised command line argument\n" << endl;
-        exit(-1);
+        exit(0);
     }
 
     //command_line_parser(argc, argv).options(desc).allow_unregistered().run();

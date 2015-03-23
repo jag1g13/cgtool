@@ -3,18 +3,18 @@
 #include "gtest/gtest.h"
 
 TEST(ParserTest, FindSectionTrue){
-    Parser parser("../test_data/ALLA/tp.config");
+    Parser parser("../test_data/ALLA/cg.cfg");
     ASSERT_TRUE(parser.findSection("mapping"));
 }
 
 TEST(ParserTest, FindSectionFalse){
-    Parser parser("../test_data/ALLA/tp.config");
+    Parser parser("../test_data/ALLA/cg.cfg");
     ASSERT_FALSE(parser.findSection("nope"));
 }
 
 TEST(ParserTest, GetLineFromSectionTrue){
     // Indirectly tests Parser::getLine() by checking tokens
-    Parser parser("../test_data/ALLA/tp.config");
+    Parser parser("../test_data/ALLA/cg.cfg");
     std::vector<std::string> tokens;
     // can we find the section and does it read the right data?
     ASSERT_TRUE(parser.getLineFromSection("mapping", tokens));
@@ -27,13 +27,13 @@ TEST(ParserTest, GetLineFromSectionTrue){
 }
 
 TEST(ParserTest, GetLineFromSectionFalse){
-    Parser parser("../test_data/ALLA/tp.config");
+    Parser parser("../test_data/ALLA/cg.cfg");
     std::vector<std::string> tokens;
     ASSERT_FALSE(parser.getLineFromSection("nope", tokens));
 }
 
 TEST(ParserTest, Rewind){
-    Parser parser("../test_data/ALLA/tp.config");
+    Parser parser("../test_data/ALLA/cg.cfg");
     std::vector<std::string> tokens;
     // look for something that isn't there, rewind needs to work to find "maptype"
     ASSERT_FALSE(parser.getLineFromSection("nope", tokens));

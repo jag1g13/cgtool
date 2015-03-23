@@ -50,9 +50,10 @@ int main(const int argc, const char *argv[]){
             "cgtool --dir <path to files>\n"
             "cgtool --cfg <cfg file> --xtc <xtc file> --itp <itp file>\n";
     const string help_options =
-            "--cfg\tCGTOOL mapping file\ttp.config\n"
+            "--cfg\tCGTOOL mapping file\tcg.cfg\n"
             "--xtc\tGROMACS XTC file\tmd.xtc\n"
             "--itp\tGROMACS ITP file\ttopol.top\n"
+            "--gro\tGROMACS GRO file\tmd.gro\n"
             "--dir\tDirectory containing all of the above\t.//";
 
     // How many threads are we using?
@@ -67,7 +68,7 @@ int main(const int argc, const char *argv[]){
     // If not using command line parser, replace with a simple one
     // Do this so we can compile without Boost program_options
     #ifdef NO_CMD_PARSER
-    string cfgname, xtcname, topname;
+    string cfgname, xtcname, topname, groname;
     if(argc > 1 && (string(argv[1]) == "-h" || string(argv[1]) == "--help")){
         cout << help_header << endl;
         exit(0);
@@ -75,15 +76,17 @@ int main(const int argc, const char *argv[]){
     if(argc == 3){
         if(string(argv[1]) == "--dir"){
             string dir = string(argv[2]);
-            cfgname = dir + "/tp.config";
+            cfgname = dir + "/cg.cfg";
             xtcname = dir + "/md.xtc";
             topname = dir + "/topol.top";
+            groname = dir + "/md.gro";
         }
     }else if(argc == 7){
         if(string(argv[1]) == "--cfg" && string(argv[3]) == "--xtc" && string(argv[5]) == "--itp"){
             cfgname = string(argv[2]);
             xtcname = string(argv[4]);
             topname = string(argv[6]);
+            groname = "nope";
         }
     }else{
         cout << "Wrong number of arguments provided" << endl;
@@ -94,6 +97,7 @@ int main(const int argc, const char *argv[]){
     string cfgname = cmd_parser.getFileArg("cfg");
     string xtcname = cmd_parser.getFileArg("xtc");
     string topname = cmd_parser.getFileArg("itp");
+    string groname = cmd_parser.getFileArg("gro");
     #endif
 
     cout << "CFG file: " << cfgname << endl;
@@ -121,7 +125,7 @@ int main(const int argc, const char *argv[]){
 
     // Open files and do setup
     split_text_output("Frame setup", start, num_threads);
-    Frame frame(topname, xtcname, resname, numResidues);
+    Frame frame(topname, xtcname, groname, resname, numResidues);
 
     CGMap mapping(cfgname, resname, numResidues);
     Frame cg_frame = mapping.initFrame(frame);
@@ -147,11 +151,9 @@ int main(const int argc, const char *argv[]){
         cout << num_frames_max << " frames from XTC" << endl;
     }
 
-    int i = 0;
+    int i = 1;
     // Keep reading frames until something goes wrong (run out of frames) or hit limit
-    bool okay = true;
-    while(okay && (i++ < num_frames_max || num_frames_max==-1)){
-        okay = frame.readNext();
+    while(frame.readNext() && (i++ < num_frames_max || num_frames_max==-1)){
         // Process each frame as we read it, frames are not retained
         #ifdef UPDATE_PROGRESS
         if(i % PROGRESS_UPDATE_FREQ == 0){
@@ -194,7 +196,7 @@ int main(const int argc, const char *argv[]){
     itp.printAtoms(mapping);
     itp.printBonds(bond_set);
 
-    // Print something so I can check results by eye - can be removed later
+    // Print something so I can check results by eye
     for(int i=0; i<6 && i<bond_set.bonds_.size(); i++){
         printf("%8.4f", bond_set.bonds_[i].avg_);
     }

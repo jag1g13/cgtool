@@ -22,32 +22,31 @@ void BondSet::fromFile(const string &filename){
 
     int i = 0;
     while(parser.getLineFromSection("mapping", tokens)){
-        beadNums_.emplace(tokens[0], i);
-        i++;
+        beadNums_.emplace(tokens[0], i++);
     }
 
     if(parser.getLineFromSection("residues", tokens)) numResidues_ = stoi(tokens[0]);
 
-    i = 0;
     //TODO Can emplace_back() be replaced?
     while(parser.getLineFromSection("length", tokens)){
         bonds_.emplace_back(BondStruct(2));
-        bonds_.back().num_ = i;
-        for(int j = 0; j < 2; j++){
-            bonds_.back().atomNums_[j] = beadNums_[tokens[j]];
-        }
+        bonds_.back().atomNums_[0] = beadNums_[tokens[0]];
+        bonds_.back().atomNums_[1] = beadNums_[tokens[1]];
     }
+
     while(parser.getLineFromSection("angle", tokens)){
         angles_.emplace_back(BondStruct(3));
-        for(int j = 0; j < 3; j++){
-            angles_.back().atomNums_[j] = beadNums_[tokens[j]];
-        }
+        angles_.back().atomNums_[0] = beadNums_[tokens[0]];
+        angles_.back().atomNums_[1] = beadNums_[tokens[1]];
+        angles_.back().atomNums_[2] = beadNums_[tokens[2]];
     }
+
     while(parser.getLineFromSection("dihedral", tokens)){
         dihedrals_.emplace_back(BondStruct(4));
-        for(int j = 0; j < 4; j++){
-            dihedrals_.back().atomNums_[j] = beadNums_[tokens[j]];
-        }
+        dihedrals_.back().atomNums_[0] = beadNums_[tokens[0]];
+        dihedrals_.back().atomNums_[1] = beadNums_[tokens[1]];
+        dihedrals_.back().atomNums_[2] = beadNums_[tokens[2]];
+        dihedrals_.back().atomNums_[3] = beadNums_[tokens[3]];
     }
 }
 
@@ -56,7 +55,6 @@ void BondSet::calcBondsInternal(Frame &frame){
         bool res_okay = true;
         const int offset = i * frame.numAtomsPerResidue_;
         // Does the structure cross a pbc - will break bond lengths
-        // Added bonus that it detects molecule where mapping is wrong
         for(BondStruct &bond : bonds_){
             double dist = frame.bondLength(bond, offset);
             // If any distances > 1nm, molecule is on PBC
@@ -82,25 +80,23 @@ void BondSet::calcBondsInternal(Frame &frame){
 }
 
 void BondSet::BoltzmannInversion(){
-    cout << "Bond parameters N=" << bonds_[0].values_.size() << endl;
-    for(BondStruct &bond : bonds_){
-        bond.calcAvg();
-        BoltzmannInverter bi(bond);
+    if(bonds_.size() > 0){
+        cout << "Bond parameters N=" << bonds_[0].values_.size() << endl;
+    }else{
+        cout << "No bonds measured" << endl;
+        return;
     }
-    for(BondStruct &bond : angles_){
-        bond.calcAvg();
-        BoltzmannInverter bi(bond, true);
-    }
-    for(BondStruct &bond : dihedrals_){
-        bond.calcAvg();
-        BoltzmannInverter bi(bond, true);
-    }
+    BoltzmannInverter bi;
+    for(BondStruct &bond : bonds_) bi.calculate(bond);
+    for(BondStruct &bond : angles_) bi.calculate(bond);
+    for(BondStruct &bond : dihedrals_) bi.calculate(bond);
 }
 
 void BondSet::writeCSV(){
     FILE *f_bond = fopen("bonds.csv", "w");
     FILE *f_angle = fopen("angles.csv", "w");
     FILE *f_dihedral = fopen("dihedrals.csv", "w");
+
     for(int i=0; i < numMeasures_; i++){
         #ifdef UPDATE_PROGRESS
         if(i % 1000 == 0){
@@ -108,20 +104,18 @@ void BondSet::writeCSV(){
             std::flush(cout);
         }
         #endif
-        for(BondStruct &bond : bonds_){
-            fprintf(f_bond, "%8.3f", bond.values_[i]);
-        }
+
+        for(BondStruct &bond : bonds_) fprintf(f_bond, "%8.3f", bond.values_[i]);
         fprintf(f_bond, "\n");
-        for(BondStruct &bond : angles_){
-            fprintf(f_angle, "%8.3f", bond.values_[i]);
-        }
+
+        for(BondStruct &bond : angles_) fprintf(f_angle, "%8.3f", bond.values_[i]);
         fprintf(f_angle, "\n");
-        for(BondStruct &bond : dihedrals_){
-            fprintf(f_dihedral, "%8.3f", bond.values_[i]);
-        }
+
+        for(BondStruct &bond : dihedrals_) fprintf(f_dihedral, "%8.3f", bond.values_[i]);
         fprintf(f_dihedral, "\n");
     }
     cout << "Written " << numMeasures_ << " molecules to CSV" << endl;
+
     fclose(f_bond);
     fclose(f_angle);
     fclose(f_dihedral);
