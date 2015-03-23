@@ -1,0 +1,8 @@
+; Include forcefield parameters
+#include "ALLACG.itp"
+
+[ system ]
+ALLA
+
+[ molecules ]
+ALLA		1
