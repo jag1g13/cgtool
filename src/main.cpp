@@ -36,7 +36,7 @@ int main(const int argc, const char *argv[]){
     clock_t start = std::clock();
 
     const string version_string =
-            "CGTOOL v0.3.181:9ee87c5a4545";
+            "CGTOOL v0.3.186:fe3460c696ff";
 
     const string help_header =
             "CGTOOL James Graham <J.A.Graham@soton.ac.uk> University of Southampton\n\n"

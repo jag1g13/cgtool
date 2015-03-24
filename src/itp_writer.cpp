@@ -50,7 +50,8 @@ void ITPWriter::printAtoms(const CGMap &map, const bool isMartini){
         double charge;
         if(isMartini){
             if(bead.type[0] == 'Q'){
-                charge = std::round(bead.charge);
+                // Convert to integer with rounding
+                charge = int(bead.charge + 0.5);
             }else{
                 charge = 0.;
             }

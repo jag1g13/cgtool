@@ -6,12 +6,14 @@
 #include <stdexcept>
 #include <iostream>
 #include <cmath>
+#include <cassert>
 
 #include <sys/stat.h>
 
 using std::string;
 using std::cout;
 using std::endl;
+using std::vector;
 
 bool file_exists(const std::string name){
     struct stat buffer;
@@ -59,3 +61,27 @@ void polar(const double cart[3], double polar[3]){
     throw std::logic_error("Not implemented yet");
 }
 
+StatsBox vector_stats(const vector<double> &a, const vector<double> &b){
+    assert(a.size() == b.size());
+    const int N = a.size();
+    assert(a.size() != 0);
+    assert(b.size() != 0);
+    StatsBox result;
+
+    double sumsqr = 0.;
+    for(int i=0; i<N; i++){
+        sumsqr += (a[i] - b[i]) * (a[i] - b[i]);
+        result.mean_a += a[i];
+        result.mean_b += b[i];
+        result.min_a = fmin(result.min_a, a[i]);
+        result.max_a = fmax(result.max_a, a[i]);
+    }
+
+    result.mean_a /= N;
+    result.mean_b /= N;
+    result.diff_means = fabs(result.mean_a - result.mean_b);
+    result.rmsd = sqrt(sumsqr / N);
+    result.nrmsd = result.rmsd / (result.max_a - result.min_a);
+
+    return result;
+}

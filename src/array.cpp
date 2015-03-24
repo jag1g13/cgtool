@@ -181,23 +181,6 @@ double Array::sum(){
     return sum;
 }
 
-bool operator==(const Array &a, const Array &b){
-    // Both arrays need to be allocated
-    assert(a.allocated_);
-    assert(b.allocated_);
-    if(a.elems_ != b.elems_) return false;
-    bool equal = true;
-
-    // if any elements are different, arrays are different
-    for(int i=0; i<a.elems_; i++){
-        if(a.array_[i] != b.array_[i]){
-            equal = false;
-            break;
-        }
-    }
-    return equal;
-}
-
 double rmsd(const Array &a, const Array &b){
     // Both arrays need to be allocated and the same size - not shape
     assert(a.allocated_);
@@ -208,6 +191,23 @@ double rmsd(const Array &a, const Array &b){
         sum += (a.array_[i] - b.array_[i]) * (a.array_[i] - b.array_[i]);
     }
     return sqrt(sum / a.elems_);
+}
+
+bool operator==(const Array &a, const Array &b){
+    // Both arrays need to be allocated
+    assert(a.allocated_);
+    assert(b.allocated_);
+    if(a.elems_ != b.elems_) return false;
+    bool equal = true;
+
+    // If any elements are different, arrays are different
+    for(int i=0; i<a.elems_; i++){
+        if(a.array_[i] != b.array_[i]){
+            equal = false;
+            break;
+        }
+    }
+    return equal;
 }
 
 Array& Array::operator-=(const Array &other){
@@ -224,24 +224,3 @@ Array& Array::operator+=(const Array &other){
     return (*this);
 }
 
-StatsBox vector_stats(const vector<double> &a, const vector<double> &b){
-    assert(a.size() == b.size());
-    const int N = a.size();
-    assert(a.size() != 0);
-    assert(b.size() != 0);
-    StatsBox result;
-    double sumsqr = 0.;
-    for(int i=0; i<N; i++){
-        sumsqr += (a[i] - b[i]) * (a[i] - b[i]);
-        result.mean_a += a[i];
-        result.mean_b += b[i];
-        result.min_a = fmin(result.min_a, a[i]);
-        result.max_a = fmax(result.max_a, a[i]);
-    }
-    result.mean_a /= N;
-    result.mean_b /= N;
-    result.diff_means = fabs(result.mean_a - result.mean_b);
-    result.rmsd = sqrt(sumsqr / N);
-    result.nrmsd = result.rmsd / (result.max_a - result.min_a);
-    return result;
-}

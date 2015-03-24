@@ -7,6 +7,9 @@
 
 #include <string>
 #include <ctime>
+#include <vector>
+
+#include <cmath>
 
 /** \brief Check if a file exists */
 bool file_exists(const std::string name);
@@ -31,5 +34,25 @@ double distSqr(const double c1[3], const double c2[3]);
 
 /** \brief Convert 3d vector as double[3] to polar coordinates */
 void polar(const double cart[3], double polar[3]);
+
+struct StatsBox{
+    /** RMS difference between items */
+    double rmsd = 0.;
+    /** RRMS difference between items - RMS / mean value */
+    double nrmsd = 0.;
+    /** Mean difference between items */
+    double diff_means = 0.;
+    /** Mean of values in array A */
+    double mean_a = 0.;
+    /** Mean of values in array B */
+    double mean_b = 0.;
+    //TODO work out better bounds here
+    /** Minimum value of a **/
+    double min_a = 100000000;
+    /** Maximum value of a **/
+    double max_a = -100000000;
+};
+
+StatsBox vector_stats(const std::vector<double> &a, const std::vector<double> &b);
 
 #endif //_CGTOOL_SMALL_FUNCTIONS_H_

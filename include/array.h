@@ -105,24 +105,5 @@ public:
     friend double rmsd(const Array &a, const Array &b);
 };
 
-struct StatsBox{
-    /** RMS difference between items */
-    double rmsd = 0.;
-    /** RRMS difference between items - RMS / mean value */
-    double nrmsd = 0.;
-    /** Mean difference between items */
-    double diff_means = 0.;
-    /** Mean of values in array A */
-    double mean_a = 0.;
-    /** Mean of values in array B */
-    double mean_b = 0.;
-    //TODO work out better bounds here
-    /** Minimum value of a **/
-    double min_a = 100000000;
-    /** Maximum value of a **/
-    double max_a = -100000000;
-};
-
-StatsBox vector_stats(const std::vector<double> &a, const std::vector<double> &b);
 
 #endif
