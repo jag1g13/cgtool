@@ -39,20 +39,33 @@ double BoltzmannInverter::invertGaussian(){
 
     // Setup matrices
     double x = min_ + 0.5*step_;
+    double cosx;
     for(int i=1; i<=bins_; i++){
-        if(type_ == BondType::ANGLE || type_ == BondType::DIHEDRAL){
-            // Angles in MARTINI are a cos^2 term
-            const double cosx = cos(x);
-            A(i, 1) = 1.;
-            A(i, 2) = cosx;
-            A(i, 3) = cosx*cosx;
-            b(i) = -R * T * log(gaussian_(i - 1) / (cosx * cosx));
-        }else{
-            A(i, 1) = 1.;
-            A(i, 2) = x;
-            A(i, 3) = x*x;
-            b(i) = -R * T * log(gaussian_(i - 1) / (x * x));
-        }
+        switch(type_){
+            case BondType::LENGTH:
+                A(i, 1) = 1.;
+                A(i, 2) = x;
+                A(i, 3) = x*x;
+                b(i) = -R * T * log(gaussian_(i - 1) / (x * x));
+                break;
+            case BondType::DIHEDRAL:
+            case BondType::ANGLE:
+                // Angles in GROMACS are a cos^2 term
+                cosx = cos(x);
+                A(i, 1) = 1.;
+                A(i, 2) = cosx;
+                A(i, 3) = cosx*cosx;
+                b(i) = -R * T * log(gaussian_(i - 1) / (cosx * cosx));
+                break;
+//            case BondType::DIHEDRAL:
+                // Dihedrals in GROMACS are k * (1 + cos(n * x - x_min))
+//                cosx = 1 + cos(x);
+//                A(i, 1) = 1.;
+//                A(i, 2) = cosx;
+//                A(i, 3) = 0;
+//                b(i) = -R * T * log(gaussian_(i - 1) / (cosx));
+//                break;
+        };
         harmonic_(i-1) = b(i);
         x += step_;
     }
@@ -60,6 +73,14 @@ double BoltzmannInverter::invertGaussian(){
     // Solve least squares using LAPACK
     flens::lapack::ls(flens::NoTrans, A, b);
     return b(3);
+
+//    switch(type_){
+//        case BondType::LENGTH:
+//        case BondType::ANGLE:
+//            return b(3);
+//        case BondType::DIHEDRAL:
+//            return b(2);
+//    };
 }
 
 void BoltzmannInverter::binHistogram(const vector<double> &vec){

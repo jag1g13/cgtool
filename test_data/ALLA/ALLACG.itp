@@ -11,12 +11,12 @@ ALLA            1
 
 [ atoms ]
 ;  num  bead type  resnr  resname  bead  cg nr    charge    mass
-     1         P4      1            C1      1     0.0000;
-     2         P4      1            C2      2     0.0000;
-     3         P4      1            C3      3     0.0000;
-     4         P4      1            C4      4     0.0000;
-     5         P4      1            C5      5     0.0000;
-     6         P4      1            O5      6     0.0000;
+     1         P4      1   ALLA     C1      1     0.0000;
+     2         P4      1   ALLA     C2      2     0.0000;
+     3         P4      1   ALLA     C3      3     0.0000;
+     4         P4      1   ALLA     C4      4     0.0000;
+     5         P4      1   ALLA     C5      5     0.0000;
+     6         P4      1   ALLA     O5      6     0.0000;
 
 [ bonds ]
 ;atom1 atom2  type equilibrium  force const; unimodality

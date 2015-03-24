@@ -24,11 +24,14 @@ Parser::~Parser(){
 bool Parser::getLine(vector <string> &tokens){
     while(true){
         eof_ = !getline(file_, line_);
+
         // Stop if we hit eof
-        if(eof_) return !eof_;
+        if(eof_) return false;
         boost::trim(line_);
+
         // Skip comments
         if(line_[0] == ';' || line_[0] == '#') continue;
+
         // Line is empty, ignore it
         if(line_ == "") continue;
 
@@ -55,7 +58,7 @@ bool Parser::getLine(vector <string> &tokens){
     for(string &tok : tokens) boost::trim(tok);
 
     // Return true if there is still file to read
-    return !eof_;
+    return true;
 }
 
 bool Parser::findSection(const string find){

@@ -60,7 +60,7 @@ void ITPWriter::printAtoms(const CGMap &map, const bool isMartini){
 
         // Print the line to itp
         fprintf(itp_, "%6i %10s %6i %6s %6s %6i %10.4f",
-                bead.num+1, bead.type.c_str(), 1, map.resName_.c_str(),
+                bead.num+1, bead.type.c_str(), 1, resName_.c_str(),
                 bead.name.c_str(), bead.num+1, charge);
 
         // MARTINI doesn't include masses - all beads are assumed same mass
