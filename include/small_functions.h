@@ -46,11 +46,10 @@ struct StatsBox{
     double mean_a = 0.;
     /** Mean of values in array B */
     double mean_b = 0.;
-    //TODO work out better bounds here
     /** Minimum value of a **/
-    double min_a = 100000000;
+    double min_a;
     /** Maximum value of a **/
-    double max_a = -100000000;
+    double max_a;
 };
 
 StatsBox vector_stats(const std::vector<double> &a, const std::vector<double> &b);

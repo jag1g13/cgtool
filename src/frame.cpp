@@ -273,50 +273,43 @@ void Frame::printGRO(string filename, int natoms){
     fclose(gro);
 }
 
-double Frame::bondLength(const int a, const int b){
+double Frame::bondLength(BondStruct &bond, const int offset) {
+    const int a = bond.atomNums_[0] + offset;
+    const int b = bond.atomNums_[1] + offset;
+
     double vec[3];
     vec[0] = atoms_[a].coords[0] - atoms_[b].coords[0];
     vec[1] = atoms_[a].coords[1] - atoms_[b].coords[1];
     vec[2] = atoms_[a].coords[2] - atoms_[b].coords[2];
 
-    return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
-}
-
-
-
-double Frame::bondLength(BondStruct &bond, const int offset) {
-    int a = bond.atomNums_[0] + offset;
-    int b = bond.atomNums_[1] + offset;
-
-    return bondLength(a, b);
-}
-
-double Frame::bondAngle(const int a, const int b, const int c, const int d){
-    double vec1[3], vec2[3], dot = 0.;
-
-    for(int i = 0; i < 3; i++){
-        vec1[i] = atoms_[b].coords[i] - atoms_[a].coords[i];
-        vec2[i] = atoms_[d].coords[i] - atoms_[c].coords[i];
-        dot += vec1[i] * vec2[i];
-    }
-
-    const double mag1 = sqrt(vec1[0]*vec1[0] + vec1[1]*vec1[1] + vec1[2]*vec1[2]);
-    const double mag2 = sqrt(vec2[0]*vec2[0] + vec2[1]*vec2[1] + vec2[2]*vec2[2]);
-    const double angle = acos(dot / (mag1 * mag2));
-
-    return (180. - (angle * 180. / M_PI));
+    return abs(vec);
 }
 
 //TODO move this and bondLength into bond_struct.cpp
 double Frame::bondAngle(BondStruct &bond, const int offset){
-    int a = bond.atomNums_[0] + offset;
-    int b = bond.atomNums_[1] + offset;
-    int c = bond.atomNums_[2] + offset;
+    const int a = bond.atomNums_[0] + offset;
+    const int b = bond.atomNums_[1] + offset;
+    int c, d;
 
-    if(bond.atomNums_.size() == 4){
-        int d = bond.atomNums_[3] + offset;
-        return bondAngle(a, b, c, d);
-    }else{
-        return bondAngle(a, b, b, c);
+    switch(bond.atomNums_.size()){
+        case 4:
+            c = bond.atomNums_[2] + offset;
+            d = bond.atomNums_[3] + offset;
+            break;
+        case 3:
+            c = bond.atomNums_[1] + offset;
+            d = bond.atomNums_[2] + offset;
+            break;
+        default:
+            throw std::logic_error("Passing a bond length as an angle");
     }
+
+    double vec1[3], vec2[3];
+    for(int i = 0; i < 3; i++){
+        vec1[i] = atoms_[b].coords[i] - atoms_[a].coords[i];
+        vec2[i] = atoms_[d].coords[i] - atoms_[c].coords[i];
+    }
+
+    const double angle = acos(dot(vec1, vec2) / (abs(vec1) * abs(vec2)));
+    return (180. - (angle * 180. / M_PI));
 }

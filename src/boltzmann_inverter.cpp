@@ -72,7 +72,8 @@ double BoltzmannInverter::invertGaussian(){
 
     // Solve least squares using LAPACK
     flens::lapack::ls(flens::NoTrans, A, b);
-    return b(3);
+    // Sometimes gives negative force constants - fix this
+    return fabs(b(3));
 
 //    switch(type_){
 //        case BondType::LENGTH:

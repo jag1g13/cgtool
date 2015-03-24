@@ -81,6 +81,7 @@ Frame CGMap::initFrame(const Frame &aa_frame){
         for(const string &atomname : bead.atoms) {
             atomname_to_bead_.emplace(atomname, &bead);
 
+            //TODO change this to support residues not from start
             for(int j=0; j<aa_frame.numAtomsPerResidue_; j++){
                 if(aa_frame.atoms_[j].atom_type == atomname){
                     cg_frame.atoms_[i].mass += aa_frame.atoms_[j].mass;
@@ -104,16 +105,6 @@ Frame CGMap::initFrame(const Frame &aa_frame){
     // Total number of atoms could include solvent, but it doesn't yet
     cg_frame.numAtoms_ = i * numResidues_;
     cg_frame.numAtomsTrack_ = i * numResidues_;
-
-    for(int i=0; i<aa_frame.numAtomsPerResidue_; i++){
-        const Atom *atom = &(aa_frame.atoms_[i]);
-        // If atom is in a bead count it, otherwise ignore
-        if(atomname_to_bead_.count(atom->atom_type)){
-            BeadMap *inbead = atomname_to_bead_[atom->atom_type];
-            inbead->mass += atom->mass;
-            inbead->charge += atom->charge;
-        }
-    }
 
     cg_frame.isSetup_ = true;
     apply(aa_frame, cg_frame);

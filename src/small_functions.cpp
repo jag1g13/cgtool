@@ -67,6 +67,7 @@ StatsBox vector_stats(const vector<double> &a, const vector<double> &b){
     assert(a.size() != 0);
     assert(b.size() != 0);
     StatsBox result;
+    result.min_a = a[0]; result.max_a = a[0];
 
     double sumsqr = 0.;
     for(int i=0; i<N; i++){

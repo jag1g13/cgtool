@@ -60,12 +60,6 @@ protected:
     /** What is the resname of the molecule we want to map - column 4 of the itp */
     std::string resname_;
 
-    /** \brief Calculate distance between two atoms */
-    double bondLength(const int a, const int b);
-    /** \brief Calculate angle between vectors a->b and c->d
-    * To be used for bond angles (b=c) and dihedrals (b=/=c) */
-    double bondAngle(const int a, const int b, const int c, const int d);
-
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file
     * \throws logic_error if Frame has already been setup
