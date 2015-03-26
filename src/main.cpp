@@ -3,25 +3,25 @@
 #include <vector>
 #include <ctime>
 
+#include <sysexits.h>
+
 #include "frame.h"
 #include "cg_map.h"
 #include "itp_writer.h"
 #include "parser.h"
-
 #include "small_functions.h"
 
 #ifndef NO_CMD_PARSER
 #include "cmd.h"
 #endif
 
-//#ifdef ELECTRIC_FIELD
+#ifdef ELECTRIC_FIELD
 #include "field_map.h"
-//#endif
+#endif
 
 #define PROGRESS_UPDATE_FREQ 100
 #define ELECTRIC_FIELD_FREQ 100
 
-/* things from std that get used a lot */
 using std::string;
 using std::cout;
 using std::cin;
@@ -29,14 +29,12 @@ using std::endl;
 using std::vector;
 using std::clock_t;
 
-/* prototype functions */
-
 
 int main(const int argc, const char *argv[]){
     clock_t start = std::clock();
 
     const string version_string =
-            "CGTOOL v0.3.186:fe3460c696ff";
+            "CGTOOL v0.3.188:a186e78ba592";
 
     const string help_header =
             "CGTOOL James Graham <J.A.Graham@soton.ac.uk> University of Southampton\n\n"
@@ -71,7 +69,7 @@ int main(const int argc, const char *argv[]){
     string cfgname, xtcname, topname, groname;
     if(argc > 1 && (string(argv[1]) == "-h" || string(argv[1]) == "--help")){
         cout << help_header << endl;
-        exit(0);
+        exit(EX_OK);
     }
     if(argc == 3){
         if(string(argv[1]) == "--dir"){
@@ -90,7 +88,7 @@ int main(const int argc, const char *argv[]){
         }
     }else{
         cout << "Wrong number of arguments provided" << endl;
-        exit(-1);
+        exit(EX_USAGE);
     }
     #else
     CMD cmd_parser(help_header, help_options, argc, argv);
@@ -105,7 +103,7 @@ int main(const int argc, const char *argv[]){
     cout << "ITP file: " << topname << endl;
     if(!file_exists(xtcname) || !file_exists(cfgname) || !file_exists(topname)){
         cout << "Input file does not exist" << endl;
-        exit(-1);
+        exit(EX_NOINPUT);
     }
 
     // Read number of frames from config, if not found read them all

@@ -6,6 +6,7 @@
 
 #include <math.h>
 #include <assert.h>
+#include <sysexits.h>
 
 #include "xdrfile_xtc.h"
 
@@ -116,7 +117,7 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
     int status = read_xtc_natoms(xtcname.c_str(), &numAtoms_);
     if(status != exdrOK){
         cout << "Could not open input XTC file" << endl;
-        exit(-1);
+        exit(EX_NOINPUT);
     }
     xtcInput_ = xdrfile_open(xtcname.c_str(), "r");
     num_ = 0;
@@ -251,7 +252,7 @@ void Frame::printGRO(string filename, int natoms){
     FILE *gro = std::fopen(filename.c_str(), "w");
     if(gro == nullptr){
         cout << "Could not open gro file for writing" << endl;
-        exit(-1);
+        exit(EX_CANTCREAT);
     }
 
     std::stringstream stream;

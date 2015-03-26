@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cmath>
 
+#include <sysexits.h>
+
 #include "small_functions.h"
 
 using std::string;
@@ -20,7 +22,7 @@ ITPWriter::ITPWriter(const string &resName, string itpname){
     itp_ = std::fopen(name_.c_str(), "w");
     if(itp_ == NULL){
         cout << "Could not open itp file for writing" << endl;
-        exit(-1);
+        exit(EX_CANTCREAT);
     }
     fprintf(itp_, "%s", header_.c_str());
     // Would like timestamp, but it conflicts with testing - can't diff a file with timestamp
