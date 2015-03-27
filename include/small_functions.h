@@ -9,7 +9,6 @@
 #include <ctime>
 #include <vector>
 
-#include <cmath>
 
 /** \brief Check if a file exists */
 bool file_exists(const std::string name);

@@ -71,21 +71,17 @@ int main(const int argc, const char *argv[]){
         cout << help_header << endl;
         exit(EX_OK);
     }
-    if(argc == 3){
-        if(string(argv[1]) == "--dir"){
-            string dir = string(argv[2]);
-            cfgname = dir + "/cg.cfg";
-            xtcname = dir + "/md.xtc";
-            topname = dir + "/topol.top";
-            groname = dir + "/md.gro";
-        }
-    }else if(argc == 7){
-        if(string(argv[1]) == "--cfg" && string(argv[3]) == "--xtc" && string(argv[5]) == "--itp"){
-            cfgname = string(argv[2]);
-            xtcname = string(argv[4]);
-            topname = string(argv[6]);
-            groname = "nope";
-        }
+    if(argc == 3 && string(argv[1]) == "--dir"){
+        string dir = string(argv[2]);
+        cfgname = dir + "/cg.cfg";
+        xtcname = dir + "/md.xtc";
+        topname = dir + "/topol.top";
+        groname = dir + "/md.gro";
+    }else if(argc == 7 && string(argv[1]) == "--cfg" && string(argv[3]) == "--xtc" && string(argv[5]) == "--itp"){
+        cfgname = string(argv[2]);
+        xtcname = string(argv[4]);
+        topname = string(argv[6]);
+        groname = "nope";
     }else{
         cout << "Wrong number of arguments provided" << endl;
         exit(EX_USAGE);

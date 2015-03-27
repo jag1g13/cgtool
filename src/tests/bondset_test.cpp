@@ -1,5 +1,4 @@
 #include "bondset.h"
-#include "bond_struct.h"
 
 #include "gtest/gtest.h"
 

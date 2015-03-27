@@ -155,9 +155,9 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
 
     // If we have a GRO then find the resname we're looking for
     FILE *gro = fopen(groname.c_str(), "r");
-    char name[6];
     int start = 0;
     if(gro != NULL){
+        char name[6];
         while(fscanf(gro, "%*5d%5s%*5s%*5d%*8f%*8f%*8f%*8f%*8f%*8f", name)){
             if(strcmp(name, resname_.c_str()) == 0) break;
             start++;

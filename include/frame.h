@@ -20,13 +20,13 @@ struct Atom{
     /** Atomic coordinates in x, y, z */
     double coords[3];
     /** Atomic charge from the force field */
-    float charge = 0.f;
+    double charge = 0.;
     /** Atomic mass */
-    float mass = 0.f;
+    double mass = 0.;
     /** \brief Create an Atom, set its number and zero its coordinates */
     Atom(int num){atom_num = num; coords[0] = 0.f; coords[1] = 0.f; coords[2] = 0.f;};
     /** Create a blank Atom instance */
-    Atom(){coords[0] = 0.f; coords[1] = 0.f; coords[2] = 0.f;};
+    Atom(){coords[0] = 0.; coords[1] = 0.; coords[2] = 0.;};
 };
 
 
