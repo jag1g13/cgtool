@@ -9,7 +9,7 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-Parser::Parser(const string filename, const ParserFormat format) {
+Parser::Parser(const string filename, const FileFormat format) {
     //TODO preprocess file to include ITPs
     format_ = format;
     filename_ = filename;
@@ -36,7 +36,7 @@ bool Parser::getLine(vector <string> &tokens){
         if(line_ == "") continue;
 
         switch(format_){
-            case ParserFormat::GROMACS:
+            case FileFormat::GROMACS:
                 // Line is a section header
                 if(line_[0] == '['){
                     section_ = line_.substr(line_.find_first_of('[')+1, line_.find_last_of(']')-1);
@@ -45,7 +45,7 @@ bool Parser::getLine(vector <string> &tokens){
                 }
                 break;
 
-            case ParserFormat::LAMMPS:
+            case FileFormat::LAMMPS:
                 throw std::logic_error("Not implemented");
             };
 

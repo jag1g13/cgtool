@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-enum class ParserFormat{GROMACS, LAMMPS};
+#include "file_io.h"
 
 /**
 * \brief Parses input files for comments, section headers and data lines
@@ -25,7 +25,7 @@ private:
     /** Is EOF? */
     bool eof_;
     /** Expected file format - GROMACS style or LAMMPS style */
-    ParserFormat format_ = ParserFormat::GROMACS;
+    FileFormat format_ = FileFormat::GROMACS;
 
     /**
     * \brief Reads a line from file and splits it into tokens
@@ -43,7 +43,7 @@ public:
     * \brief Constructor for a Parser which will open a file and prepare for reading
     * \throws runtime_error if file cannot be opened
     */
-    Parser(const std::string filename, const ParserFormat format=ParserFormat::GROMACS);
+    Parser(const std::string filename, const FileFormat format=FileFormat::GROMACS);
 
     /** Destructor to close file */
     ~Parser();

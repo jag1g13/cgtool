@@ -13,8 +13,6 @@
 * \brief Struct to hold atom data
 */
 struct Atom{
-    /** A serial number. no longer needed */
-    int atom_num;
     /** Atomtype as a string.  I don't want to be dealing with *char */
     std::string atom_type;
     /** Atomic coordinates in x, y, z */
@@ -23,8 +21,6 @@ struct Atom{
     double charge = 0.;
     /** Atomic mass */
     double mass = 0.;
-    /** \brief Create an Atom, set its number and zero its coordinates */
-    Atom(int num){atom_num = num; coords[0] = 0.f; coords[1] = 0.f; coords[2] = 0.f;};
     /** Create a blank Atom instance */
     Atom(){coords[0] = 0.; coords[1] = 0.; coords[2] = 0.;};
 };

@@ -187,8 +187,9 @@ int main(const int argc, const char *argv[]){
 
     cout << "Printing results to ITP" << endl;
     ITPWriter itp(resname);
-    itp.printAtoms(mapping);
-    itp.printBonds(bond_set);
+    itp.printAtoms(mapping, true);
+//    itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
+    itp.printBonds(bond_set, false);
 
     // Print something so I can check results by eye
     for(int i=0; i<6 && i<bond_set.bonds_.size(); i++){

@@ -86,7 +86,7 @@ Frame CGMap::initFrame(const Frame &aa_frame){
                 if(aa_frame.atoms_[j].atom_type == atomname){
                     cg_frame.atoms_[i].mass += aa_frame.atoms_[j].mass;
                     cg_frame.atoms_[i].charge += aa_frame.atoms_[j].charge;
-                    bead.atom_nums.push_back(aa_frame.atoms_[j].atom_num);
+                    bead.atom_nums.push_back(j);
                 }
             }
         }

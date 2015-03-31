@@ -75,6 +75,6 @@ const std::string CMD::getFileArg(const std::string &arg){
 
 const bool CMD::getBoolArg(const std::string &arg){
     // If it was set true by the user return it, otherwise return default value
-    if(options_.count(arg)) return true;
-    return bool(boolArgs_.count(arg));
+    if(options_.count(arg)) return options_[arg].as<bool>();
+    return bool(boolArgs_[arg]);
 }

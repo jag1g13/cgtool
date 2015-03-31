@@ -154,11 +154,11 @@ if(GTEST_FOUND)
 
     # Integration test - check output files
     add_test(IntegrationITP ${CMAKE_COMMAND} -E compare_files
-       ${CMAKE_SOURCE_DIR}/build/ALLACG.itp ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.itp)
+       ${CMAKE_SOURCE_DIR}/build/ALLA.itp ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.itp)
     add_test(IntegrationGRO ${CMAKE_COMMAND} -E compare_files
-        ${CMAKE_SOURCE_DIR}/build/ALLACG.gro ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.gro)
+        ${CMAKE_SOURCE_DIR}/build/ALLA.gro ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.gro)
     add_test(IntegrationTOP ${CMAKE_COMMAND} -E compare_files
-        ${CMAKE_SOURCE_DIR}/build/ALLACG.top ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.top)
+        ${CMAKE_SOURCE_DIR}/build/ALLA.top ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.top)
 
     enable_testing()
     add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
