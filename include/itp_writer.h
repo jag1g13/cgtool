@@ -26,6 +26,8 @@ protected:
     std::string section_;
     /** Which output format should be written? */
     FileFormat format_;
+    /** Character to use as comment marker */
+    char comment_ = ';';
     /** Header printed at the top of every ITP file */
     const std::vector<std::string> header_ =
         {

@@ -24,6 +24,8 @@ protected:
     int numMeasures_ = 0;
     /** How many residues are being mapped using the same mapping? */
     int numResidues_ = 1;
+    /** Temperature of simulation - for Boltzmann Inversion */
+    double temp_ = 310.;
     /** Map of bead names to number - to put numbers into BondStructs */
     std::map<std::string, int> beadNums_;
 

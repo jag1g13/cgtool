@@ -16,6 +16,7 @@ protected:
     Array gaussian_;
     Array harmonic_;
     int bins_ = 55, n_ = 0, meanBin_=0;
+    double temp_ = 310.;
     double min_, max_, step_;
     double integral_, mean_, adev_, var_, sdev_;
     BondType type_ = BondType::LENGTH;
@@ -39,7 +40,7 @@ protected:
     double gaussianRSquared();
 
 public:
-    BoltzmannInverter(const int bins=-1);
+    BoltzmannInverter(const double temp=310, const int bins=-1);
 
     /** Perform all of the necessary calculations to get a force constant */
     void calculate(BondStruct &bond);

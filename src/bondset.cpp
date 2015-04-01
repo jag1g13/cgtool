@@ -20,12 +20,13 @@ void BondSet::fromFile(const string &filename){
     vector<string> tokens;
     Parser parser(filename);
 
+    if(parser.getLineFromSection("residues", tokens)) numResidues_ = stoi(tokens[0]);
+    if(parser.getLineFromSection("temp", tokens)) temp_ = stof(tokens[0]);
+
     int i = 0;
     while(parser.getLineFromSection("mapping", tokens)){
         beadNums_.emplace(tokens[0], i++);
     }
-
-    if(parser.getLineFromSection("residues", tokens)) numResidues_ = stoi(tokens[0]);
 
     //TODO Can emplace_back() be replaced?
     while(parser.getLineFromSection("length", tokens)){
@@ -86,7 +87,7 @@ void BondSet::BoltzmannInversion(){
         cout << "No bonds measured" << endl;
         return;
     }
-    BoltzmannInverter bi;
+    BoltzmannInverter bi(temp_);
     for(BondStruct &bond : bonds_) bi.calculate(bond);
     for(BondStruct &bond : angles_) bi.calculate(bond);
     for(BondStruct &bond : dihedrals_) bi.calculate(bond);

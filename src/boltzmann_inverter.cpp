@@ -6,8 +6,9 @@ using std::cout;
 using std::endl;
 using std::vector;
 
-BoltzmannInverter::BoltzmannInverter(const int bins){
+BoltzmannInverter::BoltzmannInverter(const double temp, const int bins){
     if(bins != -1) bins_ = bins;
+    temp_ = temp;
     histogram_.init(bins_);
     gaussian_.init(bins_);
     harmonic_.init(bins_);
@@ -29,7 +30,6 @@ void BoltzmannInverter::calculate(BondStruct &bond){
 double BoltzmannInverter::invertGaussian(){
     // R in kJ.K-1.mol-1
     const double R = 8.314 / 1000.;
-    const int T = 310;
 
     typedef flens::GeMatrix<flens::FullStorage<double>> GeMatrix;
     typedef flens::DenseVector<flens::Array<double>> DenseVector;
@@ -46,7 +46,7 @@ double BoltzmannInverter::invertGaussian(){
                 A(i, 1) = 1.;
                 A(i, 2) = x;
                 A(i, 3) = x*x;
-                b(i) = -R * T * log(gaussian_(i - 1) / (x * x));
+                b(i) = -R * temp_ * log(gaussian_(i - 1) / (x * x));
                 break;
             case BondType::DIHEDRAL:
             case BondType::ANGLE:
@@ -55,7 +55,7 @@ double BoltzmannInverter::invertGaussian(){
                 A(i, 1) = 1.;
                 A(i, 2) = cosx;
                 A(i, 3) = cosx*cosx;
-                b(i) = -R * T * log(gaussian_(i - 1) / (cosx * cosx));
+                b(i) = -R * temp_ * log(gaussian_(i - 1) / (cosx * cosx));
                 break;
 //            case BondType::DIHEDRAL:
                 // Dihedrals in GROMACS are k * (1 + cos(n * x - x_min))

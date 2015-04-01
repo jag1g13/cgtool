@@ -16,17 +16,16 @@ using std::vector;
 ITPWriter::ITPWriter(const string &resName, FileFormat format, string itpname){
     format_ = format;
 
-    char comment = ';';
     switch(format_){
         case FileFormat::GROMACS:
             if(itpname == "") itpname = resName + ".itp";
-            comment = ';';
+            comment_ = ';';
             break;
 
         case FileFormat::LAMMPS:
             // Considering just leaving filenames the same
             if(itpname == "") itpname = "forcefield." + resName;
-            comment = '#';
+            comment_ = '#';
             break;
     }
     name_ = itpname;
@@ -40,9 +39,9 @@ ITPWriter::ITPWriter(const string &resName, FileFormat format, string itpname){
     }
 
     // Set the comment marker for this format
-    fprintf(itp_, "%c\n", comment);
-    for(const string& line : header_) fprintf(itp_, "%c %s", comment, line.c_str());
-    fprintf(itp_, "%c\n", comment);
+    fprintf(itp_, "%c\n", comment_);
+    for(const string& line : header_) fprintf(itp_, "%c %s", comment_, line.c_str());
+    fprintf(itp_, "%c\n", comment_);
 
     // Would like timestamp, but it conflicts with testing - can't diff a file with timestamp
 //    time_t now = time(0);
@@ -95,7 +94,6 @@ void ITPWriter::printAtoms(const CGMap &map, const bool isMartini){
                     }
                 }
 
-                // Print the line to itp
                 fprintf(itp_, "%6i %10s %6i %6s %6s %6i %10.4f",
                         bead.num+1, bead.type.c_str(), 1, resName_.c_str(),
                         bead.name.c_str(), bead.num+1, charge);
@@ -126,7 +124,6 @@ void ITPWriter::printBonds(const BondSet &bond_set, const bool round){
             for(const BondStruct &bond : bond_set.bonds_){
                 double f_const = bond.forceConstant_;
                 if(round) f_const = scale * pow(10, floor(log10(f_const)));
-                // I don't know what the last integer is
                 fprintf(itp_, "%5i %5i %5i %12.5f %12.5f; %5.3f\n",
                         bond.atomNums_[0]+1, bond.atomNums_[1]+1, 1,
                         bond.avg_, f_const, bond.rsqr_);

@@ -66,7 +66,8 @@ Frame CGMap::initFrame(const Frame &aa_frame){
     cg_frame.atoms_.resize(numResidues_ * cg_frame.numAtomsPerResidue_);
 
     // Create atom for each CG bead
-    int i = 0;
+    //TODO change this to support residues not from start
+    int i = resBlockStart_;
     for(BeadMap &bead : mapping_) {
         for(int j=0; j < numResidues_; j++){
             const int num_cg = i + j * cg_frame.numAtomsPerResidue_;
@@ -81,7 +82,6 @@ Frame CGMap::initFrame(const Frame &aa_frame){
         for(const string &atomname : bead.atoms) {
             atomname_to_bead_.emplace(atomname, &bead);
 
-            //TODO change this to support residues not from start
             for(int j=0; j<aa_frame.numAtomsPerResidue_; j++){
                 if(aa_frame.atoms_[j].atom_type == atomname){
                     cg_frame.atoms_[i].mass += aa_frame.atoms_[j].mass;

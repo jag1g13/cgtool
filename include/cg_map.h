@@ -48,6 +48,8 @@ protected:
     std::string resname_;
     /** Number of residues being mapped */
     int numResidues_ = 0;
+    /** Where does the block of residues we're mapping start? */
+    int resBlockStart_ = 0;
 
     /**
     * \brief Read in CG mapping from file
