@@ -10,6 +10,7 @@
 #include "itp_writer.h"
 #include "parser.h"
 #include "small_functions.h"
+#include "file_io.h"
 
 #ifndef NO_CMD_PARSER
 #include "cmd.h"
@@ -186,10 +187,10 @@ int main(const int argc, const char *argv[]){
     #endif
 
     cout << "Printing results to ITP" << endl;
-    ITPWriter itp(resname);
+    //TODO put format choice in config file or command line option
+    ITPWriter itp(resname, FileFormat::GROMACS);
     itp.printAtoms(mapping, true);
-//    itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
-    itp.printBonds(bond_set, false);
+    itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
 
     // Print something so I can check results by eye
     for(int i=0; i<6 && i<bond_set.bonds_.size(); i++){

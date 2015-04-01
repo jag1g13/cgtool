@@ -40,7 +40,7 @@ protected:
 
 public:
     /** Create an ITP file and prepare to write */
-    ITPWriter(const std::string &resName, std::string itpname="", FileFormat format=FileFormat::GROMACS);
+    ITPWriter(const std::string &resName, FileFormat format=FileFormat::GROMACS, std::string itpname="");
 
     /** Close output file in destructor */
     ~ITPWriter();

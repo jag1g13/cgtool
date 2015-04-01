@@ -10,7 +10,7 @@
 ALLA            1
 
 [ atoms ]
-;  num  bead type  resnr  resname  bead  cg nr    charge    mass
+;  num   beadtype  resnr   resnm  bead  chrg#     charge    mass
      1         P4      1   ALLA     C1      1     0.0000;
      2         P4      1   ALLA     C2      2     0.0000;
      3         P4      1   ALLA     C3      3     0.0000;
@@ -19,7 +19,7 @@ ALLA            1
      6         P4      1   ALLA     O5      6     0.0000;
 
 [ bonds ]
-;atom1 atom2  type equilibrium  force const; unimodality
+;atm1  atm2  type  equilibrium  force const  unimodality
     1     2     1      0.15214 1090330.33550; 0.877
     2     3     1      0.15210 1149690.60337; 0.883
     3     4     1      0.15213 1156476.90032; 0.829
@@ -28,7 +28,7 @@ ALLA            1
     6     1     1      0.14358 1296819.91646; 0.879
 
 [ angles ]
-;atom1 atom2 atom3  type equilibrium  force const; unimodality
+;atm1  atm2  atm3  type  equilibrium  force const  unimodality
     6     1     2     2    111.51996      9.24267; 0.929
     1     2     3     2    110.08211     10.12863; 0.940
     2     3     4     2    110.42934     10.29654; 0.934
@@ -37,7 +37,7 @@ ALLA            1
     5     6     1     2    114.09038      9.11234; 0.941
 
 [ dihedrals ]
-;atom1 atom2 atom3 atom4  type equilibrium  force const  mult; unimodality
+;atm1  atm2  atm3  atm4  type  equilibrium  force const  mult  unimodality
     5     6     1     2     1     70.33890      8.37496     1; 0.935
     6     1     2     3     1     66.35498     12.37014     1; 0.897
     1     2     3     4     1     67.64328      9.50740     1; 0.948

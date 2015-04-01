@@ -13,7 +13,7 @@ using std::cout;
 using std::endl;
 using std::vector;
 
-ITPWriter::ITPWriter(const string &resName, string itpname, FileFormat format){
+ITPWriter::ITPWriter(const string &resName, FileFormat format, string itpname){
     format_ = format;
 
     char comment = ';';
@@ -22,7 +22,9 @@ ITPWriter::ITPWriter(const string &resName, string itpname, FileFormat format){
             if(itpname == "") itpname = resName + ".itp";
             comment = ';';
             break;
+
         case FileFormat::LAMMPS:
+            // Considering just leaving filenames the same
             if(itpname == "") itpname = "forcefield." + resName;
             comment = '#';
             break;
@@ -47,9 +49,16 @@ ITPWriter::ITPWriter(const string &resName, string itpname, FileFormat format){
 //    char *dt = ctime(&now);
 //    fprintf(itp_, "; %s;\n", dt);
 
-    newSection("moleculetype");
-    fprintf(itp_, ";molecule name  nrexcl\n");
-    fprintf(itp_, "%s %12i\n", resName_.c_str(), 1);
+    switch(format_){
+        case FileFormat::GROMACS:
+            newSection("moleculetype");
+            fprintf(itp_, ";molecule name  nrexcl\n");
+            fprintf(itp_, "%s %12i\n", resName_.c_str(), 1);
+            break;
+        case FileFormat::LAMMPS:
+            fprintf(itp_, "\n#molecule name %s\n", resName_.c_str());
+            break;
+    }
 }
 
 ITPWriter::~ITPWriter(){
@@ -69,29 +78,42 @@ void ITPWriter::newSection(const string &section_name){
 }
 
 void ITPWriter::printAtoms(const CGMap &map, const bool isMartini){
-    newSection("atoms");
-    fprintf(itp_, ";  num  bead type  resnr  resname  bead  cg nr    charge    mass\n");
+    switch(format_){
+        case FileFormat::GROMACS:
+            newSection("atoms");
+            fprintf(itp_, ";  num   beadtype  resnr   resnm  bead  chrg#     charge    mass\n");
 
-    for(BeadMap bead : map.mapping_){
-        // MARTINI only has charge on 'Qx' beads
-        double charge = bead.charge;
-        if(isMartini){
-            if(bead.type[0] == 'Q'){
-                // Convert to integer with rounding - Mac doesn't have round()
-                charge = floor(charge + copysign(0.5, charge));
-            }else{
-                charge = 0.;
+            for(BeadMap bead : map.mapping_){
+                // MARTINI only has charge on 'Qx' beads
+                double charge = bead.charge;
+                if(isMartini){
+                    if(bead.type[0] == 'Q'){
+                        // Convert to integer with rounding - Mac doesn't have round()
+                        charge = floor(charge + copysign(0.5, charge));
+                    }else{
+                        charge = 0.;
+                    }
+                }
+
+                // Print the line to itp
+                fprintf(itp_, "%6i %10s %6i %6s %6s %6i %10.4f",
+                        bead.num+1, bead.type.c_str(), 1, resName_.c_str(),
+                        bead.name.c_str(), bead.num+1, charge);
+
+                // MARTINI doesn't include masses - all beads are assumed same mass
+                if(!isMartini) fprintf(itp_, " %10.4f", bead.mass);
+                fprintf(itp_, ";\n");
             }
-        }
+            break;
 
-        // Print the line to itp
-        fprintf(itp_, "%6i %10s %6i %6s %6s %6i %10.4f",
-                bead.num+1, bead.type.c_str(), 1, resName_.c_str(),
-                bead.name.c_str(), bead.num+1, charge);
+        case FileFormat::LAMMPS:
+            fprintf(itp_, "\n#atom masses\n");
 
-        // MARTINI doesn't include masses - all beads are assumed same mass
-        if(!isMartini) fprintf(itp_, " %10.4f", bead.mass);
-        fprintf(itp_, ";\n");
+            for(BeadMap bead : map.mapping_){
+                fprintf(itp_, "mass %4i %8.3f\n",
+                        bead.num+1, bead.mass);
+            }
+            break;
     }
 }
 
@@ -100,7 +122,7 @@ void ITPWriter::printBonds(const BondSet &bond_set, const bool round){
     switch(format_){
         case FileFormat::GROMACS:
             newSection("bonds");
-            fprintf(itp_, ";atom1 atom2  type equilibrium  force const; unimodality\n");
+            fprintf(itp_, ";atm1  atm2  type  equilibrium  force const  unimodality\n");
             for(const BondStruct &bond : bond_set.bonds_){
                 double f_const = bond.forceConstant_;
                 if(round) f_const = scale * pow(10, floor(log10(f_const)));
@@ -111,7 +133,7 @@ void ITPWriter::printBonds(const BondSet &bond_set, const bool round){
             }
 
             newSection("angles");
-            fprintf(itp_, ";atom1 atom2 atom3  type equilibrium  force const; unimodality\n");
+            fprintf(itp_, ";atm1  atm2  atm3  type  equilibrium  force const  unimodality\n");
             for(const BondStruct &bond : bond_set.angles_){
                 double f_const = bond.forceConstant_;
                 if(round) f_const = scale * pow(10, floor(log10(f_const)));
@@ -122,7 +144,7 @@ void ITPWriter::printBonds(const BondSet &bond_set, const bool round){
             }
 
             newSection("dihedrals");
-            fprintf(itp_, ";atom1 atom2 atom3 atom4  type equilibrium  force const  mult; unimodality\n");
+            fprintf(itp_, ";atm1  atm2  atm3  atm4  type  equilibrium  force const  mult  unimodality\n");
             for(const BondStruct &bond : bond_set.dihedrals_){
                 double f_const = bond.forceConstant_;
                 if(round) f_const = scale * pow(10, floor(log10(f_const)));
@@ -134,44 +156,25 @@ void ITPWriter::printBonds(const BondSet &bond_set, const bool round){
             break;
 
         case FileFormat::LAMMPS:
-            newSection("bonds");
-            fprintf(itp_, "#\t\tbond  eqm  f_const# unimodality\n");
+            fprintf(itp_, "\n#bonds     bond    equil  f_const  unimodality\n");
             int i = 1;
             for(const BondStruct &bond : bond_set.bonds_){
-                double f_const = bond.forceConstant_;
-                if(round) f_const = scale * pow(10, floor(log10(f_const)));
-                // I don't know what the last integer is
-                fprintf(itp_, "bond_coeff %5i %8.3f %8.3f # %8.3f\n",
-                        i, bond.avg_, f_const, bond.rsqr_);
+                fprintf(itp_, "bond_coeff %4i %8.3f %8.3f  #  %8.3f\n",
+                        i, bond.avg_, bond.forceConstant_, bond.rsqr_);
                 i++;
             }
-            fprintf(itp_, "#\t\tbond  eqm  f_const# unimodality\n");
 
-            newSection("angles");
-            fprintf(itp_, "#\t\tbond  eqm  f_const# unimodality\n");
+            fprintf(itp_, "\n#angles     bond                    equil  f_const  unimodality\n");
             i = 1;
             for(const BondStruct &bond : bond_set.angles_){
-                double f_const = bond.forceConstant_;
-                if(round) f_const = scale * pow(10, floor(log10(f_const)));
-                // I don't know what the last integer is
-                fprintf(itp_, "bond_coeff %5i %8.3f %8.3f # %8.3f\n",
-                        i, bond.avg_, f_const, bond.rsqr_);
+                fprintf(itp_, "angle_coeff %4i  cosine/squared %8.3f %8.3f  #  %8.3f\n",
+                        i, bond.avg_, bond.forceConstant_, bond.rsqr_);
                 i++;
             }
-            fprintf(itp_, "#\t\tbond  eqm  f_const# unimodality\n");
 
-            newSection("dihedrals");
-            fprintf(itp_, "#\t\tbond  eqm  f_const# unimodality\n");
-            i = 1;
-            for(const BondStruct &bond : bond_set.dihedrals_){
-                double f_const = bond.forceConstant_;
-                if(round) f_const = scale * pow(10, floor(log10(f_const)));
-                // I don't know what the last integer is
-                fprintf(itp_, "bond_coeff %5i %8.3f %8.3f # %8.3f\n",
-                        i, bond.avg_, f_const, bond.rsqr_);
-                i++;
-            }
+//            printBondSection(bond_set.dihedrals_);
 
             break;
     }
 }
+
