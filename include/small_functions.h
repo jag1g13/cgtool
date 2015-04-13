@@ -12,6 +12,9 @@
 /** \brief Check if a file exists */
 bool file_exists(const std::string name);
 
+/** \brief Get size of file */
+long file_size(const std::string filename);
+
 /** \brief Check if a file exists, if so, rename it.
 *
 * Makes sure we're not overwriting any existing file.

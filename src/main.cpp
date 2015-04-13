@@ -49,11 +49,12 @@ int main(const int argc, const char *argv[]){
             "cgtool --dir <path to files>\n"
             "cgtool --cfg <cfg file> --xtc <xtc file> --itp <itp file>\n";
     const string help_options =
-            "--cfg\tCGTOOL mapping file\tcg.cfg\n"
-            "--xtc\tGROMACS XTC file\tmd.xtc\n"
-            "--itp\tGROMACS ITP file\ttopol.top\n"
-            "--gro\tGROMACS GRO file\tmd.gro\n"
-            "--dir\tDirectory containing all of the above\t.//";
+            "--cfg\tCGTOOL mapping file\tcg.cfg\t0\n"
+            "--xtc\tGROMACS XTC file\tmd.xtc\t0\n"
+            "--itp\tGROMACS ITP file\ttopol.top\t0\n"
+            "--gro\tGROMACS GRO file\tmd.gro\t0\n"
+            "--dir\tDirectory containing all of the above\t.//\t0\n"
+            "--frm\tNumber of frames to read\t-1\t2";
 
     // How many threads are we using?
     int num_threads = 0;
@@ -107,9 +108,11 @@ int main(const int argc, const char *argv[]){
     Parser parser(cfgname);
     vector<string> tokens;
     int num_frames_max = -1;
+    if(parser.getLineFromSection("frames", tokens)) num_frames_max = stoi(tokens[0]);
+    if(cmd_parser.getIntArg("frm") != 0) num_frames_max = cmd_parser.getIntArg("frm");
+
     int numResidues = 1;
     string resname = "";
-    if(parser.getLineFromSection("frames", tokens)) num_frames_max = stoi(tokens[0]);
     if(parser.getLineFromSection("residues", tokens)){
         numResidues = stoi(tokens[0]);
         resname = tokens[1];
@@ -152,7 +155,13 @@ int main(const int argc, const char *argv[]){
         // Process each frame as we read it, frames are not retained
         #ifdef UPDATE_PROGRESS
         if(i % PROGRESS_UPDATE_FREQ == 0){
-            cout << "Read " << i << " frames\r";
+            if(num_frames_max == -1){
+                cout << "Read " << i << " frames\r";
+            }else{
+                float tmp = i / num_frames_max;
+                printf("%5.2f%%", 100.f * tmp);
+                cout << " |" << string(40.f * tmp, '#') << string(40.f * (1-tmp), ' ') << "|\r";
+            }
             std::flush(cout);
         }
         #endif
@@ -174,7 +183,12 @@ int main(const int argc, const char *argv[]){
             bond_set.calcBondsInternal(cg_frame);
         }
     }
+    cout << endl;
     cout << "Read " << i-1 << " frames" << endl;
+
+    // Print bitrate of XTC file input - only meaningful if we read the whole file
+//    float bitrate = file_size(xtcname) * CLOCKS_PER_SEC * num_threads / ((std::clock() - start) * 1e6);
+//    printf("%8.3f Mbps\n", bitrate);
 
     // Post processing
     split_text_output("Post processing", start, num_threads);

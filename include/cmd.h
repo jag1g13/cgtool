@@ -5,7 +5,7 @@
 #include <map>
 #include <boost/program_options.hpp>
 
-enum class ArgType{STRING, INT, FLOAT, BOOL};
+enum class ArgType{PATH, STRING, INT, FLOAT, BOOL};
 
 /**
 * \brief Object to handle input to programs from the command line.
@@ -24,6 +24,9 @@ protected:
     /** Stores boolean arguments accessed by argument name */
     std::map<std::string, bool> boolArgs_;
 
+    /** Stores integer arguments accessed by argument name */
+    std::map<std::string, int> intArgs_;
+
     /** Program help string.  Should be parsed to generate arguments */
     std::string helpString_;
 
@@ -38,17 +41,23 @@ public:
     /** \brief Empty constructor, does nothing */
     CMD(){};
 
-    /** \brief Return the value of named argument.
+    /** \brief Return the value of named filepath argument.
     * If argument was not provided by the user the default value will be used.
-    * If there is not default value, print an error
+    * If there is no default value, print an error
     */
     const std::string getFileArg(const std::string &arg);
 
-    /** \brief Return the value of named argument.
+    /** \brief Return the value of a named boolean argument.
     * If argument was not provided by the user the default value will be used.
-    * If there is not default value, print an error
+    * If there is no default value, print an error
     */
     const bool getBoolArg(const std::string &arg);
+
+    /** \brief Return the value of a named integer argument.
+    * If argument was not provided by the user the default value will be used.
+    * If there is no default value, print an error
+    */
+    const int getIntArg(const std::string &arg);
 };
 
 #endif

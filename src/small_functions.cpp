@@ -15,12 +15,20 @@ using std::cout;
 using std::endl;
 using std::vector;
 
-bool file_exists(const std::string name){
+bool file_exists(const string name){
     struct stat buffer;
     return (stat(name.c_str(), &buffer) == 0);
 }
 
-bool backup_old_file(const std::string name){
+long file_size(const string filename)
+{
+    struct stat buffer;
+    int rc = stat(filename.c_str(), &buffer);
+    return rc == 0 ? buffer.st_size : -1;
+}
+
+
+bool backup_old_file(const string name){
     if(!file_exists(name)) return true;
 
     string newName = "#" + name + "#";
