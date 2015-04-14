@@ -27,82 +27,6 @@ TEST(ArrayTest, InitAccess2d){
     ASSERT_DOUBLE_EQ(array(1, 1), 4.);
 }
 
-TEST(ArrayTest, InitAccess1dSpeedSlow){
-    const int repeats = 1e3;
-    const int size = 4e3;
-    Array array(size, 1, 1, false);
-    double a;
-    for(int i=0; i<repeats; i++){
-        for(int j=0; j<size; j++){
-            array(j) = j;
-        }
-        for(int j=0; j<size; j++){
-            a = array(j);
-        }
-    }
-    for(int j=0; j<size; j++){
-        ASSERT_DOUBLE_EQ(array(j), j);
-    }
-}
-
-TEST(ArrayTest, InitAccess1dSpeedFast){
-    const int repeats = 1e3;
-    const int size = 4e3;
-    Array array(size, 1, 1, true);
-    double a;
-    for(int i=0; i<repeats; i++){
-        for(int j=0; j<size; j++){
-            array(j) = j;
-        }
-        for(int j=0; j<size; j++){
-            a = array(j);
-        }
-    }
-    for(int j=0; j<size; j++){
-        ASSERT_DOUBLE_EQ(array(j), j);
-    }
-}
-
-TEST(ArrayTest, InitAccess2dSpeedSlow){
-    const int repeats = 1e6;
-    Array array(2, 2, 1, false);
-    double a, b, c, d;
-    for(int i=0; i<repeats; i++){
-        array(0, 0) = 1.;
-        array(0, 1) = 2.;
-        array(1, 0) = 3.;
-        array(1, 1) = 4.;
-        a = array(0, 0);
-        b = array(0, 1);
-        c = array(1, 0);
-        d = array(1, 1);
-    }
-    ASSERT_DOUBLE_EQ(array(0, 0), 1.);
-    ASSERT_DOUBLE_EQ(array(0, 1), 2.);
-    ASSERT_DOUBLE_EQ(array(1, 0), 3.);
-    ASSERT_DOUBLE_EQ(array(1, 1), 4.);
-}
-
-TEST(ArrayTest, InitAccess2dSpeedFast){
-    const int repeats = 1e6;
-    Array array(2, 2, 1, true);
-    double a, b, c, d;
-    for(int i=0; i<repeats; i++){
-        array(0, 0) = 1.;
-        array(0, 1) = 2.;
-        array(1, 0) = 3.;
-        array(1, 1) = 4.;
-        a = array(0, 0);
-        b = array(0, 1);
-        c = array(1, 0);
-        d = array(1, 1);
-    }
-    ASSERT_DOUBLE_EQ(array(0, 0), 1.);
-    ASSERT_DOUBLE_EQ(array(0, 1), 2.);
-    ASSERT_DOUBLE_EQ(array(1, 0), 3.);
-    ASSERT_DOUBLE_EQ(array(1, 1), 4.);
-}
-
 TEST(ArrayTest, InitAccess3d){
     Array array(2, 2, 2);
     array(0, 0, 0) = 1.;
@@ -166,6 +90,167 @@ TEST(ArrayTest, NegInd3d){
     ASSERT_DOUBLE_EQ(array(-1, -1, -2), 7.);
     ASSERT_DOUBLE_EQ(array(-1, -1, -1), 8.);
 }
+
+TEST(ArrayTest, InitAccess1dSpeedSlow){
+    const int repeats = 1e1;
+    const int size = 1e6;
+    Array array(size, 1, 1, false);
+    double a;
+    for(int i=0; i<repeats; i++){
+        for(int j=0; j<size; j++){
+            array(j) = j;
+        }
+        for(int j=0; j<size; j++){
+            a = array(j);
+        }
+    }
+    for(int j=0; j<size; j++){
+        ASSERT_DOUBLE_EQ(array(j), j);
+    }
+}
+
+TEST(ArrayTest, InitAccess1dSpeedFast){
+    const int repeats = 1e1;
+    const int size = 1e6;
+    Array array(size, 1, 1, true);
+    double a;
+    for(int i=0; i<repeats; i++){
+        for(int j=0; j<size; j++){
+            array(j) = j;
+        }
+        for(int j=0; j<size; j++){
+            a = array(j);
+        }
+    }
+    for(int j=0; j<size; j++){
+        ASSERT_DOUBLE_EQ(array(j), j);
+    }
+}
+
+TEST(ArrayTest, InitAccess2dSpeedSlow){
+    const int repeats = 1e1;
+    const int size = 1e3;
+    Array array(size, size, 1, false);
+    double a;
+    for(int i=0; i<repeats; i++){
+        // Array write
+        for(int j=0; j<size; j++){
+            for(int k=0; k<size; k++){
+                array(j, k) = float(j + k);
+            }
+        }
+        // Array read
+        for(int j=0; j<size; j++){
+            for(int k=0; k<size; k++){
+                a = array(j, k);
+            }
+        }
+    }
+
+    // Check values
+    for(int j=0; j<size; j++){
+        for(int k=0; k<size; k++){
+            ASSERT_DOUBLE_EQ(array(j, k), float(j + k));
+        }
+    }
+}
+
+TEST(ArrayTest, InitAccess2dSpeedFast){
+    const int repeats = 1e1;
+    const int size = 1e3;
+    Array array(size, size, 1, true);
+    double a;
+    for(int i=0; i<repeats; i++){
+        // Array write
+        for(int j=0; j<size; j++){
+            for(int k=0; k<size; k++){
+                array(j, k) = float(j + k);
+            }
+        }
+        // Array read
+        for(int j=0; j<size; j++){
+            for(int k=0; k<size; k++){
+                a = array(j, k);
+            }
+        }
+    }
+
+    // Check values
+    for(int j=0; j<size; j++){
+        for(int k=0; k<size; k++){
+            ASSERT_DOUBLE_EQ(array(j, k), float(j + k));
+        }
+    }
+}
+
+TEST(ArrayTest, InitAccess3dSpeedSlow){
+    const int repeats = 1e1;
+    const int size = 1e2;
+    Array array(size, size, size, false);
+    double a;
+    for(int i=0; i<repeats; i++){
+        // Array write
+        for(int j=0; j<size; j++){
+            for(int k=0; k<size; k++){
+                for(int l=0; l<size; l++){
+                    array(j, k, l) = float(j + k + l);
+                }
+            }
+        }
+        // Array read
+        for(int j=0; j<size; j++){
+            for(int k=0; k<size; k++){
+                for(int l=0; l<size; l++){
+                    a = array(j, k, l);
+                }
+            }
+        }
+    }
+
+    // Check values
+    for(int j=0; j<size; j++){
+        for(int k=0; k<size; k++){
+            for(int l=0; l<size; l++) {
+                ASSERT_DOUBLE_EQ(array(j, k, l), float(j + k + l));
+            }
+        }
+    }
+}
+
+TEST(ArrayTest, InitAccess3dSpeedFast){
+    const int repeats = 1e1;
+    const int size = 1e2;
+    Array array(size, size, size, true);
+    double a;
+    for(int i=0; i<repeats; i++){
+        // Array write
+        for(int j=0; j<size; j++){
+            for(int k=0; k<size; k++){
+                for(int l=0; l<size; l++){
+                    array(j, k, l) = float(j + k + l);
+                }
+            }
+        }
+        // Array read
+        for(int j=0; j<size; j++){
+            for(int k=0; k<size; k++){
+                for(int l=0; l<size; l++){
+                    a = array(j, k, l);
+                }
+            }
+        }
+    }
+
+    // Check values
+    for(int j=0; j<size; j++){
+        for(int k=0; k<size; k++){
+            for(int l=0; l<size; l++) {
+                ASSERT_DOUBLE_EQ(array(j, k, l), float(j + k + l));
+            }
+        }
+    }
+}
+
 
 int main(int argc, char **argv){
     ::testing::InitGoogleTest(&argc, argv);

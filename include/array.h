@@ -17,7 +17,7 @@ protected:
     /** Dimension of array: allows 1,2,3 */
     int dimensions_;
     /** Size of array in each dimension */
-    std::vector<int> size_;
+    int size_[3];
     /** Total number of elements in array */
     int elems_;
     /** Pointer to the actual array */
@@ -26,12 +26,6 @@ protected:
     bool fast_;
     /** Has array_ been allocated yet? */
     bool allocated_ = false;
-    /** Size of the array in the x dimension */
-    int sizex_;
-    /** Size of the array in the y dimension */
-    int sizey_;
-    /** Size of the array in the z dimension */
-    int sizez_;
     /** How many rows have been appended to the array? */
     int appendedRows_ = 0;
 

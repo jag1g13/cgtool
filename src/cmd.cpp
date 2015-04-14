@@ -99,8 +99,6 @@ const bool CMD::getBoolArg(const string &arg){
 
 const int CMD::getIntArg(const string &arg){
     // If it was set by the user return it, otherwise return default value
-    cout << options_.count(arg) << endl;
-    cout << options_[arg].as<int>() << endl;
     if(options_.count(arg)) return options_[arg].as<int>();
     cout << "Returning from getIntArg" << cout;
     return 0;

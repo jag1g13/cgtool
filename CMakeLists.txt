@@ -27,8 +27,12 @@ ENDIF(WIN32 AND NOT UNIX)
 SET(CPACK_PACKAGE_EXECUTABLES "cgtool")
 INCLUDE(CPack)
 
-MESSAGE("CXX ${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
-MESSAGE("C   ${CMAKE_SYSTEM_NAME} ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
+MESSAGE("CMAKE ${CMAKE_VERSION}")
+MESSAGE("CXX   ${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+MESSAGE("C     ${CMAKE_SYSTEM_NAME} ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
+MESSAGE("${CMAKE_MODULE_PATH}")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -msse2 -ffast-math")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
@@ -38,6 +42,11 @@ option(INGORE_SOME_WARNINGS "Don't ignore any warnings" ON)
 set(IGNORED_WARNINGS " -Wno-sign-compare -Wno-unused-variable -Wno-comment -Wno-unused-but-set-variable")
 set(IGNORED_WARNINGS_ALWAYS " -Wno-sign-compare -Wno-comment")
 
+# Handle conditional compilation of testing features
+option(UPDATE_PROGRESS "Print progress update every few frames" ON)
+option(NO_CMD_PARSER "Disable the default command line parser if not using Boost program_options" OFF)
+option(ELECTRIC_FIELD "Calculate dipoles and the electric field" OFF)
+option(OUTPUT_CSV "Print all bond measures to CSV - slow" OFF)
 
 # Platform specifics
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
@@ -63,13 +72,11 @@ endif()
 
 message("Using " ${CMAKE_CXX_FLAGS})
 
-link_directories("/usr/local/lib")
-
 # Find libxdrfile - compile it if not present - replaces GROMACS library
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 find_library(XDRFILE_LIBRARY NAMES xdrfile
-             PATHS /usr/lib /usr/local/lib ${CMAKE_CURRENT_SOURCE_DIR}/lib ${PROJECT_BINARY_DIR})
-if(XDRFILE_LIBRARY)
+             PATHS /usr/lib /usr/local/lib ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+if(XDRFILE_LIBRARY_FOUND)
     MESSAGE("Found libxdrfile: ${XDRFILE_LIBRARY}")
     set (EXTRA_LIBS ${EXTRA_LIBS} ${XDRFILE_LIBRARY})
 else()
@@ -81,11 +88,31 @@ else()
     #set(SOURCE_FILES ${SOURCE_FILES} ${XDR_FILES})
 endif()
 
-include_directories(/usr/local/include/FLENS)
+#include_directories(/usr/local/include/FLENS)
+# Find FLENS - required
+#find_package(flens REQUIRED)
+#include_directories($flens_INCLUDE_DIR)
+INCLUDE(ExternalProject)
+ExternalProject_Add(flens
+                    GIT_REPOSITORY https://github.com/michael-lehn/FLENS.git
+                    GIT_TAG v1.1.0
+                    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/flens
+                    UPDATE_COMMAND ""
+                    CONFIGURE_COMMAND ""
+                    BUILD_COMMAND ""
+                    INSTALL_COMMAND "")
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/flens/src/flens)
 
 # Find Boost library - required
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost COMPONENTS program_options REQUIRED)
+find_package(Boost REQUIRED)
+find_package(Boost COMPONENTS program_options)
+if(Boost_PROGRAM_OPTIONS_FOUND)
+    MESSAGE("Found Boost Program_Options")
+else(Boost_PROGRAM_OPTIONS_FOUND)
+    MESSAGE("Boost Program_Options not found - using simple command line")
+    set(NO_CMD_PARSER ON)
+endif(Boost_PROGRAM_OPTIONS_FOUND)
 include_directories(${Boost_INCLUDE_DIRS})
 set (EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES})
 
@@ -101,14 +128,6 @@ if(DOXYGEN_FOUND)
     )
 endif(DOXYGEN_FOUND)
 
-
-# Handle conditional compilation of testing features
-option(UPDATE_PROGRESS "Print progress update every few frames" ON)
-option(NO_CMD_PARSER "Disable the default command line parser if not using Boost program_options" OFF)
-option(ELECTRIC_FIELD "Calculate dipoles and the electric field" OFF)
-option(OUTPUT_CSV "Print all bond measures to CSV - slow" OFF)
-
-
 if(UPDATE_PROGRESS)
     add_definitions(-DUPDATE_PROGRESS)
 endif()
@@ -116,7 +135,7 @@ if(ELECTRIC_FIELD)
     add_definitions(-DELECTRIC_FIELD)
 endif()
 if(NO_CMD_PARSER)
-    add_definitions(-DNO_CMD_PARSER)
+    add_definitions(-DNO_CMD_PARSER OR NOT Boost_PROGRAM_OPTIONS_FOUND)
 endif()
 if(OUTPUT_CSV)
     add_definitions(-DOUTPUT_CSV)
@@ -126,6 +145,7 @@ endif()
 # Add the main target
 FILE(GLOB SOURCE_FILES src/*.cpp)
 add_executable(cgtool ${SOURCE_FILES})
+add_dependencies(cgtool flens)
 target_link_libraries (cgtool ${EXTRA_LIBS})
 
 # Testing - do we have GTEST

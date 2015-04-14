@@ -28,15 +28,13 @@ void Array::init(const int a, const int b, const int c, const bool fast){
     if(b > 1) dimensions_++;
     if(c > 1) dimensions_++;
 
-    size_.reserve(3);
     size_[0] = a; size_[1] = b; size_[2] = c;
-    sizex_ = a; sizey_ = b; sizez_ = c;
     elems_ = a*b*c;
     array_ = new double[elems_];
 
     if(array_ == NULL) throw std::runtime_error("Array alloc failed");
     allocated_ = true;
-    zero();
+    if(!fast) zero();
 }
 
 void Array::append(const vector<double> &vec){
@@ -47,7 +45,7 @@ void Array::append(const vector<double> &vec){
         assert(appendedRows_ < size_[0]);
     }
     for(int i=0; i<vec.size(); i++){
-        array_[appendedRows_*sizey_ + i] = vec[i];
+        array_[appendedRows_*size_[1] + i] = vec[i];
     }
     appendedRows_++;
 }
@@ -61,7 +59,7 @@ void Array::append(const double *vec, int len){
         assert(appendedRows_ < size_[0]);
     }
     for(int i=0; i<len; i++){
-        array_[appendedRows_*sizey_ + i] = vec[i];
+        array_[appendedRows_*size_[1] + i] = vec[i];
     }
     appendedRows_++;
 }
@@ -79,7 +77,7 @@ double& Array::operator()(int x){
 }
 
 double& Array::operator()(int x, int y) {
-    if(fast_) return array_[x * sizey_ + y];
+    if(fast_) return array_[x * size_[1] + y];
 
     assert(allocated_);
     assert(dimensions_ == 2 || dimensions_ == 3);
@@ -89,11 +87,11 @@ double& Array::operator()(int x, int y) {
     assert(y < size_[1] && y >= 0);
     /* if 3d array return ref to a row */
     if(dimensions_ == 3) return array_[x * size_[1] * size_[2] + y * size_[2]];
-    return array_[x * sizey_ + y];
+    return array_[x * size_[1] + y];
 }
 
 double& Array::operator()(int x, int y, int z){
-    if(fast_) return array_[x * sizey_ * sizez_ + y * sizez_ + z];
+    if(fast_) return array_[x * size_[1] * size_[2] + y * size_[2] + z];
 
     assert(allocated_);
     assert(dimensions_ == 3);
@@ -103,7 +101,7 @@ double& Array::operator()(int x, int y, int z){
     assert(x < size_[0] && x >= 0);
     assert(y < size_[1] && y >= 0);
     assert(z < size_[2] && z >= 0);
-    return array_[x * sizey_ * sizez_ + y * sizez_ + z];
+    return array_[x * size_[1] * size_[2] + y * size_[2] + z];
 }
 
 void Array::linspace(const int n, const double min, const double max){
@@ -148,16 +146,16 @@ void Array::print(const int width, const int prec, const double scale){
     // Print if 1d or 2d, otherwise ignore
 
     if(dimensions_ == 1){
-        for(int i=0; i<sizex_; i++){
+        for(int i=0; i<size_[0]; i++){
             printf("%*.*f", width, prec, scale * array_[i]);
         }
         cout << endl;
     }
 
     else if(dimensions_ == 2){
-        for(int i=0; i<sizex_; i++){
-            for(int j=0; j<sizey_; j++){
-                printf("%*.*f", width, prec, scale*array_[i*sizey_ + j]);
+        for(int i=0; i<size_[0]; i++){
+            for(int j=0; j<size_[1]; j++){
+                printf("%*.*f", width, prec, scale*array_[i*size_[1] + j]);
             }
             cout << endl;
         }
