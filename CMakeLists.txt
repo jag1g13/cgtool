@@ -96,12 +96,12 @@ INCLUDE(ExternalProject)
 ExternalProject_Add(flens
                     GIT_REPOSITORY https://github.com/michael-lehn/FLENS.git
                     GIT_TAG v1.1.0
-                    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/flens
+                    PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/lib/flens
                     UPDATE_COMMAND ""
                     CONFIGURE_COMMAND ""
                     BUILD_COMMAND ""
                     INSTALL_COMMAND "")
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/flens/src/flens)
+                include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/flens/src/flens)
 
 # Find Boost library - required
 set(Boost_USE_STATIC_LIBS ON)
