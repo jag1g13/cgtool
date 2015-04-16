@@ -156,13 +156,15 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
     atoms_.resize(numAtomsTrack_);
 
     // If we have a GRO then find the resname we're looking for
-    FILE *gro = fopen(groname.c_str(), "r");
     int start = 0;
-    if(gro != NULL){
-        char name[6];
-        while(fscanf(gro, "%*5d%5s%*5s%*5d%*8f%*8f%*8f%*8f%*8f%*8f", name)){
-            if(strcmp(name, resname_.c_str()) == 0) break;
-            start++;
+    if(groname != "NO DEFAULT") {
+        FILE *gro = fopen(groname.c_str(), "r");
+        if (gro != NULL) {
+            char name[6];
+            while (fscanf(gro, "%*5d%5s%*5s%*5d%*8f%*8f%*8f%*8f%*8f%*8f", name)) {
+                if (strcmp(name, resname_.c_str()) == 0) break;
+                start++;
+            }
         }
     }
 
@@ -171,7 +173,7 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
         // read data from topology file for each atom
         // internal atom name is the res # and atom name from top/gro
         top_parser.getLineFromSection("atoms", substrs);
-        string name = substrs[2] + substrs[4];
+        const string name = substrs[4];
         const double charge = atof(substrs[6].c_str());
         const double mass = atof(substrs[7].c_str());
         nameToNum_.emplace(atoms_[i].atom_type, i);

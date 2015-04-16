@@ -73,6 +73,8 @@ double& Array::operator()(int x){
     assert(x < size_[0] && x >= 0);
     /* if 2d array return ref to a row */
     if(dimensions_ == 2) return array_[x * size_[1]];
+    /* if 3d array return ref to a plane */
+    if(dimensions_ == 3) return array_[x * size_[1] * size_[2]];
     return array_[x];
 }
 
@@ -80,7 +82,7 @@ double& Array::operator()(int x, int y) {
     if(fast_) return array_[x * size_[1] + y];
 
     assert(allocated_);
-    assert(dimensions_ == 2 || dimensions_ == 3);
+    assert(dimensions_ >= 2);
     if(x < 0) x = size_[0] + x;
     if(y < 0) y = size_[1] + y;
     assert(x < size_[0] && x >= 0);

@@ -52,8 +52,8 @@ int main(const int argc, const char *argv[]){
             "--cfg\tCGTOOL mapping file\tcg.cfg\t0\n"
             "--xtc\tGROMACS XTC file\tmd.xtc\t0\n"
             "--itp\tGROMACS ITP file\ttopol.top\t0\n"
-            "--gro\tGROMACS GRO file\tmd.gro\t0\n"
-            "--dir\tDirectory containing all of the above\t.//\t0\n"
+            "--gro\tGROMACS GRO file\tNO DEFAULT\t0\n"
+            "--dir\tDirectory containing all of the above\t./\t0\n"
             "--frm\tNumber of frames to read\t-1\t2";
 
     // How many threads are we using?
@@ -68,7 +68,7 @@ int main(const int argc, const char *argv[]){
     // If not using command line parser, replace with a simple one
     // Do this so we can compile without Boost program_options
     #ifdef NO_CMD_PARSER
-    string cfgname, xtcname, topname, groname;
+    const string cfgname, xtcname, topname, groname;
     if(argc > 1 && (string(argv[1]) == "-h" || string(argv[1]) == "--help")){
         cout << help_header << endl;
         exit(EX_OK);
@@ -90,15 +90,16 @@ int main(const int argc, const char *argv[]){
     }
     #else
     CMD cmd_parser(help_header, help_options, argc, argv);
-    string cfgname = cmd_parser.getFileArg("cfg");
-    string xtcname = cmd_parser.getFileArg("xtc");
-    string topname = cmd_parser.getFileArg("itp");
-    string groname = cmd_parser.getFileArg("gro");
+    const string cfgname = cmd_parser.getFileArg("cfg");
+    const string xtcname = cmd_parser.getFileArg("xtc");
+    const string topname = cmd_parser.getFileArg("itp");
+    const string groname = cmd_parser.getFileArg("gro");
     #endif
 
     cout << "CFG file: " << cfgname << endl;
     cout << "XTC file: " << xtcname << endl;
     cout << "ITP file: " << topname << endl;
+    // GRO file is not required but helps find residues
     if(!file_exists(xtcname) || !file_exists(cfgname) || !file_exists(topname)){
         cout << "Input file does not exist" << endl;
         exit(EX_NOINPUT);
