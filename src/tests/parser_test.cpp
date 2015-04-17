@@ -21,9 +21,9 @@ TEST(ParserTest, GetLineFromSectionTrue){
     ASSERT_EQ(tokens.size(), 5);
     ASSERT_EQ(tokens[0], "C1");
     ASSERT_EQ(tokens[1], "P4");
-    ASSERT_EQ(tokens[2], "1C1");
-    ASSERT_EQ(tokens[3], "1O1");
-    ASSERT_EQ(tokens[4], "1HO1");
+    ASSERT_EQ(tokens[2], "C1");
+    ASSERT_EQ(tokens[3], "O1");
+    ASSERT_EQ(tokens[4], "HO1");
 }
 
 TEST(ParserTest, GetLineFromSectionFalse){
