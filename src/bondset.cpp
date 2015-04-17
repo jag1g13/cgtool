@@ -3,11 +3,13 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <ctime>
 
 #include <boost/algorithm/string.hpp>
 
 #include "parser.h"
 #include "boltzmann_inverter.h"
+#include "small_functions.h"
 
 using std::vector;
 using std::string;
@@ -15,6 +17,10 @@ using std::cout;
 using std::endl;
 using std::fprintf;
 
+BondSet::BondSet(const std::string &cfgname, const int num_threads){
+    fromFile(cfgname);
+    numThreads_ = num_threads;
+}
 
 void BondSet::fromFile(const string &filename){
     vector<string> tokens;
@@ -59,7 +65,7 @@ void BondSet::calcBondsInternal(Frame &frame){
         for(BondStruct &bond : bonds_){
             double dist = frame.bondLength(bond, offset);
             // If any distances > 1nm, molecule is on PBC
-            if(dist > 1.f || dist < 0.01f){
+            if(dist > 2.f || dist < 0.01f){
                 res_okay = false;
                 break;
             }
@@ -81,8 +87,8 @@ void BondSet::calcBondsInternal(Frame &frame){
 }
 
 void BondSet::BoltzmannInversion(){
-    if(bonds_.size() > 0){
-        cout << "Bond parameters N=" << bonds_[0].values_.size() << endl;
+    if(numMeasures_ > 0){
+        cout << "Measured " << numMeasures_ << " molecules" << endl;
     }else{
         cout << "No bonds measured" << endl;
         return;
@@ -97,11 +103,15 @@ void BondSet::writeCSV(){
     FILE *f_bond = fopen("bonds.csv", "w");
     FILE *f_angle = fopen("angles.csv", "w");
     FILE *f_dihedral = fopen("dihedrals.csv", "w");
+    clock_t start = std::clock();
 
     for(int i=0; i < numMeasures_; i++){
         #ifdef UPDATE_PROGRESS
         if(i % 1000 == 0){
-            cout << "Written " << i << " molecules to CSV\r";
+            float time = time_since(start, numThreads_);
+            float fps = i / time;
+            float t_remain = (numMeasures_ - i) / fps;
+            printf("Written %d molecules to CSV %6.1fs remaining\r", i, t_remain);
             std::flush(cout);
         }
         #endif
@@ -115,7 +125,8 @@ void BondSet::writeCSV(){
         for(BondStruct &bond : dihedrals_) fprintf(f_dihedral, "%8.3f", bond.values_[i]);
         fprintf(f_dihedral, "\n");
     }
-    cout << "Written " << numMeasures_ << " molecules to CSV" << endl;
+    cout << string(80, ' ') << "\r";
+    cout << "Written  " << numMeasures_ << " molecules to CSV" << endl;
 
     fclose(f_bond);
     fclose(f_angle);

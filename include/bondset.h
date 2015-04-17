@@ -28,6 +28,8 @@ protected:
     double temp_ = 310.;
     /** Map of bead names to number - to put numbers into BondStructs */
     std::map<std::string, int> beadNums_;
+    /** Number of threads - used for timing */
+    int numThreads_ = 1;
 
 public:
     /** Vector of bond length pairs; Contains all bond lengths that must be calculated */
@@ -41,7 +43,7 @@ public:
     BondSet(){};
 
     /** \brief Constructor to read from file */
-    BondSet(const std::string &cfgname){fromFile(cfgname);};
+    BondSet(const std::string &cfgname, const int num_threads=1);
 
     /**
     * \brief Reads in from file all bond properties to be calculated

@@ -93,7 +93,6 @@ public:
     int numAtomsPerResidue_ = 0;
 
 
-
     /** \brief Create Frame passing frame number, number of atoms to store and the frame name
     * If we don't know the number of atoms at creation
     * this can be set later using Frame::allocateAtoms() */

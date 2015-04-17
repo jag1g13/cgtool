@@ -1,5 +1,8 @@
 #include "boltzmann_inverter.h"
 
+#include <iostream>
+#include <cmath>
+
 #include <flens/flens.cxx>
 
 using std::cout;
@@ -39,7 +42,6 @@ double BoltzmannInverter::invertGaussian(){
 
     // Setup matrices
     double x = min_ + 0.5*step_;
-    double cosx;
     for(int i=1; i<=bins_; i++){
         switch(type_){
             case BondType::LENGTH:
@@ -51,7 +53,7 @@ double BoltzmannInverter::invertGaussian(){
             case BondType::DIHEDRAL:
             case BondType::ANGLE:
                 // Angles in GROMACS are a cos^2 term
-                cosx = cos(x);
+                const double cosx = cos(x);
                 A(i, 1) = 1.;
                 A(i, 2) = cosx;
                 A(i, 3) = cosx*cosx;
@@ -72,7 +74,7 @@ double BoltzmannInverter::invertGaussian(){
 
     // Solve least squares using LAPACK
     flens::lapack::ls(flens::NoTrans, A, b);
-    // Sometimes gives negative force constants - fix this
+    //TODO investigate where negative force constants come from - is it ok to just abs() them
     return fabs(b(3));
 
 //    switch(type_){
@@ -125,8 +127,6 @@ double BoltzmannInverter::gaussianRSquared(){
         sse += (actual - gau) * (actual - gau);
     }
     const double r_sqr = 1 - ss_res / ss_tot;
-    const double r_sqr2 = ss_reg / ss_tot;
-    sse = log(sse / n_);
     return r_sqr;
 }
 

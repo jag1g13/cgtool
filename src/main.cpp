@@ -33,6 +33,7 @@ using std::clock_t;
 
 int main(const int argc, const char *argv[]){
     clock_t start = std::clock();
+    clock_t very_start = std::clock();
 
     const string version_string =
             "CGTOOL v0.3.196:f2fb511fbbaa";
@@ -145,51 +146,58 @@ int main(const int argc, const char *argv[]){
     split_text_output("Reading frames", start, num_threads);
     start = std::clock();
     if(num_frames_max == -1){
-        cout << "Reading all frames from XTC" << endl;
+        printf("Reading all frames from XTC\n");
     }else{
-        cout << num_frames_max << " frames from XTC" << endl;
+        printf("Reading %6i frames from XTC\n", num_frames_max);
     }
 
-    int i = 1;
+    int i = 0;
     // Keep reading frames until something goes wrong (run out of frames) or hit limit
-    while(frame.readNext() && (i++ < num_frames_max || num_frames_max==-1)){
+    while(frame.readNext() && (num_frames_max == -1 || i++ < num_frames_max)){
         // Process each frame as we read it, frames are not retained
         #ifdef UPDATE_PROGRESS
         if(i % PROGRESS_UPDATE_FREQ == 0){
+            float time = time_since(start, num_threads);
+            float fps = i / time;
+
             if(num_frames_max == -1){
-                cout << "Read " << i << " frames\r";
+                printf("Read %6d frames @ %d FPS\r", i, int(fps));
             }else{
-                float tmp = i / num_frames_max;
-                printf("%5.2f%%", 100.f * tmp);
-                cout << " |" << string(40.f * tmp, '#') << string(40.f * (1-tmp), ' ') << "|\r";
+                float t_remain = (num_frames_max - i) / fps;
+//                float perc = i * 100.f / num_frames_max;
+                printf("Read %9d frames @ %d FPS %6.1fs remaining\r", i, int(fps), t_remain);
             }
             std::flush(cout);
         }
-        #endif
-
-        if(nomap == false){
-            mapping.apply(frame, cg_frame);
-            cg_frame.writeToXtc();
-        }
-
-        // Calculate electric field/dipoles
-        #ifdef ELECTRIC_FIELD
-        if(i % ELECTRIC_FIELD_FREQ == 0) field.calculate(frame, cg_frame, mapping);
         #endif
 
         // Calculate bonds and store in BondStructs
         if(nomap){
             bond_set.calcBondsInternal(frame);
         }else{
+            mapping.apply(frame, cg_frame);
+            cg_frame.writeToXtc();
             bond_set.calcBondsInternal(cg_frame);
         }
-    }
-    cout << endl;
-    cout << "Read " << i-1 << " frames" << endl;
 
-    // Print bitrate of XTC file input - only meaningful if we read the whole file
-//    float bitrate = file_size(xtcname) * CLOCKS_PER_SEC * num_threads / ((std::clock() - start) * 1e6);
-//    printf("%8.3f Mbps\n", bitrate);
+        // Calculate electric field/dipoles
+        #ifdef ELECTRIC_FIELD
+        if(i % ELECTRIC_FIELD_FREQ == 0) field.calculate(frame, cg_frame, mapping);
+        #endif
+    }
+
+    // Print some data at the end
+    cout << string(80, ' ') << "\r";
+    printf("Read %9d frames", i);
+    float time = time_since(start, num_threads);
+    float fps = i / time;
+    printf(" @ %d FPS", int(fps));
+    if(num_frames_max == -1){
+        // Bitrate (in MiBps) of XTC input - only meaningful if we read whole file
+        float bitrate = file_size(xtcname) / (time * 1024 * 1024);
+        printf("%6.1f MBps", bitrate);
+    }
+    printf("\n");
 
     // Post processing
     split_text_output("Post processing", start, num_threads);
@@ -215,8 +223,8 @@ int main(const int argc, const char *argv[]){
     cout << endl;
 
     // Final timer
-    split_text_output("Finished", start, num_threads);
-    return 0;
+    split_text_output("Finished", very_start, num_threads);
+    return EX_OK;
 }
 
 

@@ -15,6 +15,9 @@ bool file_exists(const std::string name);
 /** \brief Get size of file */
 long file_size(const std::string filename);
 
+/** \brief How many seconds have passed since the given time? */
+float time_since(const clock_t &since, const int num_threads=1);
+
 /** \brief Check if a file exists, if so, rename it.
 *
 * Makes sure we're not overwriting any existing file.

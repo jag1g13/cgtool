@@ -27,6 +27,9 @@ long file_size(const string filename)
     return rc == 0 ? buffer.st_size : -1;
 }
 
+float time_since(const clock_t &since, const int num_threads){
+    return float(std::clock() - since) / (CLOCKS_PER_SEC * num_threads);
+}
 
 bool backup_old_file(const string name){
     if(!file_exists(name)) return true;
@@ -40,11 +43,12 @@ bool backup_old_file(const string name){
 }
 
 void split_text_output(const string name, const clock_t start, const int num_threads){
-    clock_t now = std::clock();
     // If time has passed, how much?  Ignore small times
-    if(double(now - start) / CLOCKS_PER_SEC > 0.1){
+    float time = time_since(start, num_threads);
+    cout << endl;
+    if(time > 0.1f){
         cout << "--------------------" << endl;
-        cout << double(now - start) / (CLOCKS_PER_SEC * num_threads) << " seconds" << endl;
+        cout << time << " seconds" << endl;
     }
     cout << "====================" << endl;
     cout << name << endl;
