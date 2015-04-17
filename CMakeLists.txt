@@ -37,12 +37,12 @@ MESSAGE("${CMAKE_MODULE_PATH}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -msse2 -ffast-math")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 
-# Should we ignore warnings - default ignore a few
+# Should we ignore warnings - default ignore a few - only on gcc
 option(INGORE_SOME_WARNINGS "Don't ignore any warnings" ON)
 set(IGNORED_WARNINGS " -Wno-sign-compare -Wno-unused-variable -Wno-comment -Wno-unused-but-set-variable")
 set(IGNORED_WARNINGS_ALWAYS " -Wno-sign-compare -Wno-comment")
 
-# Handle conditional compilation of testing features
+# Handle conditional compilation of features
 option(UPDATE_PROGRESS "Print progress update every few frames" ON)
 option(NO_CMD_PARSER "Disable the default command line parser if not using Boost program_options" OFF)
 option(ELECTRIC_FIELD "Calculate dipoles and the electric field" OFF)
@@ -148,39 +148,36 @@ add_executable(cgtool ${SOURCE_FILES})
 add_dependencies(cgtool flens)
 target_link_libraries (cgtool ${EXTRA_LIBS})
 
-# Testing - do we have GTEST
-find_package(GTest)
-if(GTEST_FOUND)
-    set(GTEST_SOURCE_FILES ${SOURCE_FILES})
-    include_directories(${GTEST_INCLUDE_DIRS})
+# Testing
+add_subdirectory(lib/gtest-1.7.0)
+include_directories(lib/gtest-1.7.0/include lib/gtest-1.7.0/include)
 
-    # test parser
-    add_executable(gtest_parser src/parser.cpp src/tests/parser_test.cpp ${XDR_FILES})
-    target_link_libraries (gtest_parser ${GTEST_BOTH_LIBRARIES} ${EXTRA_LIBS})
-    add_test(GTestParserAll gtest_parser)
-    # test bondset
-    add_executable(gtest_bondset src/bondset.cpp src/boltzmann_inverter.cpp
-                   src/bond_struct.cpp src/array.cpp  src/frame.cpp src/parser.cpp
-                   src/tests/bondset_test.cpp src/small_functions.cpp ${XDR_FILES})
-    target_link_libraries (gtest_bondset ${GTEST_BOTH_LIBRARIES} ${EXTRA_LIBS})
-    add_test(GTestBondSetAll gtest_bondset)
-    # test array
-    add_executable(gtest_array src/array.cpp src/tests/array_test.cpp ${XDR_FILES})
-    target_link_libraries (gtest_array ${GTEST_BOTH_LIBRARIES} ${EXTRA_LIBS})
-    add_test(GTestArrayAll gtest_array)
+# test parser
+add_executable(gtest_parser src/parser.cpp src/tests/parser_test.cpp ${XDR_FILES})
+target_link_libraries (gtest_parser gtest gtest_main ${EXTRA_LIBS})
+add_test(GTestParserAll gtest_parser)
+# test bondset
+add_executable(gtest_bondset src/bondset.cpp src/boltzmann_inverter.cpp
+               src/bond_struct.cpp src/array.cpp  src/frame.cpp src/parser.cpp
+               src/tests/bondset_test.cpp src/small_functions.cpp ${XDR_FILES})
+target_link_libraries (gtest_bondset gtest gtest_main ${EXTRA_LIBS})
+add_test(GTestBondSetAll gtest_bondset)
+# test array
+add_executable(gtest_array src/array.cpp src/tests/array_test.cpp ${XDR_FILES})
+target_link_libraries (gtest_array gtest gtest_main ${EXTRA_LIBS})
+add_test(GTestArrayAll gtest_array)
 
-    # integration test - does it run
-    add_test(IntegrationRUN cgtool --dir ../test_data/ALLA)
+# integration test - does it run
+add_test(IntegrationRUN cgtool --dir ../test_data/ALLA)
 
-    # Integration test - check output files
-    add_test(IntegrationITP ${CMAKE_COMMAND} -E compare_files
-       ${CMAKE_SOURCE_DIR}/build/ALLA.itp ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.itp)
-    add_test(IntegrationGRO ${CMAKE_COMMAND} -E compare_files
-        ${CMAKE_SOURCE_DIR}/build/ALLA.gro ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.gro)
-    add_test(IntegrationTOP ${CMAKE_COMMAND} -E compare_files
-        ${CMAKE_SOURCE_DIR}/build/ALLA.top ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.top)
+# Integration test - check output files
+add_test(IntegrationITP ${CMAKE_COMMAND} -E compare_files
+   ${CMAKE_SOURCE_DIR}/build/ALLA.itp ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.itp)
+add_test(IntegrationGRO ${CMAKE_COMMAND} -E compare_files
+    ${CMAKE_SOURCE_DIR}/build/ALLA.gro ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.gro)
+add_test(IntegrationTOP ${CMAKE_COMMAND} -E compare_files
+    ${CMAKE_SOURCE_DIR}/build/ALLA.top ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.top)
 
-    enable_testing()
-    add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-                      DEPENDS gtest_parser gtest_bondset gtest_array cgtool)
-endif()
+enable_testing()
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
+                  DEPENDS gtest_parser gtest_bondset gtest_array cgtool)
