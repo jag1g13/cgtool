@@ -9,6 +9,6 @@ for(i in 1:ncol(tab)){
     print("Too much data for Shapiro")
   })
   hist(tab[,i], main=i, n=15)
-  qqnorm(tab[,i], main=i)
+  #qqnorm(tab[,i], main=i)
 }
 

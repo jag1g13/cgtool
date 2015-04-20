@@ -151,9 +151,9 @@ int main(const int argc, const char *argv[]){
         printf("Reading %6i frames from XTC\n", num_frames_max);
     }
 
-    int i = 0;
+    int i = 1;
     // Keep reading frames until something goes wrong (run out of frames) or hit limit
-    while(frame.readNext() && (num_frames_max == -1 || i++ < num_frames_max)){
+    while(frame.readNext() && (num_frames_max == -1 || i < num_frames_max)){
         // Process each frame as we read it, frames are not retained
         #ifdef UPDATE_PROGRESS
         if(i % PROGRESS_UPDATE_FREQ == 0){
@@ -184,6 +184,7 @@ int main(const int argc, const char *argv[]){
         #ifdef ELECTRIC_FIELD
         if(i % ELECTRIC_FIELD_FREQ == 0) field.calculate(frame, cg_frame, mapping);
         #endif
+        i++;
     }
 
     // Print some data at the end

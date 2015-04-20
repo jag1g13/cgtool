@@ -107,7 +107,7 @@ void BondSet::writeCSV(){
 
     for(int i=0; i < numMeasures_; i++){
         #ifdef UPDATE_PROGRESS
-        if(i % 1000 == 0){
+        if(i % 5000 == 0){
             float time = time_since(start, numThreads_);
             float fps = i / time;
             float t_remain = (numMeasures_ - i) / fps;
