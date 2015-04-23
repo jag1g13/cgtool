@@ -34,6 +34,7 @@ MESSAGE("CXX   ${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILE
 MESSAGE("C     ${CMAKE_SYSTEM_NAME} ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
 MESSAGE("${CMAKE_MODULE_PATH}")
 
+# TODO add C++11 checks
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -msse2 -ffast-math")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 
@@ -45,8 +46,6 @@ set(IGNORED_WARNINGS_ALWAYS " -Wno-sign-compare -Wno-comment")
 # Handle conditional compilation of features
 option(UPDATE_PROGRESS "Print progress update every few frames" ON)
 option(NO_CMD_PARSER "Disable the default command line parser if not using Boost program_options" OFF)
-option(ELECTRIC_FIELD "Calculate dipoles and the electric field" OFF)
-option(OUTPUT_CSV "Print all bond measures to CSV - slow" OFF)
 
 # Platform specifics
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
@@ -128,17 +127,12 @@ if(DOXYGEN_FOUND)
     )
 endif(DOXYGEN_FOUND)
 
+
 if(UPDATE_PROGRESS)
     add_definitions(-DUPDATE_PROGRESS)
 endif()
-if(ELECTRIC_FIELD)
-    add_definitions(-DELECTRIC_FIELD)
-endif()
 if(NO_CMD_PARSER)
     add_definitions(-DNO_CMD_PARSER OR NOT Boost_PROGRAM_OPTIONS_FOUND)
-endif()
-if(OUTPUT_CSV)
-    add_definitions(-DOUTPUT_CSV)
 endif()
 
 

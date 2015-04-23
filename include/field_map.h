@@ -85,8 +85,11 @@ public:
     /** Constructor for a blank instance of an electric field map */
     FieldMap();
 
-    /** Constructor for FieldMap to perform setup */
+    /** Constructor for FieldMap to perform setup - uses init() */
     FieldMap(const int a, const int b, const int c, const int natoms=0);
+
+    /** Init FieldMap */
+    void init(const int a, const int b, const int c, const int ndipoles);
 
     /** \brief Run all electric field calculations */
     void calculate(const Frame &aa_frame, const Frame &cg_frame, const CGMap &cgmap);

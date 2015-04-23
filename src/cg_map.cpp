@@ -103,8 +103,8 @@ Frame CGMap::initFrame(const Frame &aa_frame){
     }
 
     // Total number of atoms could include solvent, but it doesn't yet
-    cg_frame.numAtoms_ = i * numResidues_;
-    cg_frame.numAtomsTrack_ = i * numResidues_;
+    cg_frame.numAtoms_ = (i - resBlockStart_) * numResidues_;
+    cg_frame.numAtomsTrack_ = cg_frame.numAtoms_;
 
     cg_frame.isSetup_ = true;
     apply(aa_frame, cg_frame);

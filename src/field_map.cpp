@@ -17,14 +17,21 @@ FieldMap::FieldMap(){
 }
 
 FieldMap::FieldMap(const int a, const int b, const int c, const int ndipoles){
+    init(a, b, c, ndipoles);
+}
+
+void FieldMap::init(const int a, const int b, const int c, const int ndipoles){
     gridDims_[0] = a; gridDims_[1] = b; gridDims_[2] = c;
-    fieldMonopole_.init(a, b, c, false);
-    fieldDipole_.init(a, b, c, false);
+
     gridBounds_.init(3, 2, 1, false);
     gridCoords_.init(3, max(a, max(b, c)), 1, false);
+    gridContracted_.init(a*b*c, 4, 1, true);
+
+    fieldMonopole_.init(a, b, c, false);
+    fieldDipole_.init(a, b, c, false);
+
     numDipoles_ = ndipoles;
     dipoles_.init(ndipoles, 6, 1, false);
-    gridContracted_.init(a*b*c, 4, 1, true);
     totalDipole_.init(6, 1, 1, false);
     sumDipoles_.init(6, 1, 1, false);
 }

@@ -30,10 +30,15 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
         switch(static_cast<ArgType>(stoi(parts[3]))){
             case ArgType::PATH:
             case ArgType::STRING:
-                desc_.add_options()((arg+","+arg[0]).c_str(),
-                                    po::value<string>()->default_value(parts[2].c_str()),
-                                    parts[1].c_str());
-                stringArgs_.emplace(arg, parts[2]);
+                // Is there a default value given?
+                if(parts[2] == ""){
+                    throw std::logic_error("String argument without default value no implemented");
+                }else{
+                    desc_.add_options()((arg + "," + arg[0]).c_str(),
+                                        po::value<string>()->default_value(parts[2].c_str()),
+                                        parts[1].c_str());
+                    stringArgs_.emplace(arg, parts[2]);
+                }
                 break;
             case ArgType::INT:
                 desc_.add_options()((arg+","+arg[0]).c_str(),
@@ -44,6 +49,11 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
             case ArgType::FLOAT:
                 break;
             case ArgType::BOOL:
+                // Boolean arguments don't get a short form - too many overlapping
+                desc_.add_options()((arg).c_str(),
+                                    po::value<bool>()->default_value(stoi(parts[2])),
+                                    parts[1].c_str());
+                boolArgs_.emplace(arg, stoi(parts[2]));
                 break;
         }
     }
@@ -92,14 +102,25 @@ const std::string CMD::getFileArg(const string &arg){
 }
 
 const bool CMD::getBoolArg(const string &arg){
-    // If it was set true by the user return it, otherwise return default value
+    // If it was set true by the user return it
     if(options_.count(arg)) return options_[arg].as<bool>();
-    return boolArgs_[arg];
+    // Otherwise return default value
+    if(boolArgs_.count(arg)) return boolArgs_[arg];
+
+    // Error no default value - assume false
+    cout << "NON-FATAL ERROR: No default value for parameter "
+         << arg << " assuming false" << endl;
+    return false;
 }
 
 const int CMD::getIntArg(const string &arg){
-    // If it was set by the user return it, otherwise return default value
+    // If it was set by the user return it
     if(options_.count(arg)) return options_[arg].as<int>();
-    cout << "Returning from getIntArg" << cout;
-    return 0;
+    // Otherwise return default value
+    if(intArgs_.count(arg)) return intArgs_[arg];
+
+    // Error no default value - assume false
+    cout << "NON-FATAL ERROR: No default value for parameter "
+         << arg  << " assuming -1" << endl;
+    return -1;
 }

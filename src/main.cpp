@@ -11,13 +11,10 @@
 #include "parser.h"
 #include "small_functions.h"
 #include "file_io.h"
+#include "field_map.h"
 
 #ifndef NO_CMD_PARSER
 #include "cmd.h"
-#endif
-
-#ifdef ELECTRIC_FIELD
-#include "field_map.h"
 #endif
 
 #define PROGRESS_UPDATE_FREQ 100
@@ -53,9 +50,13 @@ int main(const int argc, const char *argv[]){
             "--cfg\tCGTOOL mapping file\tcg.cfg\t0\n"
             "--xtc\tGROMACS XTC file\tmd.xtc\t0\n"
             "--itp\tGROMACS ITP file\ttopol.top\t0\n"
-            "--gro\tGROMACS GRO file\tNO DEFAULT\t0\n"
+            "--gro\tGROMACS GRO file\tmd.gro\t0\n"
             "--dir\tDirectory containing all of the above\t./\t0\n"
-            "--frm\tNumber of frames to read\t-1\t2";
+            "--frames\tNumber of frames to read\t-1\t2\n"
+            "--csv\tOutput bond measurements to CSV\t0\t4\n"
+            "--nomap\tDon't perform cg mapping\t0\t4\n"
+            "--fcround\tRound force constants\t0\t4\n"
+            "--field\tCalculate electric field\t0\t4";
 
     // How many threads are we using?
     int num_threads = 0;
@@ -111,7 +112,7 @@ int main(const int argc, const char *argv[]){
     vector<string> tokens;
     int num_frames_max = -1;
     if(parser.getLineFromSection("frames", tokens)) num_frames_max = stoi(tokens[0]);
-    if(cmd_parser.getIntArg("frm") != 0) num_frames_max = cmd_parser.getIntArg("frm");
+    if(cmd_parser.getIntArg("frames") != 0) num_frames_max = cmd_parser.getIntArg("frames");
 
     int numResidues = 1;
     string resname = "";
@@ -130,17 +131,16 @@ int main(const int argc, const char *argv[]){
     CGMap mapping(cfgname, resname, numResidues);
     Frame cg_frame = mapping.initFrame(frame);
 
-    bool nomap = true;
-    if(!cmd_parser.getBoolArg("nomap")){
-        nomap = false;
-        cg_frame.setupOutput();
-    }
+    bool do_map = !cmd_parser.getBoolArg("nomap");
+    if(do_map) cg_frame.setupOutput();
     BondSet bond_set(cfgname);
 
-    #ifdef ELECTRIC_FIELD
-    cout << "Doing electrostatics with " << num_threads << " thread(s)" << endl;
-    FieldMap field(100, 100, 100, mapping.numBeads_);
-    #endif
+    bool do_field = cmd_parser.getBoolArg("field");
+    FieldMap field(1, 1, 1, 1);
+    if(do_field){
+        cout << "Doing electrostatics with " << num_threads << " thread(s)" << endl;
+        field.init(100, 100, 100, mapping.numBeads_);
+    }
 
     // Read and process simulation frames
     split_text_output("Reading frames", start, num_threads);
@@ -164,7 +164,6 @@ int main(const int argc, const char *argv[]){
                 printf("Read %6d frames @ %d FPS\r", i, int(fps));
             }else{
                 float t_remain = (num_frames_max - i) / fps;
-//                float perc = i * 100.f / num_frames_max;
                 printf("Read %9d frames @ %d FPS %6.1fs remaining\r", i, int(fps), t_remain);
             }
             std::flush(cout);
@@ -172,18 +171,18 @@ int main(const int argc, const char *argv[]){
         #endif
 
         // Calculate bonds and store in BondStructs
-        if(nomap){
-            bond_set.calcBondsInternal(frame);
-        }else{
+        if(do_map){
             mapping.apply(frame, cg_frame);
             cg_frame.writeToXtc();
             bond_set.calcBondsInternal(cg_frame);
+        }else{
+            bond_set.calcBondsInternal(frame);
         }
 
         // Calculate electric field/dipoles
-        #ifdef ELECTRIC_FIELD
-        if(i % ELECTRIC_FIELD_FREQ == 0) field.calculate(frame, cg_frame, mapping);
-        #endif
+        if(do_field && i % ELECTRIC_FIELD_FREQ == 0)
+                field.calculate(frame, cg_frame, mapping);
+
         i++;
     }
 
@@ -202,13 +201,11 @@ int main(const int argc, const char *argv[]){
 
     // Post processing
     split_text_output("Post processing", start, num_threads);
-    if(nomap == false) cg_frame.printGRO();
+    if(do_map) cg_frame.printGRO();
     bond_set.BoltzmannInversion();
 
     // This bit is slow - IO limited
-    #ifdef OUTPUT_CSV
-    bond_set.writeCSV();
-    #endif
+    if(cmd_parser.getBoolArg("csv")) bond_set.writeCSV();
 
     cout << "Printing results to ITP" << endl;
     //TODO put format choice in config file or command line option
