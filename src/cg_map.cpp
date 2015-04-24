@@ -10,17 +10,17 @@ using std::endl;
 using std::vector;
 using std::string;
 
-CGMap::CGMap(const string &filename, const string &resname, const int numResidues){
+CGMap::CGMap(const string &resname, const int numResidues, const string &filename){
     resname_ = resname;
     numResidues_ = numResidues;
-    fromFile(filename);
+    if(filename != "") fromFile(filename);
 }
 
 void CGMap::fromFile(const string &filename){
     // Which mapping type was requested - defaults to MapType::GC if not found
     vector<string> substrs;
     Parser parser(filename);
-    if(parser.getLineFromSection("maptype", substrs)){
+    if(parser.getLineFromSection("maptype", substrs, 1)){
         if(substrs[0] == "CM"){
             mapType_ = MapType::CM;
             cout << "Using CM mapping" << endl;
@@ -41,7 +41,7 @@ void CGMap::fromFile(const string &filename){
 
     // Read in the bead mappings
     int i = 0;
-    while(parser.getLineFromSection("mapping", substrs)){
+    while(parser.getLineFromSection("mapping", substrs, 3)){
         BeadMap new_bead;
         new_bead.name = substrs[0];
         new_bead.type = substrs[1];
@@ -59,9 +59,8 @@ void CGMap::fromFile(const string &filename){
     numBeads_ = mapping_.size();
 }
 
-Frame CGMap::initFrame(const Frame &aa_frame){
+void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
     // Create Frame and copy copyable data
-    Frame cg_frame(aa_frame);
     cg_frame.numAtomsPerResidue_ = numBeads_;
     cg_frame.atoms_.resize(numResidues_ * cg_frame.numAtomsPerResidue_);
 
@@ -102,15 +101,13 @@ Frame CGMap::initFrame(const Frame &aa_frame){
         i++;
     }
 
-    // Total number of atoms could include solvent, but it doesn't yet
+    // Total number of atoms could include solvent later, but doesn't yet
     cg_frame.numAtoms_ = (i - resBlockStart_) * numResidues_;
     cg_frame.numAtomsTrack_ = cg_frame.numAtoms_;
 
     cg_frame.isSetup_ = true;
     apply(aa_frame, cg_frame);
     cout << "Done init cg_frame" << endl;
-
-    return cg_frame;
 }
 
 bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){

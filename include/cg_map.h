@@ -51,13 +51,6 @@ protected:
     /** Where does the block of residues we're mapping start? */
     int resBlockStart_ = 0;
 
-    /**
-    * \brief Read in CG mapping from file
-    *
-    * \throws std::runtime_error if file cannot be opened
-    */
-    void fromFile(const std::string &filename);
-
 public:
     /** Number of beads defined */
     int numBeads_;
@@ -72,14 +65,21 @@ public:
     /**
     * \brief Constructor to create an instance from the mapping file provided
     */
-    CGMap(const std::string &filename, const std::string &resname, const int numResidues);
+    CGMap(const std::string &resname, const int numResidues, const string &filename="");
+
+    /**
+    * \brief Read in CG mapping from file
+    *
+    * \throws std::runtime_error if file cannot be opened
+    */
+    void fromFile(const std::string &filename);
 
     /**
     * \brief Setup a CG Frame object that has already been declared
     *
     * Allocates space for each bead and copies over constant data from the atomistic Frame
     */
-    Frame initFrame(const Frame &aa_frame);
+    void initFrame(const Frame &aa_frame, Frame &cg_frame);
 
     /**
     * \brief Apply CG mapping to an atomistic Frame

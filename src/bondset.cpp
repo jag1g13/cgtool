@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <ctime>
+#include <cmath>
 
 #include <boost/algorithm/string.hpp>
 
@@ -26,29 +27,29 @@ void BondSet::fromFile(const string &filename){
     vector<string> tokens;
     Parser parser(filename);
 
-    if(parser.getLineFromSection("residues", tokens)) numResidues_ = stoi(tokens[0]);
-    if(parser.getLineFromSection("temp", tokens)) temp_ = stof(tokens[0]);
+    if(parser.getLineFromSection("residues", tokens, 2)) numResidues_ = stoi(tokens[0]);
+    if(parser.getLineFromSection("temp", tokens, 1)) temp_ = stof(tokens[0]);
 
     int i = 0;
-    while(parser.getLineFromSection("mapping", tokens)){
+    while(parser.getLineFromSection("mapping", tokens, 3)){
         beadNums_.emplace(tokens[0], i++);
     }
 
     //TODO Can emplace_back() be replaced?
-    while(parser.getLineFromSection("length", tokens)){
+    while(parser.getLineFromSection("length", tokens, 2)){
         bonds_.emplace_back(BondStruct(2));
         bonds_.back().atomNums_[0] = beadNums_[tokens[0]];
         bonds_.back().atomNums_[1] = beadNums_[tokens[1]];
     }
 
-    while(parser.getLineFromSection("angle", tokens)){
+    while(parser.getLineFromSection("angle", tokens, 3)){
         angles_.emplace_back(BondStruct(3));
         angles_.back().atomNums_[0] = beadNums_[tokens[0]];
         angles_.back().atomNums_[1] = beadNums_[tokens[1]];
         angles_.back().atomNums_[2] = beadNums_[tokens[2]];
     }
 
-    while(parser.getLineFromSection("dihedral", tokens)){
+    while(parser.getLineFromSection("dihedral", tokens, 4)){
         dihedrals_.emplace_back(BondStruct(4));
         dihedrals_.back().atomNums_[0] = beadNums_[tokens[0]];
         dihedrals_.back().atomNums_[1] = beadNums_[tokens[1]];
@@ -74,13 +75,16 @@ void BondSet::calcBondsInternal(Frame &frame){
         if(!res_okay) continue;
 
         for(BondStruct &bond : bonds_){
-            bond.values_.push_back(frame.bondLength(bond, offset));
+            const double val = frame.bondLength(bond, offset);
+            if(!std::isinf(val)) bond.values_.push_back(val);
         }
         for(BondStruct &bond : angles_){
-            bond.values_.push_back(frame.bondAngle(bond, offset));
+            const double val = frame.bondAngle(bond, offset);
+            if(!std::isinf(val)) bond.values_.push_back(val);
         }
         for(BondStruct &bond : dihedrals_){
-            bond.values_.push_back(frame.bondAngle(bond, offset));
+            const double val = frame.bondAngle(bond, offset);
+            if(!std::isinf(val)) bond.values_.push_back(val);
         }
         numMeasures_++;
     }
@@ -99,15 +103,33 @@ void BondSet::BoltzmannInversion(){
     for(BondStruct &bond : dihedrals_) bi.calculate(bond);
 }
 
+void BondSet::calcAvgs(){
+    if(numMeasures_ > 0){
+        cout << "Measured " << numMeasures_ << " molecules" << endl;
+    }else{
+        cout << "No bonds measured" << endl;
+        return;
+    }
+    BoltzmannInverter bi(temp_);
+    for(BondStruct &bond : bonds_) bond.avg_ = bi.statisticalMoments(bond.values_);
+    for(BondStruct &bond : angles_) bond.avg_ = bi.statisticalMoments(bond.values_);
+    for(BondStruct &bond : dihedrals_) bond.avg_ = bi.statisticalMoments(bond.values_);
+}
+
 void BondSet::writeCSV(){
     FILE *f_bond = fopen("bonds.csv", "w");
     FILE *f_angle = fopen("angles.csv", "w");
     FILE *f_dihedral = fopen("dihedrals.csv", "w");
     clock_t start = std::clock();
 
-    for(int i=0; i < numMeasures_; i++){
+    // Scale increment so that ~10k molecules are printed to CSV
+    // Should be enough to be a good sample - but is much quicker
+    int scale = 1;
+    if(numMeasures_ > 1e4) scale = numMeasures_ / 1e4;
+
+    for(int i=0; i < numMeasures_; i+=scale){
         #ifdef UPDATE_PROGRESS
-        if(i % 5000 == 0){
+        if(i % 50000 == 0){
             float time = time_since(start, numThreads_);
             float fps = i / time;
             float t_remain = (numMeasures_ - i) / fps;
@@ -126,7 +148,7 @@ void BondSet::writeCSV(){
         fprintf(f_dihedral, "\n");
     }
     cout << string(80, ' ') << "\r";
-    cout << "Written  " << numMeasures_ << " molecules to CSV" << endl;
+    cout << "Written  " << numMeasures_/scale << " molecules to CSV" << endl;
 
     fclose(f_bond);
     fclose(f_angle);

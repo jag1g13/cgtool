@@ -40,15 +40,8 @@ Frame::Frame(const Frame &frame){
     step_ = frame.step_;
     resname_ = frame.resname_;
     numResidues_ = frame.numResidues_;
-    boxType_ = BoxType::CUBIC;
-    for(int i=0; i<3; i++){
-        for(int j=0; j<3; j++){
-            box_[i][j] = frame.box_[i][j];
-            if(i!=j && box_[i][j] > EPSILON) boxType_ = BoxType::TRICLINIC;
-            // must be cubic box
-//            if(i != j) assert(box_[i][j] < EPSILON);
-        }
-    }
+    boxType_ = frame.boxType_;
+    isSetup_ = true;
 }
 
 Frame::Frame(const string &topname, const string &xtcname, const string &groname, const string &resname, const int numResidues){
@@ -58,16 +51,13 @@ Frame::Frame(const string &topname, const string &xtcname, const string &groname
 }
 
 Frame::~Frame(){
-    assert(isSetup_);
     isSetup_ = false;
-    if(x_ != nullptr) free(x_);
-    if(xtcOutput_ != nullptr){
+    if(x_) free(x_);
+    if(xtcOutput_){
         xdrfile_close(xtcOutput_);
-        xtcOutput_ = NULL;
     }
-    if(xtcInput_ != nullptr){
-//        xdrfile_close(xtcInput_);
-//        xtcInput_ = NULL;
+    if(xtcInput_){
+        xdrfile_close(xtcInput_);
     }
 }
 
@@ -130,6 +120,15 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
 
     // Print box vectors
     cout << "Box vectors" << endl;
+    boxType_ = BoxType::CUBIC;
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            box_[i][j] = box_[i][j];
+            if(i!=j && box_[i][j] > EPSILON) boxType_ = BoxType::TRICLINIC;
+            // must be cubic box
+//            if(i != j) assert(box_[i][j] < EPSILON);
+        }
+    }
     for(int i=0; i<3; i++){
         for(int j=0; j<3; j++){
             printf("%8.4f", box_[i][j]);
@@ -141,7 +140,7 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
     vector<string> substrs;
     Parser top_parser(topname, FileFormat::GROMACS);
     // How many atoms are there?  Per residue?  In total?
-    while(top_parser.getLineFromSection("atoms", substrs)){
+    while(top_parser.getLineFromSection("atoms", substrs, 4)){
         // If we don't have a resname from cfg, be backward compatible
         // Loop through all atoms and take the last number
         if(resname_ != ""){
@@ -165,6 +164,7 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
                 if (strcmp(name, resname_.c_str()) == 0) break;
                 start++;
             }
+            fclose(gro);
         }
     }
 
@@ -172,10 +172,12 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
     for(int i=0; i<numAtomsPerResidue_; i++){
         // read data from topology file for each atom
         // internal atom name is the res # and atom name from top/gro
-        top_parser.getLineFromSection("atoms", substrs);
+        top_parser.getLineFromSection("atoms", substrs, 5);
         const string name = substrs[4];
-        const double charge = atof(substrs[6].c_str());
-        const double mass = atof(substrs[7].c_str());
+        double charge = 1.;
+        if(substrs.size() >= 7) charge = atof(substrs[6].c_str());
+        double mass = 1.;
+        if(substrs.size() >= 8) mass = atof(substrs[7].c_str());
         nameToNum_.emplace(atoms_[i].atom_type, i);
 
         for(int j=0; j<numResidues_; j++){
@@ -199,10 +201,7 @@ bool Frame::readNext(){
     assert(isSetup_);
     invalid_ = false;
     int status = read_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_);
-    if(status != exdrOK){
-        xdrfile_close(xtcInput_);
-        return status == exdrOK;
-    }
+    if(status != exdrOK) return false;
     for(int i = 0; i < numAtomsTrack_; i++){
         // Overwrite coords of atoms stored in the current Frame
         atoms_[i].coords[0] = x_[i][0];
@@ -210,7 +209,7 @@ bool Frame::readNext(){
         atoms_[i].coords[2] = x_[i][2];
     }
     num_++;
-    return status == exdrOK;
+    return true;
 }
 
 void Frame::recentreBox(const int atom_num){

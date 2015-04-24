@@ -61,6 +61,9 @@ public:
     /** \brief Perform Boltzmann Inversion on all bond_structs. */
     void BoltzmannInversion();
 
+    /** \brief Calculate bond averages without full Boltzmann Inversion */
+    void calcAvgs();
+
     /** \brief Write all bond parameters to CSVs.
     * SLOW.  This takes about the same amount of time as the complete
     * XTC input -> Boltzmann Inversion process so is turned off by default. */

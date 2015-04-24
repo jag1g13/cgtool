@@ -69,12 +69,12 @@ bool Parser::findSection(const string find){
     return true;
 }
 
-bool Parser::getLineFromSection(const string find, vector<string> &tokens){
-    // We're looking for a new section - it might be above the last one
+bool Parser::getLineFromSection(const string find, vector<string> &tokens, const int len){
+    // Are we looking for a new section? - it might be above the last one
     if(find != findPrevious_) rewind();
     findPrevious_ = find;
     while(getLine(tokens)){
-        if(section_ == find) return true;
+        if(section_ == find && tokens.size() >= len) return true;
     }
     rewind();
     return false;

@@ -87,14 +87,24 @@ double BoltzmannInverter::invertGaussian(){
 }
 
 void BoltzmannInverter::binHistogram(const vector<double> &vec){
+    // This throws away values more than 25% away from the mean
+    // By inspection of density plots, nothing should be further away than this
+//    if(type_ == BondType::LENGTH){
+//        min_ = mean_ * 0.75;
+//        max_ = mean_ * 1.25;
+//    }
     step_ = (max_ - min_) / (bins_-1);
     meanBin_ = int((mean_ - min_) / step_);
 
     int loc = 0;
     for(const double val : vec){
         loc = int((val - min_) / step_);
-        if(loc < 0 || loc > bins_-1) cout << loc << endl;
-        histogram_(loc)++;
+        if(loc < 0 || loc > bins_-1){
+//            cout << val << ": " << loc << endl;
+            printf(".");
+        }else{
+            histogram_(loc)++;
+        }
     }
 }
 
@@ -130,7 +140,7 @@ double BoltzmannInverter::gaussianRSquared(){
     return r_sqr;
 }
 
-void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
+double BoltzmannInverter::statisticalMoments(const vector<double> &vec){
     double sum = 0.;
     // Calculate mean with first pass
     for(const double val : vec) sum += val;
@@ -152,6 +162,7 @@ void BoltzmannInverter::statisticalMoments(const vector<double> &vec){
     adev_ /= n_;
     var_ = var_ / (n_ - 1);
     sdev_ = sqrt(var_);
+    return mean_;
 }
 
 void BoltzmannInverter::printGraph(Array &arr, const int scale){

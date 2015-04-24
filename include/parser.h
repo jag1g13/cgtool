@@ -54,8 +54,9 @@ public:
     bool findSection(const std::string find);
 
     /**\brief Search through config file for a particular section and pass back lines
-    * Once it reaches the end of the file, it rewinds to the beginning and returns */
-    bool getLineFromSection(const std::string find, std::vector<std::string> &tokens);
+    * Once it reaches the end of the file, it rewinds to the beginning and returns
+    * Can specify the number of tokens expected, will return false if too few found */
+    bool getLineFromSection(const std::string find, std::vector<std::string> &tokens, const int len=0);
 };
 
 #endif

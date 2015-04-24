@@ -140,7 +140,7 @@ void FieldMap::setupGridContracted(const Frame &frame){
 
 void FieldMap::calcFieldMonopolesContracted(const Frame &frame){
     double coords[3];
-#pragma omp parallel for private(coords)
+//#pragma omp parallel for private(coords)
     for(int i=0; i < numGridPoints_; i++){
         fieldMonopoleContracted_[i] = 0.;
         for(int j=0; j<aaNumAtoms_; j++){
@@ -165,7 +165,7 @@ void FieldMap::calcFieldDipolesContracted(const Frame &frame){
     double vec_a[3], vec_b[3];
     double abs_a;
     double coords[3];
-#pragma omp parallel for private(coords, vec_a, vec_b, abs_a)
+//#pragma omp parallel for private(coords, vec_a, vec_b, abs_a)
     for(int i=0; i < numGridPoints_; i++) {
         fieldDipoleContracted_[i] = 0.;
         // For charge on the cg bead

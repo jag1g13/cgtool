@@ -50,7 +50,7 @@ int main(const int argc, const char *argv[]){
             "--cfg\tCGTOOL mapping file\tcg.cfg\t0\n"
             "--xtc\tGROMACS XTC file\tmd.xtc\t0\n"
             "--itp\tGROMACS ITP file\ttopol.top\t0\n"
-            "--gro\tGROMACS GRO file\tmd.gro\t0\n"
+            "--gro\tGROMACS GRO file\tNO DEFAULT\t0\n"
             "--dir\tDirectory containing all of the above\t./\t0\n"
             "--frames\tNumber of frames to read\t-1\t2\n"
             "--csv\tOutput bond measurements to CSV\t0\t4\n"
@@ -69,6 +69,7 @@ int main(const int argc, const char *argv[]){
     split_text_output(version_string, start, num_threads);
     // If not using command line parser, replace with a simple one
     // Do this so we can compile without Boost program_options
+    //TODO this won't work anymore - too many things added - fix or delete
     #ifdef NO_CMD_PARSER
     const string cfgname, xtcname, topname, groname;
     if(argc > 1 && (string(argv[1]) == "-h" || string(argv[1]) == "--help")){
@@ -111,29 +112,32 @@ int main(const int argc, const char *argv[]){
     Parser parser(cfgname);
     vector<string> tokens;
     int num_frames_max = -1;
-    if(parser.getLineFromSection("frames", tokens)) num_frames_max = stoi(tokens[0]);
+    if(parser.getLineFromSection("frames", tokens, 1)) num_frames_max = stoi(tokens[0]);
     if(cmd_parser.getIntArg("frames") != 0) num_frames_max = cmd_parser.getIntArg("frames");
 
+    bool do_map = !cmd_parser.getBoolArg("nomap");
     int numResidues = 1;
     string resname = "";
-    if(parser.getLineFromSection("residues", tokens)){
+    if(parser.getLineFromSection("residues", tokens, 2)){
         numResidues = stoi(tokens[0]);
         resname = tokens[1];
-        cout << "Mapping " << numResidues << " " << resname << " residue(s)" << endl;
+        if(do_map) printf("Mapping %d %s residue(s)\n", numResidues, resname.c_str());
     }else{
-        cout << "Resname to map not found in config" << endl;
+        cout << "Residue to map not found in config" << endl;
     }
 
     // Open files and do setup
     split_text_output("Frame setup", start, num_threads);
     Frame frame(topname, xtcname, groname, resname, numResidues);
 
-    CGMap mapping(cfgname, resname, numResidues);
-    Frame cg_frame = mapping.initFrame(frame);
-
-    bool do_map = !cmd_parser.getBoolArg("nomap");
-    if(do_map) cg_frame.setupOutput();
+    Frame cg_frame(frame);
     BondSet bond_set(cfgname);
+    CGMap mapping(resname, numResidues);
+    if(do_map){
+        mapping.fromFile(cfgname);
+        mapping.initFrame(frame, cg_frame);
+        cg_frame.setupOutput();
+    }
 
     bool do_field = cmd_parser.getBoolArg("field");
     FieldMap field(1, 1, 1, 1);
@@ -201,17 +205,21 @@ int main(const int argc, const char *argv[]){
 
     // Post processing
     split_text_output("Post processing", start, num_threads);
-    if(do_map) cg_frame.printGRO();
-    bond_set.BoltzmannInversion();
+    if(do_map){
+        cg_frame.printGRO();
+        bond_set.BoltzmannInversion();
+
+        cout << "Printing results to ITP" << endl;
+        //TODO put format choice in config file or command line option
+        ITPWriter itp(resname, FileFormat::GROMACS);
+        itp.printAtoms(mapping, true);
+        itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
+    }else{
+        bond_set.calcAvgs();
+    }
 
     // This bit is slow - IO limited
     if(cmd_parser.getBoolArg("csv")) bond_set.writeCSV();
-
-    cout << "Printing results to ITP" << endl;
-    //TODO put format choice in config file or command line option
-    ITPWriter itp(resname, FileFormat::GROMACS);
-    itp.printAtoms(mapping, true);
-    itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
 
     // Print something so I can check results by eye
     for(int i=0; i<6 && i<bond_set.bonds_.size(); i++){

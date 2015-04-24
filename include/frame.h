@@ -44,7 +44,7 @@ protected:
     /** XTC precision; not used internally, just for XTC input/output */
     float prec_ = 0.f;
     /** Holds atomic coordinates for GROMACS */
-    rvec *x_ = NULL;
+    rvec *x_ = nullptr;
     /** Name of the Frame; taken from comment in the GRO file */
     std::string name_;
     /** Size of the simulation box */
