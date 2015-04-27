@@ -155,6 +155,7 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
     atoms_.resize(numAtomsTrack_);
 
     // If we have a GRO then find the resname we're looking for
+    //TODO this doesn't work - doesn't find LFPG residue
     int start = 0;
     if(groname != "NO DEFAULT") {
         FILE *gro = fopen(groname.c_str(), "r");
@@ -174,7 +175,7 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
         // internal atom name is the res # and atom name from top/gro
         top_parser.getLineFromSection("atoms", substrs, 5);
         const string name = substrs[4];
-        double charge = 1.;
+        double charge = 0.;
         if(substrs.size() >= 7) charge = atof(substrs[6].c_str());
         double mass = 1.;
         if(substrs.size() >= 8) mass = atof(substrs[7].c_str());

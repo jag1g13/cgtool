@@ -27,7 +27,10 @@ void BondSet::fromFile(const string &filename){
     vector<string> tokens;
     Parser parser(filename);
 
-    if(parser.getLineFromSection("residues", tokens, 2)) numResidues_ = stoi(tokens[0]);
+    if(parser.getLineFromSection("residues", tokens, 2)){
+        numResidues_ = stoi(tokens[0]);
+        resname_ = tokens[1];
+    }
     if(parser.getLineFromSection("temp", tokens, 1)) temp_ = stof(tokens[0]);
 
     int i = 0;
@@ -66,7 +69,7 @@ void BondSet::calcBondsInternal(Frame &frame){
         for(BondStruct &bond : bonds_){
             double dist = frame.bondLength(bond, offset);
             // If any distances > 1nm, molecule is on PBC
-            if(dist > 2.f || dist < 0.01f){
+            if(dist > 1. || dist < 0.01){
                 res_okay = false;
                 break;
             }
@@ -92,9 +95,9 @@ void BondSet::calcBondsInternal(Frame &frame){
 
 void BondSet::BoltzmannInversion(){
     if(numMeasures_ > 0){
-        cout << "Measured " << numMeasures_ << " molecules" << endl;
+        printf("Measured %'d molecules\n", numMeasures_);
     }else{
-        cout << "No bonds measured" << endl;
+        printf("No bonds measured\n");
         return;
     }
     BoltzmannInverter bi(temp_);
@@ -105,9 +108,9 @@ void BondSet::BoltzmannInversion(){
 
 void BondSet::calcAvgs(){
     if(numMeasures_ > 0){
-        cout << "Measured " << numMeasures_ << " molecules" << endl;
+        printf("Measured %'d molecules\n", numMeasures_);
     }else{
-        cout << "No bonds measured" << endl;
+        printf("No bonds measured\n");
         return;
     }
     BoltzmannInverter bi(temp_);
@@ -117,10 +120,9 @@ void BondSet::calcAvgs(){
 }
 
 void BondSet::writeCSV(){
-    FILE *f_bond = fopen("bonds.csv", "w");
-    FILE *f_angle = fopen("angles.csv", "w");
-    FILE *f_dihedral = fopen("dihedrals.csv", "w");
-    clock_t start = std::clock();
+    FILE *f_bond = fopen((resname_+"_bonds.csv").c_str(), "w");
+    FILE *f_angle = fopen((resname_+"_angles.csv").c_str(), "w");
+    FILE *f_dihedral = fopen((resname_+"_dihedrals.csv").c_str(), "w");
 
     // Scale increment so that ~10k molecules are printed to CSV
     // Should be enough to be a good sample - but is much quicker
@@ -128,16 +130,6 @@ void BondSet::writeCSV(){
     if(numMeasures_ > 1e4) scale = numMeasures_ / 1e4;
 
     for(int i=0; i < numMeasures_; i+=scale){
-        #ifdef UPDATE_PROGRESS
-        if(i % 50000 == 0){
-            float time = time_since(start, numThreads_);
-            float fps = i / time;
-            float t_remain = (numMeasures_ - i) / fps;
-            printf("Written %d molecules to CSV %6.1fs remaining\r", i, t_remain);
-            std::flush(cout);
-        }
-        #endif
-
         for(BondStruct &bond : bonds_) fprintf(f_bond, "%8.3f", bond.values_[i]);
         fprintf(f_bond, "\n");
 
@@ -147,8 +139,7 @@ void BondSet::writeCSV(){
         for(BondStruct &bond : dihedrals_) fprintf(f_dihedral, "%8.3f", bond.values_[i]);
         fprintf(f_dihedral, "\n");
     }
-    cout << string(80, ' ') << "\r";
-    cout << "Written  " << numMeasures_/scale << " molecules to CSV" << endl;
+    printf("Written %'d molecules to CSV\n", numMeasures_/scale);
 
     fclose(f_bond);
     fclose(f_angle);

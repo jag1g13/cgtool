@@ -4,6 +4,7 @@
 #include <ctime>
 
 #include <sysexits.h>
+#include <locale.h>
 
 #include "frame.h"
 #include "cg_map.h"
@@ -64,6 +65,8 @@ int main(const int argc, const char *argv[]){
     {
         num_threads = 1;
     }
+
+    setlocale(LC_ALL, "");
 
     // Get input files
     split_text_output(version_string, start, num_threads);
@@ -152,7 +155,7 @@ int main(const int argc, const char *argv[]){
     if(num_frames_max == -1){
         printf("Reading all frames from XTC\n");
     }else{
-        printf("Reading %6i frames from XTC\n", num_frames_max);
+        printf("Reading %'6i frames from XTC\n", num_frames_max);
     }
 
     int i = 1;
@@ -168,7 +171,7 @@ int main(const int argc, const char *argv[]){
                 printf("Read %6d frames @ %d FPS\r", i, int(fps));
             }else{
                 float t_remain = (num_frames_max - i) / fps;
-                printf("Read %9d frames @ %d FPS %6.1fs remaining\r", i, int(fps), t_remain);
+                printf("Read %'10d frames @ %'d FPS %6.1fs remaining\r", i, int(fps), t_remain);
             }
             std::flush(cout);
         }
@@ -192,10 +195,10 @@ int main(const int argc, const char *argv[]){
 
     // Print some data at the end
     cout << string(80, ' ') << "\r";
-    printf("Read %9d frames", i);
+    printf("Read %'9d frames", i);
     float time = time_since(start, num_threads);
     float fps = i / time;
-    printf(" @ %d FPS", int(fps));
+    printf(" @ %'d FPS", int(fps));
     if(num_frames_max == -1){
         // Bitrate (in MiBps) of XTC input - only meaningful if we read whole file
         float bitrate = file_size(xtcname) / (time * 1024 * 1024);

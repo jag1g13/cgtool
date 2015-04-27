@@ -142,6 +142,7 @@ double BoltzmannInverter::gaussianRSquared(){
 
 double BoltzmannInverter::statisticalMoments(const vector<double> &vec){
     double sum = 0.;
+    if(n_ == 0) n_ = vec.size();
     // Calculate mean with first pass
     for(const double val : vec) sum += val;
     mean_ = sum / n_;

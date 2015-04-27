@@ -30,6 +30,8 @@ protected:
     std::map<std::string, int> beadNums_;
     /** Number of threads - used for timing */
     int numThreads_ = 1;
+    /** Residue name - for CSV output */
+    std::string resname_;
 
 public:
     /** Vector of bond length pairs; Contains all bond lengths that must be calculated */
