@@ -120,9 +120,17 @@ void BondSet::calcAvgs(){
 }
 
 void BondSet::writeCSV(){
-    FILE *f_bond = fopen((resname_+"_bonds.csv").c_str(), "w");
-    FILE *f_angle = fopen((resname_+"_angles.csv").c_str(), "w");
-    FILE *f_dihedral = fopen((resname_+"_dihedrals.csv").c_str(), "w");
+    const string bond_file = resname_ + "_bonds.csv";
+    const string angle_file = resname_ + "_angles.csv";
+    const string dihedral_file = resname_ + "_dihedrals.csv";
+
+    backup_old_file(bond_file);
+    backup_old_file(angle_file);
+    backup_old_file(dihedral_file);
+
+    FILE *f_bond = fopen(bond_file.c_str(), "w");
+    FILE *f_angle = fopen(angle_file.c_str(), "w");
+    FILE *f_dihedral = fopen(dihedral_file.c_str(), "w");
 
     // Scale increment so that ~10k molecules are printed to CSV
     // Should be enough to be a good sample - but is much quicker

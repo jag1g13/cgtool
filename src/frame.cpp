@@ -157,16 +157,17 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
     // If we have a GRO then find the resname we're looking for
     //TODO this doesn't work - doesn't find LFPG residue
     int start = 0;
-    if(groname != "NO DEFAULT") {
-        FILE *gro = fopen(groname.c_str(), "r");
-        if (gro != NULL) {
-            char name[6];
-            while (fscanf(gro, "%*5d%5s%*5s%*5d%*8f%*8f%*8f%*8f%*8f%*8f", name)) {
-                if (strcmp(name, resname_.c_str()) == 0) break;
-                start++;
-            }
-            fclose(gro);
+    FILE *gro = fopen(groname.c_str(), "r");
+    if(gro != NULL){
+        cout << "Using " << groname << endl;
+        char name[6];
+        while(fscanf(gro, "%*5d%5s%*5s%*5d%*8f%*8f%*8f%*8f%*8f%*8f", name)){
+            if(strcmp(name, resname_.c_str()) == 0) break;
+            start++;
         }
+        fclose(gro);
+    }else{
+        cout << "Not using GRO file" << endl;
     }
 
 
@@ -179,7 +180,8 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
         if(substrs.size() >= 7) charge = atof(substrs[6].c_str());
         double mass = 1.;
         if(substrs.size() >= 8) mass = atof(substrs[7].c_str());
-        nameToNum_.emplace(atoms_[i].atom_type, i);
+        //TODO why doesn't this work
+        nameToNum_[atoms_[i].atom_type] = i;
 
         for(int j=0; j<numResidues_; j++){
             const int num = i + j*numAtomsPerResidue_;
@@ -240,7 +242,7 @@ void Frame::printAtoms(int natoms){
     printf("   Num   Name   Mass   Charge   Posx    Posy    Posz\n");
     for(int i=0; i<natoms; i++){
         printf("%6i %6s %7.3f %7.3f %7.4f %7.4f %7.4f\n",
-               nameToNum_[atoms_[i].atom_type], atoms_[i].atom_type.c_str(),
+               nameToNum_.at(atoms_[i].atom_type), atoms_[i].atom_type.c_str(),
                atoms_[i].mass, atoms_[i].charge,
                atoms_[i].coords[0], atoms_[i].coords[1], atoms_[i].coords[2]);
     }

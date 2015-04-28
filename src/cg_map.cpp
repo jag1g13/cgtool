@@ -77,7 +77,8 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
         }
 
         // Add bead to dictionaries so we can find it by name
-        cg_frame.nameToNum_.emplace(bead.name, i);
+//        cg_frame.nameToNum_.emplace(bead.name, i);
+        cg_frame.nameToNum_[bead.name]= i;
         for(const string &atomname : bead.atoms) {
             atomname_to_bead_.emplace(atomname, &bead);
 

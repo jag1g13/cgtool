@@ -47,8 +47,6 @@ protected:
     rvec *x_ = nullptr;
     /** Name of the Frame; taken from comment in the GRO file */
     std::string name_;
-    /** Size of the simulation box */
-    float box_[3][3];
     /** What box shape do we have?  Currently must be cubic */
     BoxType boxType_ = BoxType::CUBIC;
     /** How many of this residue are there? */
@@ -91,6 +89,8 @@ public:
     std::map<std::string, int> nameToNum_;
     /** How many atoms are in this residue? */
     int numAtomsPerResidue_ = 0;
+    /** Size of the simulation box */
+    float box_[3][3];
 
 
     /** \brief Create Frame passing frame number, number of atoms to store and the frame name

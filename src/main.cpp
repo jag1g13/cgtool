@@ -13,6 +13,7 @@
 #include "small_functions.h"
 #include "file_io.h"
 #include "field_map.h"
+#include "membrane.h"
 
 #ifndef NO_CMD_PARSER
 #include "cmd.h"
@@ -51,7 +52,7 @@ int main(const int argc, const char *argv[]){
             "--cfg\tCGTOOL mapping file\tcg.cfg\t0\n"
             "--xtc\tGROMACS XTC file\tmd.xtc\t0\n"
             "--itp\tGROMACS ITP file\ttopol.top\t0\n"
-            "--gro\tGROMACS GRO file\tNO DEFAULT\t0\n"
+            "--gro\tGROMACS GRO file\tmd.gro\t0\n"
             "--dir\tDirectory containing all of the above\t./\t0\n"
             "--frames\tNumber of frames to read\t-1\t2\n"
             "--csv\tOutput bond measurements to CSV\t0\t4\n"
@@ -149,6 +150,10 @@ int main(const int argc, const char *argv[]){
         field.init(100, 100, 100, mapping.numBeads_);
     }
 
+    Membrane mem(resname, "PO4", frame.numAtomsPerResidue_, numResidues);
+//    if(!do_map) mem.sortBilayer(frame, 4);
+    double mem_thickness = 0.;
+
     // Read and process simulation frames
     split_text_output("Reading frames", start, num_threads);
     start = std::clock();
@@ -184,6 +189,7 @@ int main(const int argc, const char *argv[]){
             bond_set.calcBondsInternal(cg_frame);
         }else{
             bond_set.calcBondsInternal(frame);
+//            mem_thickness = mem.thickness(frame);
         }
 
         // Calculate electric field/dipoles
@@ -230,6 +236,8 @@ int main(const int argc, const char *argv[]){
     }
     if(bond_set.bonds_.size() > 6) printf("  ...");
     cout << endl;
+
+    printf("Membrane thickness: %5.3f\n", mem_thickness);
 
     // Final timer
     split_text_output("Finished", very_start, num_threads);
