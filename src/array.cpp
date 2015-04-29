@@ -79,9 +79,7 @@ double& Array::operator()(int x){
     return array_[x];
 }
 
-double& Array::operator()(int x, int y) {
-    if(fast_) return array_[x * size_[1] + y];
-
+double& Array::operator()(int x, int y){
     assert(allocated_);
     assert(dimensions_ >= 2);
     if(x < 0) x = size_[0] + x;
@@ -92,6 +90,15 @@ double& Array::operator()(int x, int y) {
     if(dimensions_ == 3) return array_[x * size_[1] * size_[2] + y * size_[2]];
     return array_[x * size_[1] + y];
 }
+
+double& Array::at(int x, int y) {
+    assert(allocated_);
+    assert(dimensions_ == 2);
+    x = x % size_[0];
+    y = y % size_[1];
+    return array_[x * size_[1] + y];
+}
+
 
 double& Array::operator()(int x, int y, int z){
     if(fast_) return array_[x * size_[1] * size_[2] + y * size_[2] + z];
@@ -274,6 +281,28 @@ void Array::element_divide(const Array &other){
     }
 }
 void Array::smooth(const int n_iter){
-    throw std::logic_error("Not implemented yet");
+    int jsw = 1;
+    int isw = 1;
+    for(int ipass=0; ipass < 2 * n_iter; ipass++){
+        jsw = isw;
+        for(int i=1; i < size_[0]-1; i++){
+            for(int j=jsw; j < size_[1]-1; j+=2){
+                const int loc = i * size_[1] + j;
+                array_[loc] += 0.25 * (array_[loc + 1] + array_[loc - 1] +
+                              array_[loc + size_[1]] + array_[loc - size_[1]] -
+                              4 * array_[loc]);
+            }
+            jsw = 3 - jsw;
+        }
+        isw = 3 - isw;
+    }
+}
 
+void Array::interpolate_zeros(){
+    for(int i=0; i<size_[0]; i++){
+        for(int j=0; j<size_[1]; j++){
+            if(at(i, j) == 0.) at(i, j) = (at(i,j-1) + at(i-1, j) +
+                                           at(i,j+1) + at(i+1, j)) / 4.;
+        }
+    }
 }

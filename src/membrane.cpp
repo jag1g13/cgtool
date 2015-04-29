@@ -64,6 +64,7 @@ double Membrane::thickness(const Frame &frame, const bool with_reset){
         thickness_.zero();
         counts_.zero();
         numFrames_ = 0;
+        avgDist_ = 0.;
     }
 
     avg_dist += thickness_with_ref(frame, upperHeads_, lowerHeads_);
@@ -125,10 +126,12 @@ double Membrane::thickness_with_ref(const Frame &frame, const vector<int> &ref,
 
 double Membrane::mean(){
     thickness_.element_divide(counts_);
-    avgDist_ /= (2* upperHeads_.size() * numFrames_);
+    avgDist_ /= (2 * upperHeads_.size() * numFrames_);
     return avgDist_;
 }
 
 void Membrane::print_csv(const std::string &filename){
+    thickness_.interpolate_zeros();
+    thickness_.smooth(1);
     thickness_.print_csv(filename);
 }

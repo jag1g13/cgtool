@@ -69,6 +69,9 @@ public:
     /** 3 dimensional access to the array */
     double& operator()(int x, int y, int z);
 
+    /** 2 dimensional access to the array - extra bounds checking */
+    double& at(int x, int y);
+
     /** Set all elements to 0. */
     void zero();
 
@@ -92,8 +95,11 @@ public:
     /** \brief Mean of all elements in array */
     double mean();
 
-    /** \brief Apply smoothing to array - Jacobi iterator*/
+    /** \brief Apply smoothing to array
+     * Uses n_iter Gauss-Seidel Red-Black iterations */
     void smooth(const int n_iter=1);
+    /** \brief Find all zero entries and interpolate values from neighbours */
+    void interpolate_zeros();
 
     // operators and friends
     /** Array equality test */
