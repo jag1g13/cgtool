@@ -131,7 +131,7 @@ double Membrane::mean(){
 }
 
 void Membrane::print_csv(const std::string &filename){
-    thickness_.interpolate_zeros();
-    thickness_.smooth(1);
+    thickness_.replace_nan();
+    thickness_.smooth(2);
     thickness_.print_csv(filename);
 }

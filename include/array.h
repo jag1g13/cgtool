@@ -78,7 +78,7 @@ public:
     /** Print all elements of the array */
     void print(const int width=8, const int prec=4, const double scale=1);
     /** Print array to CSV */
-    void print_csv(const std::string &filename);
+    void print_csv(const std::string &filename, const int remove_border=0);
 
     /** Free the array and mark as unallocated */
     void free();
@@ -113,6 +113,9 @@ public:
     void element_multiply(const Array &other);
     /** Elementwise in place divide */
     void element_divide(const Array &other);
+
+    /** Replace all NaN entries with the mean value */
+    void replace_nan();
 
     /** RMS difference between two arrays */
     friend double rmsd(const Array &a, const Array &b);

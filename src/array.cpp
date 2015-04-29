@@ -172,7 +172,9 @@ void Array::print(const int width, const int prec, const double scale){
     }
 }
 
-void Array::print_csv(const std::string &filename){
+void Array::print_csv(const std::string &filename, const int remove_border){
+    const int r = remove_border;
+    assert(r >= 0);
     const string file = filename + ".csv";
 
     // Backup using small_functions.h
@@ -181,12 +183,12 @@ void Array::print_csv(const std::string &filename){
     FILE *f = fopen(file.c_str(), "w");
 
     if(dimensions_ == 1){
-        for(int i=0; i < size_[0]; i++) fprintf(f, "%8.3f\n", array_[i]);
+        for(int i=r; i < size_[0]-r; i++) fprintf(f, "%8.3f\n", array_[i]);
 
     }else if(dimensions_ == 2){
-        for(int i=0; i < size_[0]; i++){
+        for(int i=r; i < size_[0]-r; i++){
             if(dimensions_ == 2){}
-            for(int j=0; j < size_[1]; j++){
+            for(int j=r; j < size_[1]-r; j++){
                 fprintf(f, "%8.3f", array_[i*size_[0] + j]);
             }
             fprintf(f, "\n");
@@ -271,30 +273,35 @@ void Array::element_multiply(const Array &other){
 void Array::element_divide(const Array &other){
     assert(elems_ == other.elems_);
     assert(dimensions_ == other.dimensions_);
+
+    for(int i=0; i<elems_; i++) array_[i] /= other.array_[i];
+}
+
+void Array::replace_nan(){
+    vector<int> nans;
     for(int i=0; i<elems_; i++){
-        // Say x/0 = 0, so there's no NaNs
-        if(other.array_[i] == 0.){
+        if(array_[i] != array_[i]){
             array_[i] = 0.;
-        }else{
-            array_[i] /= other.array_[i];
+            nans.push_back(i);
         }
     }
+
+    const double m = mean();
+    for(int &i : nans) array_[i] = m;
 }
+
 void Array::smooth(const int n_iter){
-    int jsw = 1;
-    int isw = 1;
+    int jsw = 0;
+    int isw = 0;
     for(int ipass=0; ipass < 2 * n_iter; ipass++){
         jsw = isw;
-        for(int i=1; i < size_[0]-1; i++){
-            for(int j=jsw; j < size_[1]-1; j+=2){
-                const int loc = i * size_[1] + j;
-                array_[loc] += 0.25 * (array_[loc + 1] + array_[loc - 1] +
-                              array_[loc + size_[1]] + array_[loc - size_[1]] -
-                              4 * array_[loc]);
+        for(int i=0; i < size_[0]; i++){
+            for(int j=jsw; j < size_[1]; j+=2){
+                at(i, j) += 0.25 * (at(i-1, j) + at(i,j+1) + at(i,j-1) + at(i+1, j) - 4*at(i, j));
             }
-            jsw = 3 - jsw;
+            jsw = 1 - jsw;
         }
-        isw = 3 - isw;
+        isw = 1 - isw;
     }
 }
 
