@@ -2,6 +2,7 @@
 #define ARRAYS_H_
 
 #include <vector>
+#include <string>
 
 
 //TODO try out Boost/FLENS arrays, are they better?
@@ -68,11 +69,13 @@ public:
     /** 3 dimensional access to the array */
     double& operator()(int x, int y, int z);
 
-    /** Set all elements to 0.f */
+    /** Set all elements to 0. */
     void zero();
 
     /** Print all elements of the array */
     void print(const int width=8, const int prec=4, const double scale=1);
+    /** Print array to CSV */
+    void print_csv(const std::string &filename);
 
     /** Free the array and mark as unallocated */
     void free();
@@ -84,8 +87,13 @@ public:
     /** Linspace a line of a 1d array */
     void linspace(const int n, const double min, const double max);
 
-    /** \brief Sum all elements in the array. */
+    /** \brief Sum all elements in the array */
     double sum();
+    /** \brief Mean of all elements in array */
+    double mean();
+
+    /** \brief Apply smoothing to array - Jacobi iterator*/
+    void smooth(const int n_iter=1);
 
     // operators and friends
     /** Array equality test */
@@ -94,6 +102,11 @@ public:
     Array& operator-=(const Array &other);
     /** Array in place add operator */
     Array& operator+=(const Array &other);
+
+    /** Elementwise in place multiply */
+    void element_multiply(const Array &other);
+    /** Elementwise in place divide */
+    void element_divide(const Array &other);
 
     /** RMS difference between two arrays */
     friend double rmsd(const Array &a, const Array &b);

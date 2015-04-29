@@ -9,6 +9,7 @@
 using std::vector;
 using std::cout;
 using std::endl;
+using std::string;
 
 //TODO turn this into a copy constructor
 Array::Array(const int a, const int b, const int c, const bool fast){
@@ -164,6 +165,31 @@ void Array::print(const int width, const int prec, const double scale){
     }
 }
 
+void Array::print_csv(const std::string &filename){
+    const string file = filename + ".csv";
+
+    // Backup using small_functions.h
+//    backup_old_file(file);
+
+    FILE *f = fopen(file.c_str(), "w");
+
+    if(dimensions_ == 1){
+        for(int i=0; i < size_[0]; i++) fprintf(f, "%8.3f\n", array_[i]);
+
+    }else if(dimensions_ == 2){
+        for(int i=0; i < size_[0]; i++){
+            if(dimensions_ == 2){}
+            for(int j=0; j < size_[1]; j++){
+                fprintf(f, "%8.3f", array_[i*size_[0] + j]);
+            }
+            fprintf(f, "\n");
+        }
+    }
+    // If 3d do nothing
+
+    fclose(f);
+}
+
 void Array::free(){
     if(array_) delete[] array_;
     allocated_ = false;
@@ -179,6 +205,11 @@ double Array::sum(){
     double sum = 0.;
     for(int i=0; i<elems_; i++) sum += array_[i];
     return sum;
+}
+
+double Array::mean(){
+    assert(allocated_);
+    return sum() / elems_;
 }
 
 double rmsd(const Array &a, const Array &b){
@@ -224,3 +255,25 @@ Array& Array::operator+=(const Array &other){
     return (*this);
 }
 
+void Array::element_multiply(const Array &other){
+    assert(elems_ == other.elems_);
+    assert(dimensions_ == other.dimensions_);
+    for(int i=0; i<elems_; i++) array_[i] *= other.array_[i];
+}
+
+void Array::element_divide(const Array &other){
+    assert(elems_ == other.elems_);
+    assert(dimensions_ == other.dimensions_);
+    for(int i=0; i<elems_; i++){
+        // Say x/0 = 0, so there's no NaNs
+        if(other.array_[i] == 0.){
+            array_[i] = 0.;
+        }else{
+            array_[i] /= other.array_[i];
+        }
+    }
+}
+void Array::smooth(const int n_iter){
+    throw std::logic_error("Not implemented yet");
+
+}

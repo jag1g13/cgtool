@@ -31,8 +31,8 @@ using std::clock_t;
 
 
 int main(const int argc, const char *argv[]){
-    clock_t start = std::clock();
     clock_t very_start = std::clock();
+    clock_t start = std::clock();
 
     const string version_string =
             "CGTOOL v0.3.196:f2fb511fbbaa";
@@ -67,6 +67,7 @@ int main(const int argc, const char *argv[]){
         num_threads = 1;
     }
 
+    // Allow comma separators in numbers for printf
     setlocale(LC_ALL, "");
 
     // Get input files
@@ -96,6 +97,7 @@ int main(const int argc, const char *argv[]){
         exit(EX_USAGE);
     }
     #else
+
     CMD cmd_parser(help_header, help_options, argc, argv);
     const string cfgname = cmd_parser.getFileArg("cfg");
     const string xtcname = cmd_parser.getFileArg("xtc");
@@ -151,8 +153,7 @@ int main(const int argc, const char *argv[]){
     }
 
     Membrane mem(resname, "PO4", frame.numAtomsPerResidue_, numResidues);
-//    if(!do_map) mem.sortBilayer(frame, 4);
-    double mem_thickness = 0.;
+    if(!do_map) mem.sortBilayer(frame, 4);
 
     // Read and process simulation frames
     split_text_output("Reading frames", start, num_threads);
@@ -169,13 +170,13 @@ int main(const int argc, const char *argv[]){
         // Process each frame as we read it, frames are not retained
         #ifdef UPDATE_PROGRESS
         if(i % PROGRESS_UPDATE_FREQ == 0){
-            float time = time_since(start, num_threads);
-            float fps = i / time;
+            const float time = time_since(start, num_threads);
+            const float fps = i / time;
 
             if(num_frames_max == -1){
                 printf("Read %6d frames @ %d FPS\r", i, int(fps));
             }else{
-                float t_remain = (num_frames_max - i) / fps;
+                const float t_remain = (num_frames_max - i) / fps;
                 printf("Read %'10d frames @ %'d FPS %6.1fs remaining\r", i, int(fps), t_remain);
             }
             std::flush(cout);
@@ -189,12 +190,13 @@ int main(const int argc, const char *argv[]){
             bond_set.calcBondsInternal(cg_frame);
         }else{
             bond_set.calcBondsInternal(frame);
-//            mem_thickness = mem.thickness(frame);
+            mem.thickness(frame, true);
         }
 
         // Calculate electric field/dipoles
-        if(do_field && i % ELECTRIC_FIELD_FREQ == 0)
-                field.calculate(frame, cg_frame, mapping);
+        if(do_field && i % ELECTRIC_FIELD_FREQ == 0){
+            field.calculate(frame, cg_frame, mapping);
+        }
 
         i++;
     }
@@ -225,6 +227,8 @@ int main(const int argc, const char *argv[]){
         itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
     }else{
         bond_set.calcAvgs();
+        printf("Membrane thickness: %5.3f\n", mem.mean());
+        mem.print_csv("thickness");
     }
 
     // This bit is slow - IO limited
@@ -236,8 +240,6 @@ int main(const int argc, const char *argv[]){
     }
     if(bond_set.bonds_.size() > 6) printf("  ...");
     cout << endl;
-
-    printf("Membrane thickness: %5.3f\n", mem_thickness);
 
     // Final timer
     split_text_output("Finished", very_start, num_threads);
