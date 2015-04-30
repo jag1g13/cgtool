@@ -70,6 +70,10 @@ int main(const int argc, const char *argv[]){
     // Allow comma separators in numbers for printf
     setlocale(LC_ALL, "");
 
+    // ##############################################################################
+    // Input Collection
+    // ##############################################################################
+
     // Get input files
     split_text_output(version_string, start, num_threads);
     // If not using command line parser, replace with a simple one
@@ -114,6 +118,10 @@ int main(const int argc, const char *argv[]){
         exit(EX_NOINPUT);
     }
 
+    // ##############################################################################
+    // System Setup
+    // ##############################################################################
+
     // Read number of frames from config, if not found read them all
     Parser parser(cfgname);
     vector<string> tokens;
@@ -152,7 +160,7 @@ int main(const int argc, const char *argv[]){
         field.init(100, 100, 100, mapping.numBeads_);
     }
 
-    Membrane mem(resname, "PO4", frame.numAtomsPerResidue_, numResidues);
+    Membrane mem(resname, "PO4", frame.numAtomsPerResidue_, numResidues, 50);
     if(!do_map) mem.sortBilayer(frame, 4);
 
     // Read and process simulation frames
@@ -163,6 +171,10 @@ int main(const int argc, const char *argv[]){
     }else{
         printf("Reading %'6i frames from XTC\n", num_frames_max);
     }
+
+    // ##############################################################################
+    // Main loop
+    // ##############################################################################
 
     int i = 1;
     // Keep reading frames until something goes wrong (run out of frames) or hit limit
@@ -190,7 +202,7 @@ int main(const int argc, const char *argv[]){
             bond_set.calcBondsInternal(cg_frame);
         }else{
             bond_set.calcBondsInternal(frame);
-            mem.thickness(frame, true);
+            mem.thickness(frame);
         }
 
         // Calculate electric field/dipoles
@@ -200,6 +212,10 @@ int main(const int argc, const char *argv[]){
 
         i++;
     }
+
+    // ##############################################################################
+    // Post processing / Averaging
+    // ##############################################################################
 
     // Print some data at the end
     cout << string(80, ' ') << "\r";
@@ -227,8 +243,9 @@ int main(const int argc, const char *argv[]){
         itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
     }else{
         bond_set.calcAvgs();
+        mem.normalize();
         printf("Membrane thickness: %5.3f\n", mem.mean());
-        mem.print_csv("thickness");
+        mem.printCSV("thickness");
     }
 
     // This bit is slow - IO limited

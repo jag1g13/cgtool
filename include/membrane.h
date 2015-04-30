@@ -18,12 +18,21 @@ struct Res{
     int num_residues;
 };
 
+struct HeadPair{
+    int upper;
+    int lower;
+};
+
 class Membrane{
 protected:
     /** Head group reference atoms in the upper layer */
     std::vector<int> upperHeads_;
     /** Head group reference atoms in the lower layer */
     std::vector<int> lowerHeads_;
+    /** Closest in lower leaflet to lipid in upper leaflet */
+    std::map<int, int> upperPair_;
+    /** Closest in upper leaflet to lipid in lower leaflet */
+    std::map<int, int> lowerPair_;
 
     /** The residue that's present - to be made plural soon */
     Res residue_;
@@ -31,14 +40,19 @@ protected:
     double box_[3];
     /** 2d Array to hold the membrane thickness on a grid */
     Array thickness_;
-    /** 2d Array to hold counts of lipids on a grid */
-    Array counts_;
     /** Number of grid points in x and y direction */
     int grid_;
-    /** Running average of membrane thickness */
-    double avgDist_ = 0.;
     /** Total number of frames processed - for averaging */
     int numFrames_ = 0;
+
+    /** \brief Create closest pairs of reference groups between layers */
+    void makePairs(const Frame &frame, const std::vector<int> &ref,
+                   const std::vector<int> &other, std::map<int, int> &pairs);
+
+    /** \brief Calculate thickness with reference to upper or lower leaflet */
+    void thicknessWithRef(const Frame &frame, const std::vector<int> &ref,
+                            const std::vector<int> &other,
+                            const std::map<int, int> &pairs);
 
 public:
 
@@ -54,17 +68,16 @@ public:
     void sortBilayer(const Frame &frame, const int ref_atom);
 
     /** \brief Calculate thickness of bilayer */
-    double thickness(const Frame &frame, const bool with_reset=false);
-
-    /** \brief Calculate thickness with reference to upper or lower leaflet */
-    double thickness_with_ref(const Frame &frame, const std::vector<int> &ref,
-                              const std::vector<int> &other);
+    void thickness(const Frame &frame, const bool with_reset=false);
 
     /** \brief Calculate averages - to be used after all frames have been processed */
     double mean();
 
+    /** \brief Normalize membrane thickness array in place */
+    void normalize();
+
     /** \brief Print thickness array to CSV */
-    void print_csv(const std::string &filename);
+    void printCSV(const std::string &filename);
 };
 
 #endif //CGTOOL_MEMBRANE_H

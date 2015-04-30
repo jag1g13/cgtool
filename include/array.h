@@ -108,6 +108,14 @@ public:
     Array& operator-=(const Array &other);
     /** Array in place add operator */
     Array& operator+=(const Array &other);
+    /** Array multiply by scalar */
+    Array& operator*=(const double mult);
+    /** Array multiply by scalar */
+    Array& operator/=(const double div);
+    /** Array add scalar */
+    Array& operator+=(const double add);
+    /** Array subtract scalar */
+    Array& operator-=(const double sub);
 
     /** Elementwise in place multiply */
     void element_multiply(const Array &other);

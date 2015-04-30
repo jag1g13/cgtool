@@ -96,6 +96,8 @@ double& Array::at(int x, int y) {
     assert(dimensions_ == 2);
     x = x % size_[0];
     y = y % size_[1];
+    while(x < 0) x += size_[0];
+    while(y < 0) y += size_[1];
     return array_[x * size_[1] + y];
 }
 
@@ -261,6 +263,27 @@ Array& Array::operator+=(const Array &other){
     assert(elems_ == other.elems_);
     assert(dimensions_ == other.dimensions_);
     for(int i=0; i<elems_; i++) array_[i] += other.array_[i];
+    return (*this);
+}
+
+Array& Array::operator*=(const double mult){
+    for(int i=0; i<elems_; i++) array_[i] *= mult;
+    return (*this);
+}
+
+Array& Array::operator/=(const double div){
+    const double mult = 1. / div;
+    for(int i=0; i<elems_; i++) array_[i] *= mult;
+    return (*this);
+}
+
+Array& Array::operator+=(const double add){
+    for(int i=0; i<elems_; i++) array_[i] += add;
+    return (*this);
+}
+
+Array& Array::operator-=(const double sub){
+    for(int i=0; i<elems_; i++) array_[i] -= sub;
     return (*this);
 }
 
