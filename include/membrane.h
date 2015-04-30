@@ -29,15 +29,17 @@ protected:
     std::vector<int> upperHeads_;
     /** Head group reference atoms in the lower layer */
     std::vector<int> lowerHeads_;
-    /** Closest in lower leaflet to lipid in upper leaflet */
-    std::map<int, int> upperPair_;
-    /** Closest in upper leaflet to lipid in lower leaflet */
-    std::map<int, int> lowerPair_;
+    /** Distance from ref in upper leaflet to closest in lower */
+    std::map<int, double> upperPair_;
+    /** Distance from ref in lower leaflet to closest in upper */
+    std::map<int, double> lowerPair_;
 
     /** The residue that's present - to be made plural soon */
     Res residue_;
     /** Size of the simulation box - assume orthorhombic */
     double box_[3];
+    /** Distance between grid points in xy plane */
+    double step_[2];
     /** 2d Array to hold the membrane thickness on a grid */
     Array thickness_;
     /** Number of grid points in x and y direction */
@@ -47,12 +49,12 @@ protected:
 
     /** \brief Create closest pairs of reference groups between layers */
     void makePairs(const Frame &frame, const std::vector<int> &ref,
-                   const std::vector<int> &other, std::map<int, int> &pairs);
+                   const std::vector<int> &other, std::map<int, double> &pairs);
 
     /** \brief Calculate thickness with reference to upper or lower leaflet */
     void thicknessWithRef(const Frame &frame, const std::vector<int> &ref,
                             const std::vector<int> &other,
-                            const std::map<int, int> &pairs);
+                            const std::map<int, double> &pairs);
 
 public:
 

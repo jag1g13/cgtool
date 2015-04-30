@@ -28,7 +28,7 @@ long file_size(const string filename)
 }
 
 float time_since(const clock_t &since, const int num_threads){
-    return float(std::clock() - since) / CLOCKS_PER_SEC;
+    return float(std::clock() - since) / (CLOCKS_PER_SEC * num_threads);
 }
 
 bool backup_old_file(const string name){

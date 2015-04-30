@@ -160,7 +160,7 @@ int main(const int argc, const char *argv[]){
         field.init(100, 100, 100, mapping.numBeads_);
     }
 
-    Membrane mem(resname, "PO4", frame.numAtomsPerResidue_, numResidues, 50);
+    Membrane mem(resname, "PO4", frame.numAtomsPerResidue_, numResidues, 10);
     if(!do_map) mem.sortBilayer(frame, 4);
 
     // Read and process simulation frames

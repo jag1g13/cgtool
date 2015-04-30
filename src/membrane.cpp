@@ -28,6 +28,8 @@ Membrane::Membrane(const string &resname, const string &ref_atom,
     // Setup grid
     grid_ = grid;
     thickness_.init(grid_, grid_);
+    step_[0] = box_[0] / grid_;
+    step_[1] = box_[1] / grid_;
 }
 
 void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
@@ -77,7 +79,7 @@ void Membrane::thickness(const Frame &frame, const bool with_reset){
 }
 
 void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
-                         const vector<int> &other, map<int, int> &pairs){
+                         const vector<int> &other, map<int, double> &pairs){
     // For each reference particle in the ref leaflet
     for(const int i : ref){
         double min_dist_2 = box_[2];
@@ -102,30 +104,28 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
             }
         }
 
-        pairs[i] = closest;
+        coords_i[2] = frame.atoms_[i].coords[2];
+        coords_j[2] = frame.atoms_[closest].coords[2];
+        pairs[i] = fabs(coords_i[2] - coords_j[2]);
     }
 }
 
 void Membrane::thicknessWithRef(const Frame &frame, const vector<int> &ref,
-                                    const vector<int> &other, const map<int, int> &pairs){
-    double step[2];
-    step[0] = box_[0] / grid_;
-    step[1] = box_[1] / grid_;
+                                    const vector<int> &other, const map<int, double> &pairs){
     const double max_box = box_[0] > box_[1] ? box_[0] : box_[1];
 
     double grid_coords[3];
     double ref_coords[3];
-    double other_coords[3];
 
     grid_coords[2] = 0.;
     ref_coords[2] = 0.;
 
     // For each grid point
     for(int i=0; i<grid_; i++){
-        grid_coords[0] = i * step[0];
+        grid_coords[0] = i * step_[0];
 
         for(int j=0; j<grid_; j++){
-            grid_coords[1] = j * step[1];
+            grid_coords[1] = j * step_[1];
             double min_dist2 = max_box*max_box;
 
             // Find closest in reference leaflet
@@ -140,10 +140,7 @@ void Membrane::thicknessWithRef(const Frame &frame, const vector<int> &ref,
                 }
             }
 
-            const int other_r = pairs.at(closest);
-            ref_coords[2] = frame.atoms_[closest].coords[2];
-            other_coords[2] = frame.atoms_[other_r].coords[2];
-            thickness_(i, j) += fabs(ref_coords[2] - other_coords[2]);
+            thickness_(i, j) += pairs.at(closest);
         }
     }
 }
@@ -157,6 +154,6 @@ void Membrane::normalize(){
 }
 
 void Membrane::printCSV(const std::string &filename){
-    thickness_.smooth(2);
+//    thickness_.smooth(2);
     thickness_.print_csv(filename);
 }
