@@ -67,8 +67,11 @@ void Membrane::thickness(const Frame &frame, const bool with_reset){
     makePairs(frame, upperHeads_, lowerHeads_, upperPair_);
     makePairs(frame, lowerHeads_, upperHeads_, lowerPair_);
 
-    thicknessWithRef(frame, upperHeads_, lowerHeads_, upperPair_);
-    thicknessWithRef(frame, lowerHeads_, upperHeads_, lowerPair_);
+#pragma omp parallel default(none) shared(frame)
+    {
+        thicknessWithRef(frame, upperHeads_, lowerHeads_, upperPair_);
+        thicknessWithRef(frame, lowerHeads_, upperHeads_, lowerPair_);
+    }
 
     numFrames_++;
 }
@@ -115,13 +118,13 @@ void Membrane::thicknessWithRef(const Frame &frame, const vector<int> &ref,
     grid_coords[2] = 0.;
     ref_coords[2] = 0.;
 
-    // For each grid point
-    #pragma omp parallel for default(none) private(grid_coords, ref_coords) shared(frame, ref, other, pairs)
+     // For each grid point
+    #pragma omp for
     for(int i=0; i<grid_; i++){
-        grid_coords[0] = i * step_[0];
+        grid_coords[0] = (i + 0.5) * step_[0];
 
         for(int j=0; j<grid_; j++){
-            grid_coords[1] = j * step_[1];
+            grid_coords[1] = (j + 0.5) * step_[1];
             double min_dist2 = max_box*max_box;
 
             // Find closest lipid in reference leaflet
@@ -129,7 +132,7 @@ void Membrane::thicknessWithRef(const Frame &frame, const vector<int> &ref,
             for(int r : ref){
                 ref_coords[0] = frame.atoms_[r].coords[0];
                 ref_coords[1] = frame.atoms_[r].coords[1];
-                const double dist2 = distSqr(grid_coords, ref_coords);
+                const double dist2 = distSqrPlane(grid_coords, ref_coords);
                 if(dist2 < min_dist2){
                     closest = r;
                     min_dist2 = dist2;
@@ -151,6 +154,7 @@ void Membrane::normalize(){
 }
 
 void Membrane::printCSV(const std::string &filename){
+    // Apply iterations of Gauss-Seidel smoother
     thickness_.smooth(1);
     thickness_.printCSV("thickness");
 }

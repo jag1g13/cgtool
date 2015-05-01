@@ -162,7 +162,7 @@ int main(const int argc, const char *argv[]){
 
     Membrane mem(resname, "PO4", frame.numAtomsPerResidue_, numResidues);
     if(!do_map){
-        mem.setResolution(1000);
+        mem.setResolution(500);
         mem.sortBilayer(frame, 1);
     }
 
@@ -172,7 +172,7 @@ int main(const int argc, const char *argv[]){
     if(num_frames_max == -1){
         printf("Reading all frames from XTC\n");
     }else{
-        printf("Reading %'6i frames from XTC\n", num_frames_max);
+        printf("Reading %'6d frames from XTC\n", num_frames_max);
     }
 
     // ##############################################################################
@@ -189,10 +189,10 @@ int main(const int argc, const char *argv[]){
             const float fps = i / time;
 
             if(num_frames_max == -1){
-                printf("Read %6d frames @ %d FPS\r", i, int(fps));
+                printf("Read %'9d frames @ %'d FPS\r", i, int(fps));
             }else{
                 const float t_remain = (num_frames_max - i) / fps;
-                printf("Read %'10d frames @ %'d FPS %6.1fs remaining\r", i, int(fps), t_remain);
+                printf("Read %'9d frames @ %'d FPS %6.1fs remaining\r", i, int(fps), t_remain);
             }
             std::flush(cout);
         }

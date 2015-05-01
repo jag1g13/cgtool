@@ -64,9 +64,14 @@ double abs(const double vec[3]){
 }
 
 double distSqr(const double c1[3], const double c2[3]){
-    return  (c1[0]-c2[0])*(c1[0]-c2[0]) +
-            (c1[1]-c2[1])*(c1[1]-c2[1]) +
-            (c1[2]-c2[2])*(c1[2]-c2[2]);
+    return (c1[0]-c2[0])*(c1[0]-c2[0]) +
+           (c1[1]-c2[1])*(c1[1]-c2[1]) +
+           (c1[2]-c2[2])*(c1[2]-c2[2]);
+}
+
+double distSqrPlane(const double c1[3], const double c2[3]){
+    return (c1[0]-c2[0])*(c1[0]-c2[0]) +
+           (c1[1]-c2[1])*(c1[1]-c2[1]);
 }
 
 void polar(const double cart[3], double polar[3]){

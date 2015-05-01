@@ -36,6 +36,9 @@ double abs(const double vec[3]);
 /** \brief Distance squared between two points as double[3] */
 double distSqr(const double c1[3], const double c2[3]);
 
+/** \brief Distance squared between two points in a plane as double[3] */
+double distSqrPlane(const double c1[3], const double c2[3]);
+
 /** \brief Convert 3d vector as double[3] to polar coordinates */
 void polar(const double cart[3], double polar[3]);
 
