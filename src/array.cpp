@@ -174,7 +174,7 @@ void Array::print(const int width, const int prec, const double scale){
     }
 }
 
-void Array::print_csv(const std::string &filename, const int remove_border){
+void Array::printCSV(const std::string &filename, const int remove_border){
     const int r = remove_border;
     assert(r >= 0);
     const string file = filename + ".csv";
@@ -202,6 +202,7 @@ void Array::print_csv(const std::string &filename, const int remove_border){
 }
 
 void Array::free(){
+    // Check for nullptr - has it been (de)allocated yet
     if(array_) delete[] array_;
     allocated_ = false;
     array_ = nullptr;
@@ -287,22 +288,23 @@ Array& Array::operator-=(const double sub){
     return (*this);
 }
 
-void Array::element_multiply(const Array &other){
+void Array::elementMultiply(const Array &other){
     assert(elems_ == other.elems_);
     assert(dimensions_ == other.dimensions_);
     for(int i=0; i<elems_; i++) array_[i] *= other.array_[i];
 }
 
-void Array::element_divide(const Array &other){
+void Array::elementDivide(const Array &other){
     assert(elems_ == other.elems_);
     assert(dimensions_ == other.dimensions_);
 
     for(int i=0; i<elems_; i++) array_[i] /= other.array_[i];
 }
 
-void Array::replace_nan(){
+void Array::replaceNaN(){
     vector<int> nans;
     for(int i=0; i<elems_; i++){
+        // If NaN - uses the fact that NaN != NaN
         if(array_[i] != array_[i]){
             array_[i] = 0.;
             nans.push_back(i);
@@ -328,7 +330,7 @@ void Array::smooth(const int n_iter){
     }
 }
 
-void Array::interpolate_zeros(){
+void Array::interpolateZeros(){
     for(int i=0; i<size_[0]; i++){
         for(int j=0; j<size_[1]; j++){
             if(at(i, j) == 0.) at(i, j) = (at(i,j-1) + at(i-1, j) +

@@ -63,8 +63,7 @@ public:
 
     /** \brief Constructor to setup residue */
     Membrane(const std::string &resname, const std::string &ref_atom,
-             const int num_atoms, const int num_residues,
-             const int grid=20);
+             const int num_atoms, const int num_residues);
 
     /** \brief Sort head groups into upper and lower bilayer */
     void sortBilayer(const Frame &frame, const int ref_atom);
@@ -80,6 +79,10 @@ public:
 
     /** \brief Print thickness array to CSV */
     void printCSV(const std::string &filename);
+
+    /** \brief Set resolution of calculation
+     * Number of grid points in x and y */
+    void setResolution(const int n);
 };
 
 #endif //CGTOOL_MEMBRANE_H

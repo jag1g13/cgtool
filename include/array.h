@@ -22,7 +22,7 @@ protected:
     /** Total number of elements in array */
     int elems_;
     /** Pointer to the actual array */
-    double* array_;
+    double* array_ = nullptr;
     /** Ignore safety features?  Default no */
     bool fast_;
     /** Has array_ been allocated yet? */
@@ -78,7 +78,7 @@ public:
     /** Print all elements of the array */
     void print(const int width=8, const int prec=4, const double scale=1);
     /** Print array to CSV */
-    void print_csv(const std::string &filename, const int remove_border=0);
+    void printCSV(const std::string &filename, const int remove_border=0);
 
     /** Free the array and mark as unallocated */
     void free();
@@ -99,7 +99,7 @@ public:
      * Uses n_iter Gauss-Seidel Red-Black iterations */
     void smooth(const int n_iter=1);
     /** \brief Find all zero entries and interpolate values from neighbours */
-    void interpolate_zeros();
+    void interpolateZeros();
 
     // operators and friends
     /** Array equality test */
@@ -118,12 +118,12 @@ public:
     Array& operator-=(const double sub);
 
     /** Elementwise in place multiply */
-    void element_multiply(const Array &other);
+    void elementMultiply(const Array &other);
     /** Elementwise in place divide */
-    void element_divide(const Array &other);
+    void elementDivide(const Array &other);
 
     /** Replace all NaN entries with the mean value */
-    void replace_nan();
+    void replaceNaN();
 
     /** RMS difference between two arrays */
     friend double rmsd(const Array &a, const Array &b);

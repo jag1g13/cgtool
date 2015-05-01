@@ -160,8 +160,11 @@ int main(const int argc, const char *argv[]){
         field.init(100, 100, 100, mapping.numBeads_);
     }
 
-    Membrane mem(resname, "PO4", frame.numAtomsPerResidue_, numResidues, 10);
-    if(!do_map) mem.sortBilayer(frame, 4);
+    Membrane mem(resname, "PO4", frame.numAtomsPerResidue_, numResidues);
+    if(!do_map){
+        mem.setResolution(1000);
+        mem.sortBilayer(frame, 1);
+    }
 
     // Read and process simulation frames
     split_text_output("Reading frames", start, num_threads);
@@ -202,7 +205,7 @@ int main(const int argc, const char *argv[]){
             bond_set.calcBondsInternal(cg_frame);
         }else{
             bond_set.calcBondsInternal(frame);
-            mem.thickness(frame);
+//            mem.thickness(frame);
         }
 
         // Calculate electric field/dipoles
@@ -243,6 +246,7 @@ int main(const int argc, const char *argv[]){
         itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
     }else{
         bond_set.calcAvgs();
+        mem.thickness(frame, true);
         mem.normalize();
         printf("Membrane thickness: %5.3f\n", mem.mean());
         mem.printCSV("thickness");

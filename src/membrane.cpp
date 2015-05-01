@@ -16,20 +16,13 @@ using std::endl;
 using std::map;
 
 Membrane::Membrane(const string &resname, const string &ref_atom,
-                   const int num_atoms, const int num_residues,
-                   const int grid){
+                   const int num_atoms, const int num_residues){
     // Copy arguments into residue_
     //TODO just pass the residue in as a whole
     residue_.resname = resname;
     residue_.ref_atom = ref_atom;
     residue_.num_atoms = num_atoms;
     residue_.num_residues = num_residues;
-
-    // Setup grid
-    grid_ = grid;
-    thickness_.init(grid_, grid_);
-    step_[0] = box_[0] / grid_;
-    step_[1] = box_[1] / grid_;
 }
 
 void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
@@ -38,12 +31,14 @@ void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
 
     // Copy box from Frame - assume orthorhombic
     box_[0] = frame.box_[0][0];
-    box_[1] = frame.box_[1][1];    /** Closest in lower leaflet to lipid in upper leaflet */
-    std::map<int, int> upperPair_;
+    box_[1] = frame.box_[1][1];
     box_[2] = frame.box_[2][2];
+    step_[0] = box_[0] / grid_;
+    step_[1] = box_[1] / grid_;
 
 
     // Calculate average z coord of reference atom
+    //TODO do this in blocks to account for curvature
     double avg_z = 0.;
     for(int i=0; i<residue_.num_residues; i++){
         const int num = ref_atom + i * residue_.num_atoms;
@@ -83,7 +78,6 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
     // For each reference particle in the ref leaflet
     for(const int i : ref){
         double min_dist_2 = box_[2];
-        int closest = -1;
 
         double coords_i[3];
         coords_i[0] = frame.atoms_[i].coords[0];
@@ -92,6 +86,7 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
         double coords_j[3];
 
         // Find the closest reference particle in the other leaflet
+        int closest = -1;
         for(const int j : other){
             coords_j[0] = frame.atoms_[j].coords[0];
             coords_j[1] = frame.atoms_[j].coords[1];
@@ -121,6 +116,7 @@ void Membrane::thicknessWithRef(const Frame &frame, const vector<int> &ref,
     ref_coords[2] = 0.;
 
     // For each grid point
+    #pragma omp parallel for default(none) private(grid_coords, ref_coords) shared(frame, ref, other, pairs)
     for(int i=0; i<grid_; i++){
         grid_coords[0] = i * step_[0];
 
@@ -128,7 +124,7 @@ void Membrane::thicknessWithRef(const Frame &frame, const vector<int> &ref,
             grid_coords[1] = j * step_[1];
             double min_dist2 = max_box*max_box;
 
-            // Find closest in reference leaflet
+            // Find closest lipid in reference leaflet
             int closest = -1;
             for(int r : ref){
                 ref_coords[0] = frame.atoms_[r].coords[0];
@@ -140,6 +136,7 @@ void Membrane::thicknessWithRef(const Frame &frame, const vector<int> &ref,
                 }
             }
 
+            // Lookup thickness for the closest lipid
             thickness_(i, j) += pairs.at(closest);
         }
     }
@@ -154,6 +151,11 @@ void Membrane::normalize(){
 }
 
 void Membrane::printCSV(const std::string &filename){
-//    thickness_.smooth(2);
-    thickness_.print_csv(filename);
+    thickness_.smooth(1);
+    thickness_.printCSV("thickness");
+}
+
+void Membrane::setResolution(const int n){
+    grid_ = n;
+    thickness_.init(grid_, grid_);
 }
