@@ -25,6 +25,10 @@ Membrane::Membrane(const string &resname, const string &ref_atom,
     residue_.num_residues = num_residues;
 }
 
+Membrane::Membrane(const Res &residue){
+    residue_ = residue;
+}
+
 void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
 //TODO fix this so that ref_atom can be used by name
 //    const int ref_atom = frame.nameToNum_.at(residue_.ref_atom);
@@ -35,6 +39,8 @@ void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
     box_[2] = frame.box_[2][2];
 
 
+    const int blocks = 2;
+    double block_avg_z[2][2] = {{0., 0.}, {0., 0.}};
     // Calculate average z coord of reference atom
     //TODO do this in blocks to account for curvature
     double avg_z = 0.;

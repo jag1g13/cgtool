@@ -161,7 +161,8 @@ int main(const int argc, const char *argv[]){
         field.init(100, 100, 100, mapping.numBeads_);
     }
 
-    Membrane mem(resname, "PO4", frame.residue_.num_atoms, numResidues);
+//    Membrane mem(resname, "PO4", frame.residue_.num_atoms, numResidues);
+    Membrane mem(frame.residue_);
     if(!do_map){
         mem.sortBilayer(frame, 1);
         mem.setResolution(100);

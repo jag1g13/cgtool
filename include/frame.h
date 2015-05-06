@@ -7,14 +7,14 @@
 #include <string>
 #include <map>
 
-#include "bondset.h"
+#include "bond_struct.h"
 
 /**
 * \brief Struct to hold atom data
 */
 struct Atom{
     /** Atomtype as a string.  I don't want to be dealing with *char */
-    std::string atom_type;
+    std::string atom_type = "";
     /** Atomic coordinates in x, y, z */
     double coords[3] = {0., 0., 0.};
     /** Atomic charge from the force field */
@@ -26,10 +26,11 @@ struct Atom{
 };
 
 struct Res{
-    std::string resname;
-    std::string ref_atom;
-    int num_atoms;
-    int num_residues;
+    std::string resname = "";
+    std::string ref_atom = "";
+    int num_atoms = 1;
+    int num_residues = 1;
+    int total_atoms = 1;
 };
 
 enum class BoxType{CUBIC, TRICLINIC};
@@ -52,7 +53,7 @@ protected:
     /** Holds atomic coordinates for GROMACS */
     rvec *x_ = nullptr;
     /** Name of the Frame; taken from comment in the GRO file */
-    std::string name_;
+    std::string name_ = "";
     /** What box shape do we have?  Currently must be cubic */
     BoxType boxType_ = BoxType::CUBIC;
 

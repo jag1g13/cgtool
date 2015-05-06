@@ -11,10 +11,6 @@
 using std::vector;
 using std::string;
 
-// resolve circular dependency
-class Frame;
-
-
 /**
 * \brief Class that holds all bond lengths, angles and dihedrals to be calculated
 */
@@ -32,6 +28,8 @@ protected:
     int numThreads_ = 1;
     /** Residue name - for CSV output */
     std::string resname_;
+    /** The residue that's present - to be made plural soon */
+    Res residue_;
 
 public:
     /** Vector of bond length pairs; Contains all bond lengths that must be calculated */

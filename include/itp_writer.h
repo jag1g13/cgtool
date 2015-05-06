@@ -9,6 +9,7 @@
 #include "cg_map.h"
 #include "frame.h"
 #include "file_io.h"
+#include "bondset.h"
 
 /** \brief Contains all functions necessary to print mapping to a
  * GROMACS/LAMMPS force field file.  Handles the [moleculetype],

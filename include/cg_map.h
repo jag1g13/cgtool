@@ -52,7 +52,7 @@ public:
     /** Number of beads defined */
     int numBeads_;
     /** Vector of BeadMap; holds the mappings for every bead */
-    vector<BeadMap> mapping_;
+    std::vector<BeadMap> mapping_;
 
     /**
     * \brief Constructor to create a blank instance
@@ -62,7 +62,7 @@ public:
     /**
     * \brief Constructor to create an instance from the mapping file provided
     */
-    CGMap(const std::string &resname, const int numResidues, const string &filename="");
+    CGMap(const std::string &resname, const int numResidues, const std::string &filename="");
 
     /**
     * \brief Read in CG mapping from file

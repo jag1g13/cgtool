@@ -3,9 +3,11 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <string>
 
 #include "small_functions.h"
 
+using std::string;
 using std::min;
 using std::max;
 using std::vector;
@@ -50,7 +52,6 @@ void FieldMap::calculate(const Frame &aa_frame, const Frame &cg_frame, const CGM
     calcTotalDipole(aa_frame);
     calcSumDipole();
     printDipoles();
-//    printFieldsToFile();
 
     StatsBox sb = vector_stats(fieldMonopoleContracted_, fieldDipoleContracted_);
     cout << "\tRMS: " << sb.rmsd << "\tRRMS: " << sb.nrmsd << endl;

@@ -49,6 +49,8 @@ public:
     /** \brief Blank constructor */
     Membrane(){};
 
+    Membrane(const Res &residue);
+
     /** \brief Constructor to setup residue */
     Membrane(const std::string &resname, const std::string &ref_atom,
              const int num_atoms, const int num_residues);

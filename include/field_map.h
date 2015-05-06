@@ -8,7 +8,7 @@
 #include "cg_map.h"
 
 namespace constants{
-    const float ENM2DEBYE = 2.0819434f;
+    const double ENM2DEBYE = 2.0819434;
 }
 
 /**
