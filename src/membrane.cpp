@@ -33,8 +33,6 @@ void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
     box_[0] = frame.box_[0][0];
     box_[1] = frame.box_[1][1];
     box_[2] = frame.box_[2][2];
-    step_[0] = box_[0] / grid_;
-    step_[1] = box_[1] / grid_;
 
 
     // Calculate average z coord of reference atom
@@ -149,17 +147,19 @@ double Membrane::mean(){
     return thickness_.mean();
 }
 
-void Membrane::normalize(){
+void Membrane::normalize(const int smooth_iter){
+    // Apply iterations of Gauss-Seidel smoother
+    thickness_.smooth(smooth_iter);
     thickness_ /= 2 * numFrames_;
 }
 
 void Membrane::printCSV(const std::string &filename){
-    // Apply iterations of Gauss-Seidel smoother
-    thickness_.smooth(1);
-    thickness_.printCSV("thickness");
+    thickness_.printCSV(filename);
 }
 
 void Membrane::setResolution(const int n){
     grid_ = n;
     thickness_.init(grid_, grid_);
+    step_[0] = box_[0] / grid_;
+    step_[1] = box_[1] / grid_;
 }

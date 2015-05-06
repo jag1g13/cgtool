@@ -11,18 +11,6 @@
 #include "frame.h"
 #include "array.h"
 
-struct Res{
-    std::string resname;
-    std::string ref_atom;
-    int num_atoms;
-    int num_residues;
-};
-
-struct HeadPair{
-    int upper;
-    int lower;
-};
-
 class Membrane{
 protected:
     /** Head group reference atoms in the upper layer */
@@ -75,7 +63,7 @@ public:
     double mean();
 
     /** \brief Normalize membrane thickness array in place */
-    void normalize();
+    void normalize(const int smooth_iter=1);
 
     /** \brief Print thickness array to CSV */
     void printCSV(const std::string &filename);

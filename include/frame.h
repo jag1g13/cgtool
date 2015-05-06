@@ -16,15 +16,21 @@ struct Atom{
     /** Atomtype as a string.  I don't want to be dealing with *char */
     std::string atom_type;
     /** Atomic coordinates in x, y, z */
-    double coords[3];
+    double coords[3] = {0., 0., 0.};
     /** Atomic charge from the force field */
     double charge = 0.;
     /** Atomic mass */
     double mass = 0.;
     /** Create a blank Atom instance */
-    Atom(){coords[0] = 0.; coords[1] = 0.; coords[2] = 0.;};
+    Atom(){};
 };
 
+struct Res{
+    std::string resname;
+    std::string ref_atom;
+    int num_atoms;
+    int num_residues;
+};
 
 enum class BoxType{CUBIC, TRICLINIC};
 
@@ -49,10 +55,8 @@ protected:
     std::string name_;
     /** What box shape do we have?  Currently must be cubic */
     BoxType boxType_ = BoxType::CUBIC;
-    /** How many of this residue are there? */
-    int numResidues_ = 0;
-    /** What is the resname of the molecule we want to map - column 4 of the itp */
-    std::string resname_;
+    /** The residue that's present - to be made plural soon */
+    Res residue_;
 
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file

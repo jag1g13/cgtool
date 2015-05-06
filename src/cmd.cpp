@@ -62,6 +62,8 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
         po::store(po::parse_command_line(argc, argv, desc_), options_);
     }catch(po::error e){
         cout << "Unrecognised command line argument\n" << endl;
+        cout << "Arguments:" << endl;
+        cout << desc_ << endl;
         exit(EX_USAGE);
     }
 

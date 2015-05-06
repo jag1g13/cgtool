@@ -19,7 +19,7 @@
 #include "cmd.h"
 #endif
 
-#define PROGRESS_UPDATE_FREQ 100
+#define PROGRESS_UPDATE_FREQ 10
 #define ELECTRIC_FIELD_FREQ 100
 
 using std::string;
@@ -35,7 +35,7 @@ int main(const int argc, const char *argv[]){
     clock_t start = std::clock();
 
     const string version_string =
-            "CGTOOL v0.3.196:f2fb511fbbaa";
+            "CGTOOL v0.3.212:21e97c32d18d";
 
     const string help_header =
             "CGTOOL James Graham <J.A.Graham@soton.ac.uk> University of Southampton\n\n"
@@ -78,7 +78,7 @@ int main(const int argc, const char *argv[]){
     split_text_output(version_string, start, num_threads);
     // If not using command line parser, replace with a simple one
     // Do this so we can compile without Boost program_options
-    //TODO this won't work anymore - too many things added - fix or delete
+    //TODO add test
     #ifdef NO_CMD_PARSER
     const string cfgname, xtcname, topname, groname;
     if(argc > 1 && (string(argv[1]) == "-h" || string(argv[1]) == "--help")){
@@ -95,9 +95,10 @@ int main(const int argc, const char *argv[]){
         cfgname = string(argv[2]);
         xtcname = string(argv[4]);
         topname = string(argv[6]);
-        groname = "nope";
+        groname = "NONE";
     }else{
-        cout << "Wrong number of arguments provided" << endl;
+        cout << "Wrong arguments provided for simple parser" << endl;
+        cout << help_header << endl;
         exit(EX_USAGE);
     }
     #else
@@ -123,16 +124,16 @@ int main(const int argc, const char *argv[]){
     // ##############################################################################
 
     // Read number of frames from config, if not found read them all
-    Parser parser(cfgname);
+    Parser cfg_parser(cfgname);
     vector<string> tokens;
     int num_frames_max = -1;
-    if(parser.getLineFromSection("frames", tokens, 1)) num_frames_max = stoi(tokens[0]);
+    if(cfg_parser.getLineFromSection("frames", tokens, 1)) num_frames_max = stoi(tokens[0]);
     if(cmd_parser.getIntArg("frames") != 0) num_frames_max = cmd_parser.getIntArg("frames");
 
     bool do_map = !cmd_parser.getBoolArg("nomap");
     int numResidues = 1;
     string resname = "";
-    if(parser.getLineFromSection("residues", tokens, 2)){
+    if(cfg_parser.getLineFromSection("residues", tokens, 2)){
         numResidues = stoi(tokens[0]);
         resname = tokens[1];
         if(do_map) printf("Mapping %d %s residue(s)\n", numResidues, resname.c_str());
@@ -162,8 +163,8 @@ int main(const int argc, const char *argv[]){
 
     Membrane mem(resname, "PO4", frame.numAtomsPerResidue_, numResidues);
     if(!do_map){
-        mem.setResolution(500);
         mem.sortBilayer(frame, 1);
+        mem.setResolution(100);
     }
 
     // Read and process simulation frames
@@ -180,11 +181,21 @@ int main(const int argc, const char *argv[]){
     // ##############################################################################
 
     int i = 1;
+    int progress_update_freq = PROGRESS_UPDATE_FREQ;
+    clock_t last_update = std::clock();
     // Keep reading frames until something goes wrong (run out of frames) or hit limit
     while(frame.readNext() && (num_frames_max == -1 || i < num_frames_max)){
         // Process each frame as we read it, frames are not retained
         #ifdef UPDATE_PROGRESS
-        if(i % PROGRESS_UPDATE_FREQ == 0){
+        if(i % progress_update_freq == 0){
+            const float time_since_update = time_since(last_update, num_threads);
+            if(time_since_update > 0.5f){
+                progress_update_freq /= 10;
+            }else if(time_since_update < 0.01f){
+                cout << "short" << endl;
+                progress_update_freq *= 10;
+            }
+
             const float time = time_since(start, num_threads);
             const float fps = i / time;
 
@@ -195,6 +206,8 @@ int main(const int argc, const char *argv[]){
                 printf("Read %'9d frames @ %'d FPS %6.1fs remaining\r", i, int(fps), t_remain);
             }
             std::flush(cout);
+
+            last_update = std::clock();
         }
         #endif
 
@@ -205,7 +218,7 @@ int main(const int argc, const char *argv[]){
             bond_set.calcBondsInternal(cg_frame);
         }else{
             bond_set.calcBondsInternal(frame);
-//            mem.thickness(frame);
+            mem.thickness(frame);
         }
 
         // Calculate electric field/dipoles
@@ -246,12 +259,20 @@ int main(const int argc, const char *argv[]){
         itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
     }else{
         bond_set.calcAvgs();
-        mem.thickness(frame, true);
-        mem.normalize();
+
+        // Membrane thickness simulation average
+        mem.normalize(0);
         printf("Membrane thickness: %5.3f\n", mem.mean());
-        mem.printCSV("thickness");
+        mem.printCSV("thickness_running");
+
+        // Membrane thickness in final frame
+        mem.setResolution(500);
+        mem.thickness(frame, true);
+        mem.normalize(0);
+        mem.printCSV("thickness_final");
     }
 
+    // Write out all frame bond lengths/angles/dihedrals to file
     // This bit is slow - IO limited
     if(cmd_parser.getBoolArg("csv")) bond_set.writeCSV();
 

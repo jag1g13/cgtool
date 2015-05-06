@@ -17,6 +17,8 @@ Array::Array(const int a, const int b, const int c, const bool fast){
 }
 
 void Array::init(const int a, const int b, const int c, const bool fast){
+    if(array_) free();
+
     fast_ = fast;
     allocated_ = false;
 
@@ -80,6 +82,8 @@ double& Array::operator()(int x){
 }
 
 double& Array::operator()(int x, int y){
+    if(fast_) return array_[x * size_[1] + y];
+
     assert(allocated_);
     assert(dimensions_ >= 2);
     if(x < 0) x = size_[0] + x;

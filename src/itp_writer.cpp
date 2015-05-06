@@ -13,7 +13,7 @@ using std::cout;
 using std::endl;
 using std::vector;
 
-ITPWriter::ITPWriter(const string &resName, FileFormat format, string itpname){
+ITPWriter::ITPWriter(const string &resName, const FileFormat format, string itpname){
     format_ = format;
 
     switch(format_){
