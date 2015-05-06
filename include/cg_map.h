@@ -44,12 +44,9 @@ protected:
     /** \brief What type of mapping are we going to apply?  CM, GC, or atom centred
     * Default is geometric centre of component atoms. */
     MapType mapType_ = MapType::GC;
-    /** Residue name */
-    std::string resname_;
-    /** Number of residues being mapped */
-    int numResidues_ = 0;
     /** Where does the block of residues we're mapping start? */
     int resBlockStart_ = 0;
+    Res residue_;
 
 public:
     /** Number of beads defined */

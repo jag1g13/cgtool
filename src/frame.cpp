@@ -125,7 +125,7 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
         for(int j=0; j<3; j++){
             box_[i][j] = box_[i][j];
             if(i!=j && box_[i][j] > EPSILON) boxType_ = BoxType::TRICLINIC;
-            // must be cubic box
+            // Require cubic box
 //            if(i != j) assert(box_[i][j] < EPSILON);
         }
     }
@@ -144,14 +144,14 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
         // If we don't have a resname from cfg, be backward compatible
         // Loop through all atoms and take the last number
         if(residue_.resname != ""){
-            if(substrs[3] == residue_.resname) numAtomsPerResidue_ = stoi(substrs[0]);
+            if(substrs[3] == residue_.resname) residue_.num_atoms = stoi(substrs[0]);
         }else{
-            numAtomsPerResidue_ = stoi(substrs[0]);
+            residue_.num_atoms = stoi(substrs[0]);
         }
     }
 
-    cout << "Found " << numAtomsPerResidue_ << " atoms in ITP per " << residue_.resname << endl;
-    numAtomsTrack_ = residue_.num_residues * numAtomsPerResidue_;
+    cout << "Found " << residue_.num_atoms << " atoms in ITP per " << residue_.resname << endl;
+    numAtomsTrack_ = residue_.num_residues * residue_.num_atoms;
     atoms_.resize(numAtomsTrack_);
 
     // If we have a GRO then find the resname we're looking for
@@ -171,7 +171,7 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
     }
 
 
-    for(int i=0; i<numAtomsPerResidue_; i++){
+    for(int i=0; i<residue_.num_atoms; i++){
         // read data from topology file for each atom
         // internal atom name is the res # and atom name from top/gro
         top_parser.getLineFromSection("atoms", substrs, 5);
@@ -184,7 +184,7 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
         nameToNum_[atoms_[i].atom_type] = i;
 
         for(int j=0; j<residue_.num_residues; j++){
-            const int num = i + j*numAtomsPerResidue_;
+            const int num = i + j*residue_.num_atoms;
             atoms_[num] = Atom();
             atoms_[num].atom_type = name;
             atoms_[num].charge = charge;
@@ -273,7 +273,7 @@ void Frame::printGRO(string filename, int natoms){
     fprintf(gro, "%s", stream.str().c_str());
     for(int i=0; i < natoms; i++){
         fprintf(gro, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n",
-                1+(i/numAtomsPerResidue_), residue_.resname.c_str(), atoms_[i].atom_type.c_str(), i+1,
+                1+(i/residue_.num_atoms), residue_.resname.c_str(), atoms_[i].atom_type.c_str(), i+1,
                 atoms_[i].coords[0], atoms_[i].coords[1], atoms_[i].coords[2]);
 
         for(int j=0; j < 3; j++){
@@ -318,10 +318,13 @@ double Frame::bondAngle(BondStruct &bond, const int offset){
     }
 
     double vec1[3], vec2[3];
-    for(int i = 0; i < 3; i++){
-        vec1[i] = atoms_[b].coords[i] - atoms_[a].coords[i];
-        vec2[i] = atoms_[d].coords[i] - atoms_[c].coords[i];
-    }
+    vec1[0] = atoms_[b].coords[0] - atoms_[a].coords[0];
+    vec1[1] = atoms_[b].coords[1] - atoms_[a].coords[1];
+    vec1[2] = atoms_[b].coords[2] - atoms_[a].coords[2];
+
+    vec2[0] = atoms_[d].coords[0] - atoms_[c].coords[0];
+    vec2[1] = atoms_[d].coords[1] - atoms_[c].coords[1];
+    vec2[2] = atoms_[d].coords[2] - atoms_[c].coords[2];
 
     const double angle = acos(dot(vec1, vec2) / (abs(vec1) * abs(vec2)));
     return (180. - (angle * 180. / M_PI));

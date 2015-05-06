@@ -64,7 +64,7 @@ void BondSet::fromFile(const string &filename){
 void BondSet::calcBondsInternal(Frame &frame){
     for(int i=0; i < numResidues_; i++){
         bool res_okay = true;
-        const int offset = i * frame.numAtomsPerResidue_;
+        const int offset = i * frame.residue_.num_atoms;
         // Does the structure cross a pbc - will break bond lengths
         for(BondStruct &bond : bonds_){
             double dist = frame.bondLength(bond, offset);

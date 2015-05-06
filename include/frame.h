@@ -55,8 +55,6 @@ protected:
     std::string name_;
     /** What box shape do we have?  Currently must be cubic */
     BoxType boxType_ = BoxType::CUBIC;
-    /** The residue that's present - to be made plural soon */
-    Res residue_;
 
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file
@@ -91,10 +89,10 @@ public:
     int step_ = 0;
     /** Map mapping atom names to numbers for each residue */
     std::map<std::string, int> nameToNum_;
-    /** How many atoms are in this residue? */
-    int numAtomsPerResidue_ = 0;
     /** Size of the simulation box */
     float box_[3][3];
+    /** The residue that's present - to be made plural soon */
+    Res residue_;
 
 
     /** \brief Create Frame passing frame number, number of atoms to store and the frame name
