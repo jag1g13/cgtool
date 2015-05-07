@@ -29,7 +29,7 @@ protected:
     /** Residue name - for CSV output */
     std::string resname_;
     /** The residue that's present - to be made plural soon */
-    Res residue_;
+    Residue residue_;
 
 public:
     /** Vector of bond length pairs; Contains all bond lengths that must be calculated */

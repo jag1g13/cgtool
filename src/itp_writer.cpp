@@ -13,23 +13,23 @@ using std::cout;
 using std::endl;
 using std::vector;
 
-ITPWriter::ITPWriter(const string &resName, const FileFormat format, string itpname){
+ITPWriter::ITPWriter(const Residue &residue, const FileFormat format, string itpname){
     format_ = format;
+    resName_ = residue.resname;
 
     switch(format_){
         case FileFormat::GROMACS:
-            if(itpname == "") itpname = resName + ".itp";
+            if(itpname == "") itpname = resName_ + ".itp";
             comment_ = ';';
             break;
 
         case FileFormat::LAMMPS:
             // Considering just leaving filenames the same
-            if(itpname == "") itpname = "forcefield." + resName;
+            if(itpname == "") itpname = "forcefield." + resName_;
             comment_ = '#';
             break;
     }
     name_ = itpname;
-    resName_ = resName;
     backup_old_file(name_.c_str());
 
     itp_ = std::fopen(name_.c_str(), "w");

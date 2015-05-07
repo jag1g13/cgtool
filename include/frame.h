@@ -25,12 +25,13 @@ struct Atom{
     Atom(){};
 };
 
-struct Res{
+struct Residue{
     std::string resname = "";
     std::string ref_atom = "";
     int num_atoms = 1;
     int num_residues = 1;
     int total_atoms = 1;
+    Residue& operator=(const Residue other);
 };
 
 enum class BoxType{CUBIC, TRICLINIC};
@@ -93,7 +94,7 @@ public:
     /** Size of the simulation box */
     float box_[3][3];
     /** The residue that's present - to be made plural soon */
-    Res residue_;
+    Residue residue_;
 
 
     /** \brief Create Frame passing frame number, number of atoms to store and the frame name
@@ -103,7 +104,7 @@ public:
 
     /** \brief Create Frame passing config files.
     * Replaces calls to the function Frame::setupFrame() */
-    Frame(const std::string &topname, const std::string &xtcname, const std::string &groname, const std::string &resname, const int numResidues=1);
+    Frame(const std::string &topname, const std::string &xtcname, const std::string &groname, const Residue &residue);
 
     /** \brief Create Frame by copying data from another Frame
     * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied. */

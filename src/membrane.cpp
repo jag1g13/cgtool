@@ -25,7 +25,7 @@ Membrane::Membrane(const string &resname, const string &ref_atom,
     residue_.num_residues = num_residues;
 }
 
-Membrane::Membrane(const Res &residue){
+Membrane::Membrane(const Residue &residue){
     residue_ = residue;
 }
 

@@ -131,23 +131,23 @@ int main(const int argc, const char *argv[]){
     if(cmd_parser.getIntArg("frames") != 0) num_frames_max = cmd_parser.getIntArg("frames");
 
     bool do_map = !cmd_parser.getBoolArg("nomap");
-    int numResidues = 1;
-    string resname = "";
+    Residue residue;
     if(cfg_parser.getLineFromSection("residues", tokens, 2)){
-        numResidues = stoi(tokens[0]);
-        resname = tokens[1];
-        if(do_map) printf("Mapping %d %s residue(s)\n", numResidues, resname.c_str());
+        residue.num_residues = stoi(tokens[0]);
+        residue.resname = tokens[1];
+        if(do_map) printf("Mapping %d %s residue(s)\n",
+                          residue.num_residues, residue.resname.c_str());
     }else{
         cout << "Residue to map not found in config" << endl;
     }
 
     // Open files and do setup
     split_text_output("Frame setup", start, num_threads);
-    Frame frame(topname, xtcname, groname, resname, numResidues);
+    Frame frame(topname, xtcname, groname, residue);
 
     Frame cg_frame(frame);
     BondSet bond_set(cfgname);
-    CGMap mapping(resname, numResidues);
+    CGMap mapping(residue);
     if(do_map){
         mapping.fromFile(cfgname);
         mapping.initFrame(frame, cg_frame);
@@ -193,7 +193,6 @@ int main(const int argc, const char *argv[]){
             if(time_since_update > 0.5f){
                 progress_update_freq /= 10;
             }else if(time_since_update < 0.01f){
-                cout << "short" << endl;
                 progress_update_freq *= 10;
             }
 
@@ -255,7 +254,7 @@ int main(const int argc, const char *argv[]){
 
         cout << "Printing results to ITP" << endl;
         //TODO put format choice in config file or command line option
-        ITPWriter itp(resname, FileFormat::GROMACS);
+        ITPWriter itp(residue, FileFormat::GROMACS);
         itp.printAtoms(mapping, true);
         itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
     }else{

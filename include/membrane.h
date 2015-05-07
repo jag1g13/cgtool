@@ -23,7 +23,7 @@ protected:
     std::map<int, double> lowerPair_;
 
     /** The residue that's present - to be made plural soon */
-    Res residue_;
+    Residue residue_;
     /** Size of the simulation box - assume orthorhombic */
     double box_[3];
     /** Distance between grid points in xy plane */
@@ -49,7 +49,7 @@ public:
     /** \brief Blank constructor */
     Membrane(){};
 
-    Membrane(const Res &residue);
+    Membrane(const Residue &residue);
 
     /** \brief Constructor to setup residue */
     Membrane(const std::string &resname, const std::string &ref_atom,

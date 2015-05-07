@@ -10,8 +10,9 @@ using std::endl;
 using std::vector;
 using std::string;
 
-CGMap::CGMap(const string &resname, const int numResidues, const string &filename){
-    residue_.num_residues = numResidues;
+CGMap::CGMap(const Residue &residue, const string &filename){
+//    residue_.num_residues = numResidues;
+    residue_ = residue;
     if(filename != "") fromFile(filename);
 }
 
@@ -62,6 +63,7 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
     // Create Frame and copy copyable data
     residue_.num_atoms = numBeads_;
     cg_frame.residue_ = residue_;
+    cg_frame.numAtoms_ = numBeads_;
     cg_frame.atoms_.resize(residue_.num_residues * residue_.num_atoms);
 
     // Create atom for each CG bead

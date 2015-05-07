@@ -24,6 +24,16 @@ using std::endl;
 using std::stoi;
 using std::printf;
 
+Residue& Residue::operator=(const Residue other){
+    resname = other.resname;
+    ref_atom = other.ref_atom;
+    num_atoms = other.num_atoms;
+    num_residues = other.num_residues;
+    total_atoms = other.total_atoms;
+
+    return *this;
+}
+
 Frame::Frame(const int num, const int natoms, const string name){
     assert(natoms >= 0);
     name_ = name;
@@ -44,9 +54,11 @@ Frame::Frame(const Frame &frame){
     isSetup_ = true;
 }
 
-Frame::Frame(const string &topname, const string &xtcname, const string &groname, const string &resname, const int numResidues){
-    residue_.resname = resname;
-    residue_.num_residues = numResidues;
+Frame::Frame(const string &topname, const string &xtcname,
+             const string &groname, const Residue &residue){
+//    residue_.resname = resname;
+//    residue_.num_residues = numResidues;
+    residue_ = residue;
     setupFrame(topname, xtcname, groname);
 }
 
