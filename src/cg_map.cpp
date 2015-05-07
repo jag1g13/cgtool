@@ -62,6 +62,7 @@ void CGMap::fromFile(const string &filename){
 void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
     // Create Frame and copy copyable data
     residue_.num_atoms = numBeads_;
+    residue_.total_atoms = residue_.num_atoms * residue_.num_residues;
     cg_frame.residue_ = residue_;
     cg_frame.numAtoms_ = numBeads_;
     cg_frame.atoms_.resize(residue_.num_residues * residue_.num_atoms);
@@ -118,9 +119,6 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
     cg_frame.num_ = aa_frame.num_;
     cg_frame.time_ = aa_frame.time_;
     cg_frame.step_ = aa_frame.step_;
-
-    // Remove 'invalid' marker - for frames where molecule crosses PBC
-    cg_frame.invalid_ = false;
 
     // Which mapping are we using?
     switch(mapType_){

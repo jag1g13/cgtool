@@ -48,16 +48,13 @@ Frame::Frame(const Frame &frame){
     prec_ = frame.prec_;
     time_ = frame.time_;
     step_ = frame.step_;
-    residue_.resname = frame.residue_.resname;
-    residue_.num_residues = frame.residue_.num_residues;
+    residue_ = frame.residue_;
     boxType_ = frame.boxType_;
     isSetup_ = true;
 }
 
 Frame::Frame(const string &topname, const string &xtcname,
              const string &groname, const Residue &residue){
-//    residue_.resname = resname;
-//    residue_.num_residues = numResidues;
     residue_ = residue;
     setupFrame(topname, xtcname, groname);
 }
@@ -214,7 +211,6 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
 
 bool Frame::readNext(){
     assert(isSetup_);
-    invalid_ = false;
     int status = read_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_);
     if(status != exdrOK) return false;
     for(int i = 0; i < numAtomsTrack_; i++){

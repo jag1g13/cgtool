@@ -15,18 +15,11 @@ using std::cout;
 using std::endl;
 using std::map;
 
-Membrane::Membrane(const string &resname, const string &ref_atom,
-                   const int num_atoms, const int num_residues){
-    // Copy arguments into residue_
-    //TODO just pass the residue in as a whole
-    residue_.resname = resname;
-    residue_.ref_atom = ref_atom;
-    residue_.num_atoms = num_atoms;
-    residue_.num_residues = num_residues;
-}
-
 Membrane::Membrane(const Residue &residue){
     residue_ = residue;
+}
+Membrane::Membrane(const vector<Residue> &residues){
+    residue_ = residues[0];
 }
 
 void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
@@ -40,12 +33,12 @@ void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
 
 
     const int blocks = 2;
-    double block_avg_z[2][2] = {{0., 0.}, {0., 0.}};
+    Array block_avg_z(2, 2);
     // Calculate average z coord of reference atom
     //TODO do this in blocks to account for curvature
     double avg_z = 0.;
     for(int i=0; i<residue_.num_residues; i++){
-        const int num = ref_atom + i * residue_.num_atoms;
+        const int num = residue_.ref_atom + i * residue_.num_atoms;
         avg_z += frame.atoms_[num].coords[2];
     }
     avg_z /= residue_.num_residues;

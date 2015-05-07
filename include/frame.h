@@ -8,6 +8,7 @@
 #include <map>
 
 #include "bond_struct.h"
+#include "residue.h"
 
 /**
 * \brief Struct to hold atom data
@@ -23,15 +24,6 @@ struct Atom{
     double mass = 0.;
     /** Create a blank Atom instance */
     Atom(){};
-};
-
-struct Residue{
-    std::string resname = "";
-    std::string ref_atom = "";
-    int num_atoms = 1;
-    int num_residues = 1;
-    int total_atoms = 1;
-    Residue& operator=(const Residue other);
 };
 
 enum class BoxType{CUBIC, TRICLINIC};
@@ -81,8 +73,6 @@ public:
     std::vector<Atom> atoms_;
     /** The number of atoms stored in this frame */
     int numAtoms_ = 0;
-    /** Is frame invalid for some reason - molecule lies on pbc */
-    bool invalid_ = false;
     /** The simulation time of this frame, in picoseconds */
     float time_ = 0.f;
     /** The number of this Frame, starting at 0 */
@@ -155,6 +145,7 @@ public:
     * Wrapper around float bondAngle(int, int, int, int)
     */
     double bondAngle(BondStruct &bond, const int offset=0);
+
 };
 
 #endif

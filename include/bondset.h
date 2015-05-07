@@ -18,16 +18,10 @@ class BondSet{
 protected:
     /** How many frames did we successfully measure */
     int numMeasures_ = 0;
-    /** How many residues are being mapped using the same mapping? */
-    int numResidues_ = 1;
     /** Temperature of simulation - for Boltzmann Inversion */
     double temp_ = 310.;
     /** Map of bead names to number - to put numbers into BondStructs */
     std::map<std::string, int> beadNums_;
-    /** Number of threads - used for timing */
-    int numThreads_ = 1;
-    /** Residue name - for CSV output */
-    std::string resname_;
     /** The residue that's present - to be made plural soon */
     Residue residue_;
 
@@ -43,7 +37,7 @@ public:
     BondSet(){};
 
     /** \brief Constructor to read from file */
-    BondSet(const std::string &cfgname, const int num_threads=1);
+    BondSet(const std::string &cfgname, const Residue &residue);
 
     /**
     * \brief Reads in from file all bond properties to be calculated

@@ -10,6 +10,7 @@
 
 #include "frame.h"
 #include "array.h"
+#include "residue.h"
 
 class Membrane{
 protected:
@@ -50,10 +51,7 @@ public:
     Membrane(){};
 
     Membrane(const Residue &residue);
-
-    /** \brief Constructor to setup residue */
-    Membrane(const std::string &resname, const std::string &ref_atom,
-             const int num_atoms, const int num_residues);
+    Membrane(const std::vector<Residue> &residues);
 
     /** \brief Sort head groups into upper and lower bilayer */
     void sortBilayer(const Frame &frame, const int ref_atom);

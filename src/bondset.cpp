@@ -18,19 +18,15 @@ using std::cout;
 using std::endl;
 using std::fprintf;
 
-BondSet::BondSet(const std::string &cfgname, const int num_threads){
+BondSet::BondSet(const std::string &cfgname, const Residue &residue){
+    residue_ = residue;
     fromFile(cfgname);
-    numThreads_ = num_threads;
 }
 
 void BondSet::fromFile(const string &filename){
     vector<string> tokens;
     Parser parser(filename);
 
-    if(parser.getLineFromSection("residues", tokens, 2)){
-        numResidues_ = stoi(tokens[0]);
-        resname_ = tokens[1];
-    }
     if(parser.getLineFromSection("temp", tokens, 1)) temp_ = stof(tokens[0]);
 
     int i = 0;
@@ -62,7 +58,7 @@ void BondSet::fromFile(const string &filename){
 }
 
 void BondSet::calcBondsInternal(Frame &frame){
-    for(int i=0; i < numResidues_; i++){
+    for(int i=0; i < residue_.num_residues; i++){
         bool res_okay = true;
         const int offset = i * frame.residue_.num_atoms;
         // Does the structure cross a pbc - will break bond lengths
@@ -120,9 +116,9 @@ void BondSet::calcAvgs(){
 }
 
 void BondSet::writeCSV(){
-    const string bond_file = resname_ + "_bonds.csv";
-    const string angle_file = resname_ + "_angles.csv";
-    const string dihedral_file = resname_ + "_dihedrals.csv";
+    const string bond_file = residue_.resname + "_bonds.csv";
+    const string angle_file = residue_.resname + "_angles.csv";
+    const string dihedral_file = residue_.resname + "_dihedrals.csv";
 
     backup_old_file(bond_file);
     backup_old_file(angle_file);

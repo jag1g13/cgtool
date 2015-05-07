@@ -3,8 +3,11 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
+#include "residue.h"
 #include "frame.h"
+
 
 /**
 * \brief Struct to hold the mapping for a single CG bead

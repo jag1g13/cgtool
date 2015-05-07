@@ -5,6 +5,7 @@
 
 #include <sysexits.h>
 #include <locale.h>
+#include <omp.h>
 
 #include "frame.h"
 #include "cg_map.h"
@@ -61,11 +62,11 @@ int main(const int argc, const char *argv[]){
             "--field\tCalculate electric field\t0\t4";
 
     // How many threads are we using?
-    int num_threads = 0;
-    #pragma omp parallel reduction(+: num_threads)
-    {
-        num_threads = 1;
-    }
+    int num_threads = omp_get_num_threads();
+//    #pragma omp parallel reduction(+: num_threads)
+//    {
+//        num_threads = 1;
+//    }
 
     // Allow comma separators in numbers for printf
     setlocale(LC_ALL, "");
@@ -123,7 +124,7 @@ int main(const int argc, const char *argv[]){
     // System Setup
     // ##############################################################################
 
-    // Read number of frames from config, if not found read them all
+    // Read number of frames from config, if number not found read them all
     Parser cfg_parser(cfgname);
     vector<string> tokens;
     int num_frames_max = -1;
@@ -131,22 +132,30 @@ int main(const int argc, const char *argv[]){
     if(cmd_parser.getIntArg("frames") != 0) num_frames_max = cmd_parser.getIntArg("frames");
 
     bool do_map = !cmd_parser.getBoolArg("nomap");
-    Residue residue;
-    if(cfg_parser.getLineFromSection("residues", tokens, 2)){
-        residue.num_residues = stoi(tokens[0]);
-        residue.resname = tokens[1];
-        if(do_map) printf("Mapping %d %s residue(s)\n",
-                          residue.num_residues, residue.resname.c_str());
-    }else{
-        cout << "Residue to map not found in config" << endl;
+    vector<Residue> residues;
+    while(cfg_parser.getLineFromSection("residues", tokens, 2)){
+        residues.emplace_back(Residue());
+        residues.back().num_residues = stoi(tokens[0]);
+        residues.back().resname = tokens[1];
+
+        if(tokens.size() >= 4){
+            residues.back().num_atoms = stoi(tokens[2]);
+            residues.back().calc_total();
+            residues.back().ref_atom = stoi(tokens[3]);
+        }
+        if(do_map)
+            printf("Mapping %d %s residue(s)\n",
+                   residues.back().num_residues, residues.back().resname.c_str());
     }
 
     // Open files and do setup
     split_text_output("Frame setup", start, num_threads);
-    Frame frame(topname, xtcname, groname, residue);
+    Frame frame(topname, xtcname, groname, residues[0]);
+    Residue residue = frame.residue_;
+    residues[0] = residue;
 
     Frame cg_frame(frame);
-    BondSet bond_set(cfgname);
+    BondSet bond_set(cfgname, residue);
     CGMap mapping(residue);
     if(do_map){
         mapping.fromFile(cfgname);
@@ -161,11 +170,11 @@ int main(const int argc, const char *argv[]){
         field.init(100, 100, 100, mapping.numBeads_);
     }
 
-//    Membrane mem(resname, "PO4", frame.residue_.num_atoms, numResidues);
-    Membrane mem(frame.residue_);
+//    Membrane mem(residue);
+    Membrane mem(residues);
     if(!do_map){
         mem.sortBilayer(frame, 1);
-        mem.setResolution(100);
+        mem.setResolution(20);
     }
 
     // Read and process simulation frames
