@@ -20,15 +20,20 @@ bool file_exists(const string name){
     return (stat(name.c_str(), &buffer) == 0);
 }
 
-long file_size(const string filename)
-{
+long file_size(const string filename){
     struct stat buffer;
     int rc = stat(filename.c_str(), &buffer);
     return rc == 0 ? buffer.st_size : -1;
 }
 
-float time_since(const clock_t &since, const int num_threads){
-    return float(std::clock() - since) / (CLOCKS_PER_SEC * num_threads);
+double start_timer(){
+    struct timespec now;
+    if(clock_gettime(CLOCK_REALTIME, &now) == -1) throw std::runtime_error("No clock");
+    return now.tv_sec + 1e-9 * now.tv_nsec;
+}
+
+double end_timer(const double start){
+    return start_timer() - start;
 }
 
 bool backup_old_file(const string name){
@@ -42,11 +47,11 @@ bool backup_old_file(const string name){
     throw std::runtime_error("File could not be backed up");
 }
 
-void split_text_output(const string name, const clock_t start, const int num_threads){
+void split_text_output(const string &name, const double start){
     // If time has passed, how much?  Ignore small times
-    float time = time_since(start, num_threads);
+    double time = end_timer(start);
     cout << endl;
-    if(time > 0.1f){
+    if(time > 0.1){
         cout << "--------------------" << endl;
         cout << time << " seconds" << endl;
     }

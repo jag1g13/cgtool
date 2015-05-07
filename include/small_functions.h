@@ -9,14 +9,19 @@
 #include <ctime>
 #include <vector>
 
+#include <time.h>
+
 /** \brief Check if a file exists */
 bool file_exists(const std::string name);
 
 /** \brief Get size of file */
 long file_size(const std::string filename);
 
+/** \brief Get clock time in seconds - thread stable */
+double start_timer();
+
 /** \brief How many seconds have passed since the given time? */
-float time_since(const clock_t &since, const int num_threads=1);
+double end_timer(const double since);
 
 /** \brief Check if a file exists, if so, rename it.
 *
@@ -25,7 +30,7 @@ float time_since(const clock_t &since, const int num_threads=1);
 bool backup_old_file(const std::string name);
 
 /** \brief Print dividers in the text output of a program. */
-void split_text_output(const std::string, const clock_t, const int num_threads=1);
+void split_text_output(const std::string &name, const double start);
 
 /** \brief Dot product of 3d vectors as double[3] */
 double dot(const double A[3], const double B[3]);

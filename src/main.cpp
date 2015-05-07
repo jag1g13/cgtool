@@ -1,11 +1,9 @@
 
 #include <iostream>
 #include <vector>
-#include <ctime>
 
 #include <sysexits.h>
 #include <locale.h>
-#include <omp.h>
 
 #include "frame.h"
 #include "cg_map.h"
@@ -28,12 +26,11 @@ using std::cout;
 using std::cin;
 using std::endl;
 using std::vector;
-using std::clock_t;
 
 
 int main(const int argc, const char *argv[]){
-    clock_t very_start = std::clock();
-    clock_t start = std::clock();
+    const double very_start = start_timer();
+    double start = very_start;
 
     const string version_string =
             "CGTOOL v0.3.212:21e97c32d18d";
@@ -62,11 +59,11 @@ int main(const int argc, const char *argv[]){
             "--field\tCalculate electric field\t0\t4";
 
     // How many threads are we using?
-    int num_threads = omp_get_num_threads();
-//    #pragma omp parallel reduction(+: num_threads)
-//    {
-//        num_threads = 1;
-//    }
+    int num_threads = 0;
+    #pragma omp parallel reduction(+: num_threads)
+    {
+        num_threads = 1;
+    }
 
     // Allow comma separators in numbers for printf
     setlocale(LC_ALL, "");
@@ -76,7 +73,7 @@ int main(const int argc, const char *argv[]){
     // ##############################################################################
 
     // Get input files
-    split_text_output(version_string, start, num_threads);
+    split_text_output(version_string, start);
     // If not using command line parser, replace with a simple one
     // Do this so we can compile without Boost program_options
     //TODO add test
@@ -132,6 +129,7 @@ int main(const int argc, const char *argv[]){
     if(cmd_parser.getIntArg("frames") != 0) num_frames_max = cmd_parser.getIntArg("frames");
 
     bool do_map = !cmd_parser.getBoolArg("nomap");
+
     vector<Residue> residues;
     while(cfg_parser.getLineFromSection("residues", tokens, 2)){
         residues.emplace_back(Residue());
@@ -143,17 +141,19 @@ int main(const int argc, const char *argv[]){
             residues.back().calc_total();
             residues.back().ref_atom = stoi(tokens[3]);
         }
+
         const int s = residues.size();
         if(s >= 2){
             residues.back().start = residues[s-2].start +
                     residues[s-2].num_atoms * residues[s-2].num_residues;
         }
+
         printf("Mapping %d %s residue(s)\n",
                residues.back().num_residues, residues.back().resname.c_str());
     }
 
     // Open files and do setup
-    split_text_output("Frame setup", start, num_threads);
+    split_text_output("Frame setup", start);
     Frame frame(topname, xtcname, groname, residues[0]);
     Residue residue = frame.residue_;
     residues[0] = residue;
@@ -182,8 +182,8 @@ int main(const int argc, const char *argv[]){
     }
 
     // Read and process simulation frames
-    split_text_output("Reading frames", start, num_threads);
-    start = std::clock();
+    split_text_output("Reading frames", start);
+    start = start_timer();
     if(num_frames_max == -1){
         printf("Reading all frames from XTC\n");
     }else{
@@ -196,31 +196,31 @@ int main(const int argc, const char *argv[]){
 
     int i = 1;
     int progress_update_freq = PROGRESS_UPDATE_FREQ;
-    clock_t last_update = std::clock();
+    double last_update = start_timer();
     // Keep reading frames until something goes wrong (run out of frames) or hit limit
     while(frame.readNext() && (num_frames_max == -1 || i < num_frames_max)){
         // Process each frame as we read it, frames are not retained
         #ifdef UPDATE_PROGRESS
         if(i % progress_update_freq == 0){
-            const float time_since_update = time_since(last_update, num_threads);
+            const double time_since_update = end_timer(last_update);
             if(time_since_update > 0.5f){
                 progress_update_freq /= 10;
             }else if(time_since_update < 0.01f){
                 progress_update_freq *= 10;
             }
 
-            const float time = time_since(start, num_threads);
-            const float fps = i / time;
+            const double time = end_timer(start);
+            const double fps = i / time;
 
             if(num_frames_max == -1){
                 printf("Read %'9d frames @ %'d FPS\r", i, int(fps));
             }else{
-                const float t_remain = (num_frames_max - i) / fps;
+                const double t_remain = (num_frames_max - i) / fps;
                 printf("Read %'9d frames @ %'d FPS %6.1fs remaining\r", i, int(fps), t_remain);
             }
             std::flush(cout);
 
-            last_update = std::clock();
+            last_update = start_timer();
         }
         #endif
 
@@ -249,18 +249,18 @@ int main(const int argc, const char *argv[]){
     // Print some data at the end
     cout << string(80, ' ') << "\r";
     printf("Read %'9d frames", i);
-    float time = time_since(start, num_threads);
-    float fps = i / time;
+    const double time = end_timer(start);
+    const double fps = i / time;
     printf(" @ %'d FPS", int(fps));
     if(num_frames_max == -1){
         // Bitrate (in MiBps) of XTC input - only meaningful if we read whole file
-        float bitrate = file_size(xtcname) / (time * 1024 * 1024);
+        const double bitrate = file_size(xtcname) / (time * 1024 * 1024);
         printf("%6.1f MBps", bitrate);
     }
     printf("\n");
 
     // Post processing
-    split_text_output("Post processing", start, num_threads);
+    split_text_output("Post processing", start);
     if(do_map){
         cg_frame.printGRO();
         bond_set.BoltzmannInversion();
@@ -290,14 +290,14 @@ int main(const int argc, const char *argv[]){
     if(cmd_parser.getBoolArg("csv")) bond_set.writeCSV();
 
     // Print something so I can check results by eye
-    for(int i=0; i<6 && i<bond_set.bonds_.size(); i++){
-        printf("%8.4f", bond_set.bonds_[i].avg_);
+    for(int j=0; j<6 && j<bond_set.bonds_.size(); j++){
+        printf("%8.4f", bond_set.bonds_[j].avg_);
     }
     if(bond_set.bonds_.size() > 6) printf("  ...");
     cout << endl;
 
     // Final timer
-    split_text_output("Finished", very_start, num_threads);
+    split_text_output("Finished", very_start);
     return EX_OK;
 }
 
