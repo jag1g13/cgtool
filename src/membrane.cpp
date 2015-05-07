@@ -19,7 +19,7 @@ Membrane::Membrane(const Residue &residue){
     residue_ = residue;
 }
 Membrane::Membrane(const vector<Residue> &residues){
-    residue_ = residues[0];
+    residues_ = residues;
 }
 
 void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
@@ -37,20 +37,26 @@ void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
     // Calculate average z coord of reference atom
     //TODO do this in blocks to account for curvature
     double avg_z = 0.;
-    for(int i=0; i<residue_.num_residues; i++){
-        const int num = residue_.ref_atom + i * residue_.num_atoms;
-        avg_z += frame.atoms_[num].coords[2];
+    int tot_residues = 0;
+    for(const Residue &res : residues_){
+        for(int i = 0; i < res.num_residues; i++){
+            const int num = res.ref_atom + i * res.num_atoms + res.start;
+            avg_z += frame.x_[num][2];
+            tot_residues++;
+        }
     }
-    avg_z /= residue_.num_residues;
+    avg_z /= tot_residues;
 
     // Separate membrane into upper and lower
-    for(int i=0; i<residue_.num_residues; i++){
-        const int num = ref_atom + i * residue_.num_atoms;
-        const double z = frame.atoms_[num].coords[2];
-        if(z < avg_z){
-            lowerHeads_.push_back(num);
-        }else{
-            upperHeads_.push_back(num);
+    for(const Residue &res : residues_){
+        for(int i = 0; i < res.num_residues; i++){
+            const int num = ref_atom + i * res.num_atoms + res.start;
+            const double z = frame.x_[num][2];
+            if(z < avg_z){
+                lowerHeads_.push_back(num);
+            } else{
+                upperHeads_.push_back(num);
+            }
         }
     }
 }
@@ -80,16 +86,16 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
         double min_dist_2 = box_[2];
 
         double coords_i[3];
-        coords_i[0] = frame.atoms_[i].coords[0];
-        coords_i[1] = frame.atoms_[i].coords[1];
+        coords_i[0] = frame.x_[i][0];
+        coords_i[1] = frame.x_[i][1];
         coords_i[2] = 0.;
         double coords_j[3];
 
         // Find the closest reference particle in the other leaflet
         int closest = -1;
         for(const int j : other){
-            coords_j[0] = frame.atoms_[j].coords[0];
-            coords_j[1] = frame.atoms_[j].coords[1];
+            coords_j[0] = frame.x_[j][0];
+            coords_j[1] = frame.x_[j][1];
             coords_j[2] = 0.;
 
             const double dist_2 = distSqr(coords_i, coords_j);
@@ -99,8 +105,8 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
             }
         }
 
-        coords_i[2] = frame.atoms_[i].coords[2];
-        coords_j[2] = frame.atoms_[closest].coords[2];
+        coords_i[2] = frame.x_[i][2];
+        coords_j[2] = frame.x_[closest][2];
         pairs[i] = fabs(coords_i[2] - coords_j[2]);
     }
 }
@@ -127,8 +133,8 @@ void Membrane::thicknessWithRef(const Frame &frame, const vector<int> &ref,
             // Find closest lipid in reference leaflet
             int closest = -1;
             for(int r : ref){
-                ref_coords[0] = frame.atoms_[r].coords[0];
-                ref_coords[1] = frame.atoms_[r].coords[1];
+                ref_coords[0] = frame.x_[r][0];
+                ref_coords[1] = frame.x_[r][1];
                 const double dist2 = distSqrPlane(grid_coords, ref_coords);
                 if(dist2 < min_dist2){
                     closest = r;

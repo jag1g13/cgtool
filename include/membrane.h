@@ -25,7 +25,8 @@ protected:
 
     /** The residue that's present - to be made plural soon */
     Residue residue_;
-    /** Size of the simulation box - assume orthorhombic */
+    std::vector<Residue> residues_;
+    /** Size of he simulation box - assume orthorhombic */
     double box_[3];
     /** Distance between grid points in xy plane */
     double step_[2];

@@ -143,9 +143,13 @@ int main(const int argc, const char *argv[]){
             residues.back().calc_total();
             residues.back().ref_atom = stoi(tokens[3]);
         }
-        if(do_map)
-            printf("Mapping %d %s residue(s)\n",
-                   residues.back().num_residues, residues.back().resname.c_str());
+        const int s = residues.size();
+        if(s >= 2){
+            residues.back().start = residues[s-2].start +
+                    residues[s-2].num_atoms * residues[s-2].num_residues;
+        }
+        printf("Mapping %d %s residue(s)\n",
+               residues.back().num_residues, residues.back().resname.c_str());
     }
 
     // Open files and do setup
@@ -174,7 +178,7 @@ int main(const int argc, const char *argv[]){
     Membrane mem(residues);
     if(!do_map){
         mem.sortBilayer(frame, 1);
-        mem.setResolution(20);
+        mem.setResolution(100);
     }
 
     // Read and process simulation frames

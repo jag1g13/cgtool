@@ -43,8 +43,6 @@ protected:
     XDRFILE *xtcOutput_ = nullptr;
     /** XTC precision; not used internally, just for XTC input/output */
     float prec_ = 0.f;
-    /** Holds atomic coordinates for GROMACS */
-    rvec *x_ = nullptr;
     /** Name of the Frame; taken from comment in the GRO file */
     std::string name_ = "";
     /** What box shape do we have?  Currently must be cubic */
@@ -85,6 +83,8 @@ public:
     float box_[3][3];
     /** The residue that's present - to be made plural soon */
     Residue residue_;
+    /** Holds atomic coordinates for GROMACS */
+    rvec *x_ = nullptr;
 
 
     /** \brief Create Frame passing frame number, number of atoms to store and the frame name
