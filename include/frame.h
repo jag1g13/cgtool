@@ -94,7 +94,7 @@ public:
 
     /** \brief Create Frame passing config files.
     * Replaces calls to the function Frame::setupFrame() */
-    Frame(const std::string &topname, const std::string &xtcname, const std::string &groname, const Residue &residue);
+    Frame(const std::string &itpname, const std::string &xtcname, const std::string &groname, const Residue &residue);
 
     /** \brief Create Frame by copying data from another Frame
     * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied. */

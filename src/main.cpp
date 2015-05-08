@@ -58,13 +58,6 @@ int main(const int argc, const char *argv[]){
             "--fcround\tRound force constants\t0\t4\n"
             "--field\tCalculate electric field\t0\t4";
 
-    // How many threads are we using?
-    int num_threads = 0;
-    #pragma omp parallel reduction(+: num_threads)
-    {
-        num_threads = 1;
-    }
-
     // Allow comma separators in numbers for printf
     setlocale(LC_ALL, "");
 
@@ -169,10 +162,7 @@ int main(const int argc, const char *argv[]){
 
     bool do_field = cmd_parser.getBoolArg("field");
     FieldMap field(1, 1, 1, 1);
-    if(do_field){
-        cout << "Doing electrostatics with " << num_threads << " thread(s)" << endl;
-        field.init(100, 100, 100, mapping.numBeads_);
-    }
+    if(do_field) field.init(100, 100, 100, mapping.numBeads_);
 
 //    Membrane mem(residue);
     Membrane mem(residues);

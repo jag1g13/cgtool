@@ -111,7 +111,7 @@ void Frame::openOtherXTC(const Frame &frame){
     xtcInput_ = frame.xtcInput_;
 }
 
-bool Frame::setupFrame(const string &topname, const string &xtcname, const string &groname){
+bool Frame::setupFrame(const string &itpname, const string &xtcname, const string &groname){
     if(isSetup_) throw std::logic_error("Frame has already been setup");
 
     // How many atoms?  Prepare Frame for reading
@@ -147,9 +147,9 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
 
     // Process topology file
     vector<string> substrs;
-    Parser top_parser(topname, FileFormat::GROMACS);
+    Parser itp_parser(itpname, FileFormat::GROMACS);
     // How many atoms are there?  Per residue?  In total?
-    while(top_parser.getLineFromSection("atoms", substrs, 4)){
+    while(itp_parser.getLineFromSection("atoms", substrs, 4)){
         // If we don't have a resname from cfg, be backward compatible
         // Loop through all atoms and take the last number
         if(residue_.resname != ""){
@@ -183,7 +183,7 @@ bool Frame::setupFrame(const string &topname, const string &xtcname, const strin
     for(int i=0; i<residue_.num_atoms; i++){
         // read data from topology file for each atom
         // internal atom name is the res # and atom name from top/gro
-        top_parser.getLineFromSection("atoms", substrs, 5);
+        itp_parser.getLineFromSection("atoms", substrs, 5);
         const string name = substrs[4];
         double charge = 0.;
         if(substrs.size() >= 7) charge = atof(substrs[6].c_str());

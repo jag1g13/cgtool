@@ -51,7 +51,7 @@ public:
     /** \brief Blank constructor */
     Membrane(){};
 
-    Membrane(const Residue &residue);
+    /** \brief Construct Membrane with vector of Residues present in simulation */
     Membrane(const std::vector<Residue> &residues);
 
     /** \brief Sort head groups into upper and lower bilayer */

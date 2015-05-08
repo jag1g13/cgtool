@@ -15,9 +15,6 @@ using std::cout;
 using std::endl;
 using std::map;
 
-Membrane::Membrane(const Residue &residue){
-    residue_ = residue;
-}
 Membrane::Membrane(const vector<Residue> &residues){
     residues_ = residues;
 }
@@ -31,28 +28,32 @@ void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
     box_[1] = frame.box_[1][1];
     box_[2] = frame.box_[2][2];
 
+    // Find middle of membrane in z coord
+    // Do this in blocks to account for curvature - more curvature needs more blocks
+    const int blocks = 4;
+    Array block_avg_z(blocks, blocks);
+    Array block_tot_residues(blocks, blocks);
 
-    const int blocks = 2;
-    Array block_avg_z(2, 2);
-    // Calculate average z coord of reference atom
-    //TODO do this in blocks to account for curvature
-    double avg_z = 0.;
-    int tot_residues = 0;
     for(const Residue &res : residues_){
         for(int i = 0; i < res.num_residues; i++){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
-            avg_z += frame.x_[num][2];
-            tot_residues++;
+            const int x = int(frame.x_[num][0] * blocks / box_[0]);
+            const int y = int(frame.x_[num][1] * blocks / box_[1]);
+            block_avg_z(x, y) += frame.x_[num][2];
+            block_tot_residues(x, y)++;
         }
     }
-    avg_z /= tot_residues;
+    block_avg_z.elementDivide(block_tot_residues);
 
     // Separate membrane into upper and lower
     for(const Residue &res : residues_){
         for(int i = 0; i < res.num_residues; i++){
             const int num = ref_atom + i * res.num_atoms + res.start;
+            const int x = int(frame.x_[num][0] * blocks / box_[0]);
+            const int y = int(frame.x_[num][1] * blocks / box_[1]);
             const double z = frame.x_[num][2];
-            if(z < avg_z){
+
+            if(z < block_avg_z(x, y)){
                 lowerHeads_.push_back(num);
             } else{
                 upperHeads_.push_back(num);
