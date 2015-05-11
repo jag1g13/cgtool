@@ -124,6 +124,7 @@ int main(const int argc, const char *argv[]){
     bool do_map = !cmd_parser.getBoolArg("nomap");
 
     vector<Residue> residues;
+    bool all_residues_known = true;
     while(cfg_parser.getLineFromSection("residues", tokens, 2)){
         residues.emplace_back(Residue());
         residues.back().num_residues = stoi(tokens[0]);
@@ -133,12 +134,14 @@ int main(const int argc, const char *argv[]){
             residues.back().num_atoms = stoi(tokens[2]);
             residues.back().calc_total();
             residues.back().ref_atom = stoi(tokens[3]);
+        }else{
+            all_residues_known = false;
         }
 
         const int s = residues.size();
         if(s >= 2){
             residues.back().start = residues[s-2].start +
-                    residues[s-2].num_atoms * residues[s-2].num_residues;
+                    residues[s-2].num_atoms * residues[s-2].num_residues + 1;
         }
 
         printf("Mapping %d %s residue(s)\n",
@@ -147,7 +150,7 @@ int main(const int argc, const char *argv[]){
 
     // Open files and do setup
     split_text_output("Frame setup", start);
-    Frame frame(topname, xtcname, groname, residues[0]);
+    Frame frame(topname, xtcname, groname, residues[0], !all_residues_known);
     Residue residue = frame.residue_;
     residues[0] = residue;
 
@@ -164,7 +167,6 @@ int main(const int argc, const char *argv[]){
     FieldMap field(1, 1, 1, 1);
     if(do_field) field.init(100, 100, 100, mapping.numBeads_);
 
-//    Membrane mem(residue);
     Membrane mem(residues);
     if(!do_map){
         mem.sortBilayer(frame, 1);

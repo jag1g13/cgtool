@@ -35,6 +35,7 @@ void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
     Array block_tot_residues(blocks, blocks);
 
     for(const Residue &res : residues_){
+        if(res.ref_atom < 0) continue;
         for(int i = 0; i < res.num_residues; i++){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
             const int x = int(frame.x_[num][0] * blocks / box_[0]);
@@ -47,6 +48,8 @@ void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
 
     // Separate membrane into upper and lower
     for(const Residue &res : residues_){
+        if(res.ref_atom < 0) continue;
+        int num_in_leaflet[2] = {0, 0};
         for(int i = 0; i < res.num_residues; i++){
             const int num = ref_atom + i * res.num_atoms + res.start;
             const int x = int(frame.x_[num][0] * blocks / box_[0]);
@@ -55,10 +58,14 @@ void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
 
             if(z < block_avg_z(x, y)){
                 lowerHeads_.push_back(num);
+                num_in_leaflet[0]++;
             } else{
                 upperHeads_.push_back(num);
+                num_in_leaflet[1]++;
             }
         }
+        printf("%s starting %d: %d lower, %d upper\n",
+               res.resname.c_str(), res.start, num_in_leaflet[0], num_in_leaflet[1]);
     }
 }
 

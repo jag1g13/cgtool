@@ -22,6 +22,8 @@ struct Atom{
     double charge = 0.;
     /** Atomic mass */
     double mass = 0.;
+    /** Residue number */
+    int resnum = 0;
     /** Create a blank Atom instance */
     Atom(){};
 };
@@ -48,6 +50,10 @@ protected:
     /** What box shape do we have?  Currently must be cubic */
     BoxType boxType_ = BoxType::CUBIC;
 
+    bool initFromXTC(const std::string &xtcname);
+    void initFromGRO(const std::string &groname, std::vector<Residue> &residues);
+    void copyCoordsIntoAtoms();
+
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file
     * \throws logic_error if Frame has already been setup
@@ -55,7 +61,8 @@ protected:
     * Uses libxdrfile to get number of atoms and allocate storage.
     * This function uses this data to create a Frame object to process this data.
     */
-    bool setupFrame(const std::string &topname, const std::string &xtcname, const std::string &groname);
+    void setupFrame(const std::string &topname, const std::string &xtcname,
+                    const std::string &groname);
 
     /** \brief Recentre simulation box on an atom
     * Avoids problems where a residue is split by the periodic boundary,
@@ -94,7 +101,7 @@ public:
 
     /** \brief Create Frame passing config files.
     * Replaces calls to the function Frame::setupFrame() */
-    Frame(const std::string &itpname, const std::string &xtcname, const std::string &groname, const Residue &residue);
+    Frame(const std::string &itpname, const std::string &xtcname, const std::string &groname, const Residue &residue, const bool do_itp=true);
 
     /** \brief Create Frame by copying data from another Frame
     * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied. */

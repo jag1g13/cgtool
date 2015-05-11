@@ -8,7 +8,6 @@
 #include <math.h>
 #include <assert.h>
 #include <sysexits.h>
-#include <stdlib.h>
 
 #include "xdrfile_xtc.h"
 
@@ -53,10 +52,12 @@ Frame::Frame(const Frame &frame){
     isSetup_ = true;
 }
 
-Frame::Frame(const string &topname, const string &xtcname,
-             const string &groname, const Residue &residue){
+Frame::Frame(const string &itpname, const string &xtcname,
+             const string &groname, const Residue &residue,
+             const bool do_itp){
     residue_ = residue;
-    setupFrame(topname, xtcname, groname);
+    initFromXTC(xtcname);
+    if(do_itp) setupFrame(itpname, xtcname, groname);
 }
 
 Frame::~Frame(){
@@ -111,15 +112,14 @@ void Frame::openOtherXTC(const Frame &frame){
     xtcInput_ = frame.xtcInput_;
 }
 
-bool Frame::setupFrame(const string &itpname, const string &xtcname, const string &groname){
-    if(isSetup_) throw std::logic_error("Frame has already been setup");
-
+bool Frame::initFromXTC(const string &xtcname){
     // How many atoms?  Prepare Frame for reading
     int status = read_xtc_natoms(xtcname.c_str(), &numAtoms_);
     if(status != exdrOK){
         cout << "Could not open input XTC file" << endl;
         exit(EX_NOINPUT);
     }
+    printf("XTC contains %'d atoms\n", numAtoms_);
     xtcInput_ = xdrfile_open(xtcname.c_str(), "r");
     num_ = 0;
 
@@ -145,6 +145,65 @@ bool Frame::setupFrame(const string &itpname, const string &xtcname, const strin
         cout << endl;
     }
 
+    if(status == exdrOK) isSetup_ = true;
+    return isSetup_;
+}
+
+void Frame::initFromGRO(const string &groname, vector<Residue> &residues){
+    cout << "Using " << groname << endl;
+    FILE *gro = fopen(groname.c_str(), "r");
+    if(gro == NULL){
+        printf("Could not open GRO file for reading\n");
+        exit(EX_NOINPUT);
+    }
+
+    // Have we been given a complete list of residues or do we need to create it?
+    bool populate_residues = false;
+    if(residues.size() == 0) populate_residues = true;
+
+    char system_name[80];
+    fgets(system_name, 80, gro);
+    printf("%s\n", system_name);
+
+    int num_atoms = 0;
+    fscanf(gro, "%d", &num_atoms);
+    printf("GRO contains %'d atoms\n", num_atoms);
+
+    // The columns of a GRO file
+    int resnum;
+    char resname[6];
+    char atomname[6];
+    int atomnum;
+    float atom_coords[3];
+    float atom_vel[3];
+
+    while(fscanf(gro, "%5d%5s%5s%5d%*8f%*8f%*8f%*8f%*8f%*8f",
+                 &resnum, resname, atomname, &atomnum)){
+        atoms_[atomnum-1] = Atom();
+        atoms_[atomnum-1].atom_type = atomname;
+        atoms_[atomnum-1].resnum = resnum;
+        if(populate_residues){
+            // Is it a new residue
+            if(residues.back().resname != resname){
+
+            }
+        }
+    }
+    fclose(gro);
+}
+
+void Frame::copyCoordsIntoAtoms(){
+    assert(atoms_.size() == numAtoms_);
+    for(int i=0; i<numAtoms_; i++){
+        atoms_[i].coords[0] = x_[i][0];
+        atoms_[i].coords[1] = x_[i][1];
+        atoms_[i].coords[2] = x_[i][2];
+    }
+}
+
+void Frame::setupFrame(const string &itpname, const string &xtcname,
+                       const string &groname){
+
     // Process topology file
     vector<string> substrs;
     Parser itp_parser(itpname, FileFormat::GROMACS);
@@ -154,7 +213,7 @@ bool Frame::setupFrame(const string &itpname, const string &xtcname, const strin
         // Loop through all atoms and take the last number
         if(residue_.resname != ""){
             if(substrs[3] == residue_.resname) residue_.num_atoms = stoi(substrs[0]);
-        }else{
+        } else{
             residue_.num_atoms = stoi(substrs[0]);
         }
     }
@@ -163,24 +222,7 @@ bool Frame::setupFrame(const string &itpname, const string &xtcname, const strin
     numAtomsTrack_ = residue_.num_residues * residue_.num_atoms;
     atoms_.resize(numAtomsTrack_);
 
-    // If we have a GRO then find the resname we're looking for
-    //TODO this doesn't work - doesn't find LFPG residue
-    int start = 0;
-    FILE *gro = fopen(groname.c_str(), "r");
-    if(gro != NULL){
-        cout << "Using " << groname << endl;
-        char name[6];
-        while(fscanf(gro, "%*5d%5s%*5s%*5d%*8f%*8f%*8f%*8f%*8f%*8f", name)){
-            if(strcmp(name, residue_.resname.c_str()) == 0) break;
-            start++;
-        }
-        fclose(gro);
-    }else{
-        cout << "Not using GRO file" << endl;
-    }
-
-
-    for(int i=0; i<residue_.num_atoms; i++){
+    for(int i = 0; i < residue_.num_atoms; i++){
         // read data from topology file for each atom
         // internal atom name is the res # and atom name from top/gro
         itp_parser.getLineFromSection("atoms", substrs, 5);
@@ -192,21 +234,19 @@ bool Frame::setupFrame(const string &itpname, const string &xtcname, const strin
         //TODO why doesn't this work
         nameToNum_[atoms_[i].atom_type] = i;
 
-        for(int j=0; j<residue_.num_residues; j++){
-            const int num = i + j*residue_.num_atoms;
+        for(int j = 0; j < residue_.num_residues; j++){
+            const int num = i + j * residue_.num_atoms;
             atoms_[num] = Atom();
             atoms_[num].atom_type = name;
             atoms_[num].charge = charge;
             atoms_[num].mass = mass;
 
-            atoms_[num].coords[0] = x_[num+start][0];
-            atoms_[num].coords[1] = x_[num+start][1];
-            atoms_[num].coords[2] = x_[num+start][2];
+            atoms_[num].coords[0] = x_[num][0];
+            atoms_[num].coords[1] = x_[num][1];
+            atoms_[num].coords[2] = x_[num][2];
         }
     }
 
-    if(status == exdrOK) isSetup_ = true;
-    return isSetup_;
 }
 
 bool Frame::readNext(){
