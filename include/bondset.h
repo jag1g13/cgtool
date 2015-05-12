@@ -37,7 +37,7 @@ public:
     BondSet(){};
 
     /** \brief Constructor to read from file */
-    BondSet(const std::string &cfgname, const Residue &residue);
+    BondSet(const std::string &cfgname, const std::vector<Residue> &residues);
 
     /**
     * \brief Reads in from file all bond properties to be calculated

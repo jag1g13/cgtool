@@ -13,9 +13,9 @@ using std::cout;
 using std::endl;
 using std::vector;
 
-ITPWriter::ITPWriter(const Residue &residue, const FileFormat format, string itpname){
+ITPWriter::ITPWriter(const vector<Residue> &residues, const FileFormat format, string itpname){
     format_ = format;
-    resName_ = residue.resname;
+    resName_ = residues[0].resname;
 
     switch(format_){
         case FileFormat::GROMACS:

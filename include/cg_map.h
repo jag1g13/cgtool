@@ -65,7 +65,7 @@ public:
     /**
     * \brief Constructor to create an instance from the mapping file provided
     */
-    CGMap(const Residue &residue, const std::string &filename="");
+    CGMap(const std::vector<Residue> &residues, const std::string &filename="");
 
     /**
     * \brief Read in CG mapping from file

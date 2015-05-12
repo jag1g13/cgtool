@@ -18,8 +18,8 @@ using std::cout;
 using std::endl;
 using std::fprintf;
 
-BondSet::BondSet(const std::string &cfgname, const Residue &residue){
-    residue_ = residue;
+BondSet::BondSet(const string &cfgname, const vector<Residue> &residues){
+    residue_ = residues[0];
     fromFile(cfgname);
 }
 
@@ -60,7 +60,7 @@ void BondSet::fromFile(const string &filename){
 void BondSet::calcBondsInternal(Frame &frame){
     for(int i=0; i < residue_.num_residues; i++){
         bool res_okay = true;
-        const int offset = i * frame.residue_.num_atoms;
+        const int offset = i * frame.residues_[0].num_atoms;
         // Does the structure cross a pbc - will break bond lengths
         for(BondStruct &bond : bonds_){
             double dist = frame.bondLength(bond, offset);

@@ -43,7 +43,7 @@ protected:
 
 public:
     /** Create an ITP file and prepare to write */
-    ITPWriter(const Residue &residue, const FileFormat format=FileFormat::GROMACS, std::string itpname="");
+    ITPWriter(const std::vector<Residue> &residues, const FileFormat format=FileFormat::GROMACS, std::string itpname="");
 
     /** Close output file in destructor */
     ~ITPWriter();

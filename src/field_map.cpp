@@ -41,8 +41,8 @@ void FieldMap::init(const int a, const int b, const int c, const int ndipoles){
 void FieldMap::calculate(const Frame &aa_frame, const Frame &cg_frame, const CGMap &cgmap){
     frameNum_ = aa_frame.num_;
     if(frameNum_ != cg_frame.num_) throw std::logic_error("Frame numbers do not match");
-    aaNumAtoms_ = aa_frame.residue_.num_atoms;
-    cgNumAtoms_ = cg_frame.residue_.num_atoms;
+    aaNumAtoms_ = aa_frame.residues_[0].num_atoms;
+    cgNumAtoms_ = cg_frame.residues_[0].num_atoms;
 
     calcDipolesDirect(cgmap, cg_frame, aa_frame);
     setupGrid(aa_frame);

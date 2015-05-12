@@ -10,9 +10,8 @@ using std::endl;
 using std::vector;
 using std::string;
 
-CGMap::CGMap(const Residue &residue, const string &filename){
-//    residue_.num_residues = numResidues;
-    residue_ = residue;
+CGMap::CGMap(const vector<Residue> &residues, const string &filename){
+    residue_ = residues[0];
     if(filename != "") fromFile(filename);
 }
 
@@ -63,8 +62,10 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
     // Create Frame and copy copyable data
     residue_.num_atoms = numBeads_;
     residue_.total_atoms = residue_.num_atoms * residue_.num_residues;
-    cg_frame.residue_ = residue_;
+    cg_frame.residues_ = aa_frame.residues_;
     cg_frame.numAtoms_ = numBeads_;
+    cg_frame.residues_[0].num_atoms = numBeads_;
+    cg_frame.residues_[0].total_atoms = numBeads_ * cg_frame.residues_[0].num_residues;
     cg_frame.atoms_.resize(residue_.num_residues * residue_.num_atoms);
 
     // Create atom for each CG bead
@@ -72,7 +73,7 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
     int i = resBlockStart_;
     for(BeadMap &bead : mapping_) {
         for(int j=0; j < residue_.num_residues; j++){
-            const int num_cg = i + j * cg_frame.residue_.num_atoms;
+            const int num_cg = i + j * cg_frame.residues_[0].num_atoms;
             cg_frame.atoms_[num_cg].atom_type = bead.name;
             cg_frame.atoms_[num_cg].coords[0] = 0.;
             cg_frame.atoms_[num_cg].coords[1] = 0.;
@@ -84,7 +85,7 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
         for(const string &atomname : bead.atoms) {
             atomname_to_bead_.emplace(atomname, &bead);
 
-            for(int j=0; j<aa_frame.residue_.num_atoms; j++){
+            for(int j=0; j<aa_frame.residues_[0].num_atoms; j++){
                 if(aa_frame.atoms_[j].atom_type == atomname){
                     cg_frame.atoms_[i].mass += aa_frame.atoms_[j].mass;
                     cg_frame.atoms_[i].charge += aa_frame.atoms_[j].charge;
@@ -97,7 +98,7 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
         mapping_[i].mass = cg_frame.atoms_[i].mass;
         mapping_[i].charge = cg_frame.atoms_[i].charge;
         for(int j=0; j < residue_.num_residues; j++){
-            const int num_cg = i + j * cg_frame.residue_.num_atoms;
+            const int num_cg = i + j * cg_frame.residues_[0].num_atoms;
             cg_frame.atoms_[num_cg].mass = mapping_[i].mass;
             cg_frame.atoms_[num_cg].charge = mapping_[i].charge;
         }
@@ -126,8 +127,8 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
             // If putting beads directly on the first atom in a bead
             for(int i = 0; i < mapping_.size(); i++){
                 for(int j=0; j < residue_.num_residues; j++){
-                    const int num_cg = i + j*cg_frame.residue_.num_atoms;
-                    const int num_aa = mapping_[i].atom_nums[0] + j*aa_frame.residue_.num_atoms;
+                    const int num_cg = i + j*cg_frame.residues_[0].num_atoms;
+                    const int num_aa = mapping_[i].atom_nums[0] + j*aa_frame.residues_[0].num_atoms;
                     cg_frame.atoms_[num_cg].coords[0] = aa_frame.atoms_[num_aa].coords[0];
                     cg_frame.atoms_[num_cg].coords[1] = aa_frame.atoms_[num_aa].coords[1];
                     cg_frame.atoms_[num_cg].coords[2] = aa_frame.atoms_[num_aa].coords[2];
@@ -139,13 +140,13 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
             // Put bead at geometric centre of atoms
             for(int i = 0; i < mapping_.size(); i++){
                 for(int j=0; j < residue_.num_residues; j++){
-                    const int num_cg = i + j*cg_frame.residue_.num_atoms;
+                    const int num_cg = i + j*cg_frame.residues_[0].num_atoms;
                     cg_frame.atoms_[num_cg].coords[0] = 0.;
                     cg_frame.atoms_[num_cg].coords[1] = 0.;
                     cg_frame.atoms_[num_cg].coords[2] = 0.;
 
                     for(int k = 0; k < mapping_[i].num_atoms; k++){
-                        const int num_aa = mapping_[i].atom_nums[k] + j*aa_frame.residue_.num_atoms;
+                        const int num_aa = mapping_[i].atom_nums[k] + j*aa_frame.residues_[0].num_atoms;
                         cg_frame.atoms_[num_cg].coords[0] += aa_frame.atoms_[num_aa].coords[0];
                         cg_frame.atoms_[num_cg].coords[1] += aa_frame.atoms_[num_aa].coords[1];
                         cg_frame.atoms_[num_cg].coords[2] += aa_frame.atoms_[num_aa].coords[2];
@@ -161,13 +162,13 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
             // Put bead at centre of mass of atoms
             for(int i = 0; i < mapping_.size(); i++){
                 for(int j = 0; j < residue_.num_residues; j++){
-                    const int num_cg = i + j * cg_frame.residue_.num_atoms;
+                    const int num_cg = i + j * cg_frame.residues_[0].num_atoms;
                     cg_frame.atoms_[num_cg].coords[0] = 0.;
                     cg_frame.atoms_[num_cg].coords[1] = 0.;
                     cg_frame.atoms_[num_cg].coords[2] = 0.;
 
                     for(int k = 0; k < mapping_[i].num_atoms; k++){
-                        const int num_aa = mapping_[i].atom_nums[k] + j*aa_frame.residue_.num_atoms;
+                        const int num_aa = mapping_[i].atom_nums[k] + j*aa_frame.residues_[0].num_atoms;
                         const float mass = aa_frame.atoms_[num_aa].mass;
                         cg_frame.atoms_[num_cg].coords[0] += aa_frame.atoms_[num_aa].coords[0] * mass;
                         cg_frame.atoms_[num_cg].coords[1] += aa_frame.atoms_[num_aa].coords[1] * mass;

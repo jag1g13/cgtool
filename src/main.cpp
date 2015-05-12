@@ -150,13 +150,11 @@ int main(const int argc, const char *argv[]){
 
     // Open files and do setup
     split_text_output("Frame setup", start);
-    Frame frame(topname, xtcname, groname, residues[0], !all_residues_known);
-    Residue residue = frame.residue_;
-    residues[0] = residue;
+    Frame frame(topname, xtcname, groname, residues, !all_residues_known);
 
     Frame cg_frame(frame);
-    BondSet bond_set(cfgname, residue);
-    CGMap mapping(residue);
+    BondSet bond_set(cfgname, residues);
+    CGMap mapping(residues);
     if(do_map){
         mapping.fromFile(cfgname);
         mapping.initFrame(frame, cg_frame);
@@ -259,7 +257,7 @@ int main(const int argc, const char *argv[]){
 
         cout << "Printing results to ITP" << endl;
         //TODO put format choice in config file or command line option
-        ITPWriter itp(residue, FileFormat::GROMACS);
+        ITPWriter itp(residues, FileFormat::GROMACS);
         itp.printAtoms(mapping, true);
         itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
     }else{
