@@ -10,18 +10,26 @@
 #include "bond_struct.h"
 #include "residue.h"
 
-/**
-* \brief Struct to hold atom data
-*/
+/** \brief Struct to keep track of which data have been loaded into atoms */
+struct AtomHas{
+    bool created = false;
+    bool atom_type = false;
+    bool coords = false;
+    bool charge = false;
+    bool mass = false;
+    bool resnum = false;
+};
+
+/** \brief Struct to hold atom data */
 struct Atom{
-    /** Atomtype as a string.  I don't want to be dealing with *char */
+    /** Atomtype as a string */
     std::string atom_type = "";
     /** Atomic coordinates in x, y, z */
     double coords[3] = {0., 0., 0.};
     /** Atomic charge from the force field */
     double charge = 0.;
     /** Atomic mass */
-    double mass = 0.;
+    double mass = 1.;
     /** Residue number */
     int resnum = 0;
     /** Create a blank Atom instance */
@@ -91,6 +99,8 @@ public:
     std::vector<Residue> residues_;
     /** Holds atomic coordinates for GROMACS */
     rvec *x_ = nullptr;
+    /** Which data have been loaded into atoms? */
+    AtomHas atomHas_;
 
 
     /** \brief Create Frame passing frame number, number of atoms to store and the frame name
@@ -101,8 +111,7 @@ public:
     /** \brief Create Frame passing config files.
     * Replaces calls to the function Frame::setupFrame() */
     Frame(const std::string &itpname, const std::string &xtcname,
-          const std::string &groname, std::vector<Residue> &residues,
-          const bool do_itp=true);
+          const std::string &groname, std::vector<Residue> &residues);
 
     /** \brief Create Frame by copying data from another Frame
     * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied. */

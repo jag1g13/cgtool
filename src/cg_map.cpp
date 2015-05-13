@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <assert.h>
 
 #include "parser.h"
 
@@ -159,6 +160,9 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
             break;
 
         case MapType::CM:
+            // Require that masses have been input
+            assert(aa_frame.atomHas_.mass);
+
             // Put bead at centre of mass of atoms
             for(int i = 0; i < mapping_.size(); i++){
                 for(int j = 0; j < residue_.num_residues; j++){
@@ -169,7 +173,7 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
 
                     for(int k = 0; k < mapping_[i].num_atoms; k++){
                         const int num_aa = mapping_[i].atom_nums[k] + j*aa_frame.residues_[0].num_atoms;
-                        const float mass = aa_frame.atoms_[num_aa].mass;
+                        const double mass = aa_frame.atoms_[num_aa].mass;
                         cg_frame.atoms_[num_cg].coords[0] += aa_frame.atoms_[num_aa].coords[0] * mass;
                         cg_frame.atoms_[num_cg].coords[1] += aa_frame.atoms_[num_aa].coords[1] * mass;
                         cg_frame.atoms_[num_cg].coords[2] += aa_frame.atoms_[num_aa].coords[2] * mass;

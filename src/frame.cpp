@@ -14,8 +14,6 @@
 #include "parser.h"
 #include "small_functions.h"
 
-#define EPSILON 0.00001
-
 using std::string;
 using std::vector;
 using std::cout;
@@ -53,19 +51,19 @@ Frame::Frame(const Frame &frame){
 }
 
 Frame::Frame(const string &itpname, const string &xtcname,
-             const string &groname, vector<Residue> &residues,
-             const bool do_itp){
-    residues_ = residues;
+             const string &groname, vector<Residue> &residues){
     if(!initFromXTC(xtcname)){
         printf("Something went wrong with reading XTC file\n");
         exit(EX_UNAVAILABLE);
     };
     createAtoms(numAtoms_);
+    copyCoordsIntoAtoms(numAtoms_);
 
     // Populate atoms_
 //    if(file_exists(itpname)) initFromITP(itpname);
     if(file_exists(groname)) initFromGRO(groname, residues);
-    if(do_itp) initFromITP(itpname);
+    residues_ = residues;
+    if(file_exists(itpname)) initFromITP(itpname);
 }
 
 Frame::~Frame(){
@@ -135,14 +133,10 @@ bool Frame::initFromXTC(const string &xtcname){
     boxType_ = BoxType::CUBIC;
     for(int i=0; i<3; i++){
         for(int j=0; j<3; j++){
+            printf("%8.4f", box_[i][j]);
             if(i!=j && box_[i][j] > 0){
                 boxType_ = BoxType::TRICLINIC;
             }
-        }
-    }
-    for(int i=0; i<3; i++){
-        for(int j=0; j<3; j++){
-            printf("%8.4f", box_[i][j]);
         }
         cout << endl;
     }
@@ -153,55 +147,75 @@ bool Frame::initFromXTC(const string &xtcname){
 }
 
 void Frame::initFromGRO(const string &groname, vector<Residue> &residues){
-    cout << "Using " << groname << endl;
+    // Require that atoms have been created
+    assert(atomHas_.created);
+
+    printf("Using %s\n", groname.c_str());
     FILE *gro = fopen(groname.c_str(), "r");
     if(gro == NULL){
         printf("Could not open GRO file for reading\n");
-        exit(EX_NOINPUT);
+        exit(EX_NOPERM);
     }
 
-    // Have we been given a complete list of residues or do we need to create it?
-    bool populate_residues = false;
-    if(residues.size() == 0) populate_residues = true;
-
+    // Read top two lines of GRO - before atoms
     char system_name[80];
     fgets(system_name, 80, gro);
     for(char &c : system_name) if(c == '\n') c = ' ';
     printf("%s\n", system_name);
-
     int num_atoms = 0;
     fscanf(gro, "%d", &num_atoms);
     printf("GRO contains %'d atoms\n", num_atoms);
 
     // The columns of a GRO file
-    int resnum;
-    char resname[6];
-    char atomname[6];
-    int atomnum;
-    float atom_coords[3];
-    float atom_vel[3];
+    int atomnum=0, resnum=0, resnum_last=0;
+    int num_residues=0, num_residues_in_list=0, total_atoms=0;
+    char atomname[6]="", resname[6]="", resname_last[6]="";
+    Residue *res = nullptr;
 
-    while(fscanf(gro, "%5d%5s%5s%5d%*8f%*8f%*8f%*8f%*8f%*8f",
-                 &resnum, resname, atomname, &atomnum)){
-        if(atomnum >= numAtoms_) break;
+    for(int i=0; i<numAtoms_; i++){
+        fscanf(gro, "%5d%5s%5s%5d%*8f%*8f%*8f%*8f%*8f%*8f",
+               &resnum, resname, atomname, &atomnum);
+        // Check that GRO is ordered
+        if(atomnum != i+1){
+            printf("%d %d\n", i, atomnum);
+        };
 
-        atoms_[atomnum-1].atom_type = atomname;
-        atoms_[atomnum-1].resnum = resnum;
-
-        if(populate_residues){
-            if(residues.back().resname != resname){
-                Residue *res_last = &residues.back();
-                res_last->num_residues = resnum;
-                res_last->num_atoms = atomnum - res_last->start;
-                res_last->total_atoms = res_last->num_atoms * res_last->num_residues;
-
-                residues.emplace_back(Residue());
-                Residue *res_new = &residues.back();
-                res_new->resname = resname;
-                res_new->start = atomnum;
+        // If new resname
+        if(strcmp(resname_last, resname)){
+            // If not first residue
+            if(res != nullptr){
+                res->total_atoms = total_atoms;
+                res->set_num_residues(num_residues);
+                res->set_num_atoms(res->total_atoms / res->num_residues);
+                res->populated = true;
             }
+
+            num_residues_in_list++;
+            if(residues.size() < num_residues_in_list) residues.push_back(Residue());
+            res = &residues[num_residues_in_list-1];
+            total_atoms = 0;
+            num_residues = 0;
+            res->init();
+            res->start = i;
+            res->set_resname(string(resname));
+            strcpy(resname_last, resname);
         }
+
+        total_atoms++;
+        if(resnum != resnum_last){
+            num_residues++;
+        }
+        resnum_last = resnum;
+
+        atoms_[i].atom_type = string(atomname);
+        atoms_[i].resnum = resnum;
     }
+
+    // Finalise the last residue
+    res->total_atoms = total_atoms;
+    res->set_num_residues(num_residues);
+    res->set_num_atoms(res->total_atoms / res->num_residues);
+    res->populated = true;
     fclose(gro);
 }
 
@@ -213,17 +227,24 @@ void Frame::copyCoordsIntoAtoms(int natoms){
         atoms_[i].coords[1] = x_[i][1];
         atoms_[i].coords[2] = x_[i][2];
     }
+    atomHas_.coords = true;
 }
 
 void Frame::createAtoms(int natoms){
     if(natoms < 0) natoms = numAtoms_;
     atoms_.resize(natoms);
+    for(int i=0; i<natoms; i++) atoms_[i] = Atom();
+    atomHas_.created = true;
 }
 
 void Frame::initFromITP(const string &itpname){
+    // Require that atoms have been created
+    assert(atomHas_.created);
+
     // Process topology file
     vector<string> substrs;
     Parser itp_parser(itpname, FileFormat::GROMACS);
+
     // How many atoms are there?  Per residue?  In total?
     if(residues_[0].num_atoms < 0){
         while(itp_parser.getLineFromSection("atoms", substrs, 4)){
@@ -232,19 +253,27 @@ void Frame::initFromITP(const string &itpname){
         }
     }
 
-    cout << "Found " << residues_[0].num_atoms << " atoms in ITP per " << residues_[0].resname << endl;
-    numAtomsTrack_ = residues_[0].num_residues * residues_[0].num_atoms;
-    atoms_.resize(numAtomsTrack_);
+    printf("Found %'d atoms in ITP per %s\n",
+           residues_[0].num_atoms, residues_[0].resname.c_str());
+    residues_[0].total_atoms = residues_[0].num_residues * residues_[0].num_atoms;
 
     for(int i = 0; i < residues_[0].num_atoms; i++){
-        // read data from topology file for each atom
-        // internal atom name is the res # and atom name from top/gro
+        // Read data from topology file for each atom
         itp_parser.getLineFromSection("atoms", substrs, 5);
         const string name = substrs[4];
+        atomHas_.atom_type = true;
+
         double charge = 0.;
-        if(substrs.size() >= 7) charge = atof(substrs[6].c_str());
+        if(substrs.size() >= 7){
+            charge = atof(substrs[6].c_str());
+            atomHas_.charge = true;
+        }
+
         double mass = 1.;
-        if(substrs.size() >= 8) mass = atof(substrs[7].c_str());
+        if(substrs.size() >= 8){
+            mass = atof(substrs[7].c_str());
+            atomHas_.mass = true;
+        }
         //TODO why doesn't this work
         nameToNum_[atoms_[i].atom_type] = i;
 
@@ -254,10 +283,6 @@ void Frame::initFromITP(const string &itpname){
             atoms_[num].atom_type = name;
             atoms_[num].charge = charge;
             atoms_[num].mass = mass;
-
-            atoms_[num].coords[0] = x_[num][0];
-            atoms_[num].coords[1] = x_[num][1];
-            atoms_[num].coords[2] = x_[num][2];
         }
     }
 

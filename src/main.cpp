@@ -105,7 +105,7 @@ int main(const int argc, const char *argv[]){
     cout << "XTC file: " << xtcname << endl;
     cout << "ITP file: " << topname << endl;
     // GRO file is not required but helps find residues
-    if(!file_exists(xtcname) || !file_exists(cfgname) || !file_exists(topname)){
+    if(!file_exists(xtcname) || !file_exists(cfgname)){
         cout << "Input file does not exist" << endl;
         exit(EX_NOINPUT);
     }
@@ -124,18 +124,17 @@ int main(const int argc, const char *argv[]){
     bool do_map = !cmd_parser.getBoolArg("nomap");
 
     vector<Residue> residues;
-    bool all_residues_known = true;
     while(cfg_parser.getLineFromSection("residues", tokens, 2)){
         residues.emplace_back(Residue());
-        residues.back().num_residues = stoi(tokens[0]);
-        residues.back().resname = tokens[1];
+        Residue *res = &residues.back();
+        res->num_residues = stoi(tokens[0]);
+        res->resname = tokens[1];
 
         if(tokens.size() >= 4){
-            residues.back().num_atoms = stoi(tokens[2]);
-            residues.back().calc_total();
+            res->num_atoms = stoi(tokens[2]);
+            res->calc_total();
+            res->populated = true;
             residues.back().ref_atom = stoi(tokens[3]);
-        }else{
-            all_residues_known = false;
         }
 
         const int s = residues.size();
@@ -150,7 +149,7 @@ int main(const int argc, const char *argv[]){
 
     // Open files and do setup
     split_text_output("Frame setup", start);
-    Frame frame(topname, xtcname, groname, residues, !all_residues_known);
+    Frame frame(topname, xtcname, groname, residues);
 
     Frame cg_frame(frame);
     BondSet bond_set(cfgname, residues);
