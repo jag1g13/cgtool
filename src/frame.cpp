@@ -115,10 +115,8 @@ bool Frame::writeToXtc(){
 bool Frame::initFromXTC(const string &xtcname){
     // How many atoms?  Prepare Frame for reading
     int status = read_xtc_natoms(xtcname.c_str(), &numAtoms_);
-    if(status != exdrOK){
-        cout << "Could not open input XTC file" << endl;
-        exit(EX_NOINPUT);
-    }
+    if(status != exdrOK) return false;
+
     printf("XTC contains %'d atoms\n", numAtoms_);
     xtcInput_ = xdrfile_open(xtcname.c_str(), "r");
     num_ = 0;
@@ -181,7 +179,7 @@ void Frame::initFromGRO(const string &groname, vector<Residue> &residues){
     gro.close();
 
     if(residues.size() < num_residues){
-        printf("Found %'d residue(s) not listed in CFG\n", num_residues - residues.size());
+        printf("Found %'d residue(s) not listed in CFG\n", num_residues - int(residues.size()));
         exit(EX_NOINPUT);
     }
 
@@ -299,7 +297,7 @@ bool Frame::readNext(){
     if(status != exdrOK) return false;
     num_++;
 
-    copyCoordsIntoAtoms(numAtomsTrack_);
+    copyCoordsIntoAtoms(numAtoms_);
     return true;
 }
 

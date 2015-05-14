@@ -43,7 +43,7 @@ struct Residue{
     };
 
     void set_resname(const std::string &val){
-//        if(resname.compare("")) assert(!val.compare(resname));
+        if(resname.compare("")) assert(!val.compare(resname));
         resname = val;
     };
 
