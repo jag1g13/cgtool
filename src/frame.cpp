@@ -21,15 +21,6 @@ using std::endl;
 using std::stoi;
 using std::printf;
 
-Residue& Residue::operator=(const Residue other){
-    resname = other.resname;
-    ref_atom = other.ref_atom;
-    num_atoms = other.num_atoms;
-    num_residues = other.num_residues;
-    total_atoms = other.total_atoms;
-
-    return *this;
-}
 
 Frame::Frame(const int num, const int natoms, const string name){
     assert(natoms >= 0);

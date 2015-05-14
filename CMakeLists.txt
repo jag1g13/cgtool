@@ -132,7 +132,6 @@ endif()
 
 # Find source files
 FILE(GLOB SOURCE_FILES src/*.cpp)
-list(REMOVE_ITEM SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
 
 # Create a library
 add_library(cgtoollib ${SOURCE_FILES})
@@ -141,8 +140,11 @@ add_dependencies(cgtoollib flens)
 set(EXTRA_LIBS ${EXTRA_LIBS} cgtoollib)
 
 # Add main target
-add_executable(cgtool "src/main.cpp")
+add_executable(cgtool "src/main/cgtool.cpp")
 target_link_libraries (cgtool ${EXTRA_LIBS})
+
+add_executable(thickness "src/main/thickness.cpp")
+target_link_libraries (thickness ${EXTRA_LIBS})
 
 # Testing
 add_subdirectory(lib/gtest-1.7.0)

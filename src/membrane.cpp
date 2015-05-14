@@ -19,7 +19,7 @@ Membrane::Membrane(const vector<Residue> &residues){
     residues_ = residues;
 }
 
-void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
+void Membrane::sortBilayer(const Frame &frame){
 //TODO fix this so that ref_atom can be used by name
 //    const int ref_atom = frame.nameToNum_.at(residue_.ref_atom);
 
@@ -51,7 +51,7 @@ void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
         if(res.ref_atom < 0) continue;
         int num_in_leaflet[2] = {0, 0};
         for(int i = 0; i < res.num_residues; i++){
-            const int num = ref_atom + i * res.num_atoms + res.start;
+            const int num = res.ref_atom + i * res.num_atoms + res.start;
             const int x = int(frame.x_[num][0] * blocks / box_[0]);
             const int y = int(frame.x_[num][1] * blocks / box_[1]);
             const double z = frame.x_[num][2];

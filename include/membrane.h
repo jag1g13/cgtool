@@ -55,7 +55,7 @@ public:
     Membrane(const std::vector<Residue> &residues);
 
     /** \brief Sort head groups into upper and lower bilayer */
-    void sortBilayer(const Frame &frame, const int ref_atom);
+    void sortBilayer(const Frame &frame);
 
     /** \brief Calculate thickness of bilayer */
     void thickness(const Frame &frame, const bool with_reset=false);

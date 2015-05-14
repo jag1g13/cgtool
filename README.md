@@ -5,7 +5,7 @@ Bonded parameters are output into a MARTINI/GROMACS style ITP forcefield file an
 
 The completed program will be compatible with a range of MD simulators and forcefield types, including support for dipoles (work in progress).  Primary targets are GROMACS/MARTINI and LAMMPS/ELBA.
 
-This program is very much work-in-progress and is not yet extensively tested.
+This program is work-in-progress and is not yet extensively tested.
 
 ### How do I get set up? ###
 
@@ -14,10 +14,9 @@ Required to compile:
 * CMake 2.8.4 or newer
 * GCC or Clang compiler supporting the C++11 standard
 * Boost C++ libraries (Optional: program\_options)
-* Optional: Google Test to compile tests
 * Optional: Doxygen to build developer documentation
 
-The CMake file has been tested on Ubuntu 14.04 (GCC/Clang) and Mac OSX 10.6 (GCC) and should work on similar systems.
+The CMake file has been tested on Ubuntu 14.04 (GCC/Clang) but should work on similar systems.
 I intend to make executables for common OSes available once the project is more complete.
 
 To compile the program:
@@ -35,7 +34,7 @@ To use the program:
 * A config file is required which specifies the mapping to be applied, in the format seen in the test\_data directory
 
 ### Testing ###
-The Bitbucket repo is polled every 15 minutes by a Jenkins build server for unit and integration testing.  Builds are tested on Ubuntu Linux and Mac OSX.
+The Bitbucket repo is polled every 15 minutes by a Jenkins build server for unit and integration testing.  Builds are tested on Ubuntu Linux.
 Currently only a few source files have complete unit tests, but this is being fixed.  Integration tests ensure that the program compiles successfully and produces correct output for several test datasets.
 
 ### Contact ###
