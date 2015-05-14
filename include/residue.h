@@ -28,24 +28,34 @@ struct Residue{
     }
 
     void set_num_atoms(const int val){
-//        if(populated) assert(val == num_atoms);
+        if(num_atoms != -1) assert(val == num_atoms);
         num_atoms = val;
     };
 
     void set_num_residues(const int val){
-//        if(populated) assert(val == num_residues);
+        if(num_residues != -1) assert(val == num_residues);
         num_residues = val;
     };
 
     void set_start(const int val){
-//        if(populated) assert(val == start);
+        if(start != -1) assert(val == start);
         start = val;
     };
 
     void set_resname(const std::string &val){
-//        if(populated) assert(val == resname);
+//        if(resname.compare("")) assert(!val.compare(resname));
         resname = val;
-    }
+    };
+
+    void set_total_atoms(const int val){
+        if(total_atoms != -1) assert(val == total_atoms);
+        total_atoms = val;
+    };
+
+    void print(){
+        printf("%'6d x %5s with %'3d atoms, starting at %'6d\n",
+               num_residues, resname.c_str(), num_atoms, start);
+    };
 };
 
 #endif //CGTOOL_RESIDUE_H

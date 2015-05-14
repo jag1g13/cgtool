@@ -124,32 +124,37 @@ int main(const int argc, const char *argv[]){
     bool do_map = !cmd_parser.getBoolArg("nomap");
 
     vector<Residue> residues;
-    while(cfg_parser.getLineFromSection("residues", tokens, 2)){
+    while(cfg_parser.getLineFromSection("residues", tokens, 1)){
         residues.emplace_back(Residue());
         Residue *res = &residues.back();
-        res->num_residues = stoi(tokens[0]);
-        res->resname = tokens[1];
+        res->resname = tokens[0];
 
-        if(tokens.size() >= 4){
+        if(tokens.size() > 1) res->num_residues = stoi(tokens[1]);
+        if(tokens.size() > 2){
             res->num_atoms = stoi(tokens[2]);
             res->calc_total();
             res->populated = true;
-            residues.back().ref_atom = stoi(tokens[3]);
         }
+        if(tokens.size() > 3) res->ref_atom = stoi(tokens[3]);
 
-        const int s = residues.size();
-        if(s >= 2){
-            residues.back().start = residues[s-2].start +
-                    residues[s-2].num_atoms * residues[s-2].num_residues + 1;
-        }
-
-        printf("Mapping %d %s residue(s)\n",
+        printf("Mapping %'6d %5s residue(s)\n",
                residues.back().num_residues, residues.back().resname.c_str());
+    }
+
+    const int num_residues = residues.size();
+    bool pop_so_far = residues[0].populated;
+    residues[0].start = 0;
+    for(int i=1; i<num_residues; i++){
+        if(pop_so_far){
+            residues[i].start = residues[i - 1].total_atoms + residues[i - 1].start;
+            pop_so_far = residues[i].populated;
+        }
     }
 
     // Open files and do setup
     split_text_output("Frame setup", start);
     Frame frame(topname, xtcname, groname, residues);
+    for(Residue &res : residues) res.print();
 
     Frame cg_frame(frame);
     BondSet bond_set(cfgname, residues);
@@ -220,7 +225,14 @@ int main(const int argc, const char *argv[]){
             bond_set.calcBondsInternal(cg_frame);
         }else{
             bond_set.calcBondsInternal(frame);
-            mem.thickness(frame);
+            if(i % 50 == 0){
+                mem.normalize(0);
+                mem.printCSV("thickness_" + std::to_string(i));
+                printf("Membrane thickness: %5.3f\n", mem.mean());
+                mem.thickness(frame, true);
+            }else{
+                mem.thickness(frame);
+            }
         }
 
         // Calculate electric field/dipoles

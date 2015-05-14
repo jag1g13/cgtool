@@ -60,7 +60,6 @@ Frame::Frame(const string &itpname, const string &xtcname,
     copyCoordsIntoAtoms(numAtoms_);
 
     // Populate atoms_
-//    if(file_exists(itpname)) initFromITP(itpname);
     if(file_exists(groname)) initFromGRO(groname, residues);
     residues_ = residues;
     if(file_exists(itpname)) initFromITP(itpname);
@@ -151,72 +150,78 @@ void Frame::initFromGRO(const string &groname, vector<Residue> &residues){
     assert(atomHas_.created);
 
     printf("Using %s\n", groname.c_str());
-    FILE *gro = fopen(groname.c_str(), "r");
-    if(gro == NULL){
+    std::ifstream gro(groname);
+    if(!gro.is_open()){
         printf("Could not open GRO file for reading\n");
         exit(EX_NOPERM);
     }
 
     // Read top two lines of GRO - before atoms
-    char system_name[80];
-    fgets(system_name, 80, gro);
-    for(char &c : system_name) if(c == '\n') c = ' ';
-    printf("%s\n", system_name);
+    string system_name, tmp;
     int num_atoms = 0;
-    fscanf(gro, "%d", &num_atoms);
+    getline(gro, system_name);
+    getline(gro, tmp);
+    num_atoms = stoi(tmp);
     printf("GRO contains %'d atoms\n", num_atoms);
+    assert(num_atoms == numAtoms_);
 
     // The columns of a GRO file
-    int atomnum=0, resnum=0, resnum_last=0;
-    int num_residues=0, num_residues_in_list=0, total_atoms=0;
-    char atomname[6]="", resname[6]="", resname_last[6]="";
-    Residue *res = nullptr;
+    vector<GROLine> grolines(num_atoms);
 
-    for(int i=0; i<numAtoms_; i++){
-        fscanf(gro, "%5d%5s%5s%5d%*8f%*8f%*8f%*8f%*8f%*8f",
-               &resnum, resname, atomname, &atomnum);
-        // Check that GRO is ordered
-        if(atomnum != i+1){
-            printf("%d %d\n", i, atomnum);
-        };
+    // Read in GRO file and get num of different resnames
+    int num_residues = 1;
+    getline(gro, tmp);
+    grolines[0].populate(tmp);
+    for(int i=1; i<numAtoms_; i++){
+        getline(gro, tmp);
+        grolines[i].populate(tmp);
+        assert(grolines[i].atomnum = i+1);
+        if(grolines[i].resname.compare(grolines[i-1].resname)) num_residues++;
+    }
+    gro.close();
 
-        // If new resname
-        if(strcmp(resname_last, resname)){
-            // If not first residue
-            if(res != nullptr){
-                res->total_atoms = total_atoms;
-                res->set_num_residues(num_residues);
-                res->set_num_atoms(res->total_atoms / res->num_residues);
-                res->populated = true;
-            }
-
-            num_residues_in_list++;
-            if(residues.size() < num_residues_in_list) residues.push_back(Residue());
-            res = &residues[num_residues_in_list-1];
-            total_atoms = 0;
-            num_residues = 0;
-            res->init();
-            res->start = i;
-            res->set_resname(string(resname));
-            strcpy(resname_last, resname);
-        }
-
-        total_atoms++;
-        if(resnum != resnum_last){
-            num_residues++;
-        }
-        resnum_last = resnum;
-
-        atoms_[i].atom_type = string(atomname);
-        atoms_[i].resnum = resnum;
+    if(residues.size() < num_residues){
+        printf("Found %'d residue(s) not listed in CFG\n", num_residues - residues.size());
+        exit(EX_NOINPUT);
     }
 
-    // Finalise the last residue
-    res->total_atoms = total_atoms;
-    res->set_num_residues(num_residues);
+    int resnum = 0, atomnum = 0;
+    num_residues = 1;
+    Residue *res = &residues[0];
+    res->set_start(0);
+
+    // Final pass to populate residues
+    atoms_[0].resnum = grolines[0].resnum;
+    atoms_[0].atom_type = grolines[0].atomname;
+    for(int i=1; i<numAtoms_; i++){
+        atoms_[i].resnum = grolines[i].resnum;
+        atoms_[i].atom_type = grolines[i].atomname;
+
+        if(grolines[i].resnum != grolines[i-1].resnum) resnum++;
+        atomnum++;
+
+        if(grolines[i].resname.compare(grolines[i-1].resname)){
+            res->set_resname(grolines[i-1].resname);
+            res->set_num_residues(resnum);
+            res->set_total_atoms(atomnum);
+            res->set_num_atoms(res->total_atoms / res->num_residues);
+            res->populated = true;
+
+            num_residues++;
+            res = &residues[num_residues-1];
+            res->set_start(i);
+            resnum = 0;
+            atomnum = 0;
+        }
+    }
+
+    resnum++;
+    atomnum++;
+    res->set_resname(grolines[numAtoms_-1].resname);
+    res->set_num_residues(resnum);
+    res->set_total_atoms(atomnum);
     res->set_num_atoms(res->total_atoms / res->num_residues);
     res->populated = true;
-    fclose(gro);
 }
 
 void Frame::copyCoordsIntoAtoms(int natoms){

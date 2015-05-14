@@ -7,8 +7,41 @@
 #include <string>
 #include <map>
 
+#include <boost/algorithm/string.hpp>
+
 #include "bond_struct.h"
 #include "residue.h"
+
+/** \brief Contains data from a line of a GRO file */
+struct GROLine{
+    int resnum = 0;
+    std::string resname = "";
+    std::string atomname = "";
+    int atomnum = 0;
+    float coords[3] = {0.f, 0.f, 0.f};
+    float velocity[3] = {0.f, 0.f, 0.f};
+
+    /** \brief Populate from String - line of GRO */
+    int populate(const std::string &line){
+        if(line.size() < 44) return 0;
+        resnum = std::stoi(line.substr(0, 5));
+        resname = line.substr(5, 5);
+        boost::trim(resname);
+        atomname = line.substr(10, 5);
+        boost::trim(atomname);
+        atomnum = std::stoi(line.substr(15, 5));
+        coords[0] = std::stof(line.substr(20, 8));
+        coords[1] = std::stof(line.substr(28, 8));
+        coords[2] = std::stof(line.substr(36, 8));
+        if(line.size() >= 68){
+            velocity[0] = std::stof(line.substr(44, 8));
+            velocity[1] = std::stof(line.substr(52, 8));
+            velocity[2] = std::stof(line.substr(60, 8));
+            return 2;
+        }
+        return 1;
+    };
+};
 
 /** \brief Struct to keep track of which data have been loaded into atoms */
 struct AtomHas{

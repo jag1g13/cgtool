@@ -30,7 +30,7 @@ void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
 
     // Find middle of membrane in z coord
     // Do this in blocks to account for curvature - more curvature needs more blocks
-    const int blocks = 4;
+    const int blocks = 2;
     Array block_avg_z(blocks, blocks);
     Array block_tot_residues(blocks, blocks);
 
@@ -64,8 +64,8 @@ void Membrane::sortBilayer(const Frame &frame, const int ref_atom){
                 num_in_leaflet[1]++;
             }
         }
-        printf("%s starting %d: %d lower, %d upper\n",
-               res.resname.c_str(), res.start, num_in_leaflet[0], num_in_leaflet[1]);
+        printf("%5s: %'4d lower, %'4d upper\n",
+               res.resname.c_str(), num_in_leaflet[0], num_in_leaflet[1]);
     }
 }
 
