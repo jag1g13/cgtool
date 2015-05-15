@@ -54,8 +54,9 @@ public:
     /** \brief Construct Membrane with vector of Residues present in simulation */
     Membrane(const std::vector<Residue> &residues);
 
-    /** \brief Sort head groups into upper and lower bilayer */
-    void sortBilayer(const Frame &frame);
+    /** \brief Sort head groups into upper and lower bilayer
+     *  Divided into blocks to account for curvature. Size blocks * blocks */
+    void sortBilayer(const Frame &frame, const int blocks=4);
 
     /** \brief Calculate thickness of bilayer */
     void thickness(const Frame &frame, const bool with_reset=false);
@@ -72,6 +73,9 @@ public:
     /** \brief Set resolution of calculation
      * Number of grid points in x and y */
     void setResolution(const int n);
+
+    /** \brief Zero the running count of membrane thickness */
+    void reset();
 };
 
 #endif //CGTOOL_MEMBRANE_H

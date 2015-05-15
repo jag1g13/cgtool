@@ -56,7 +56,13 @@ public:
     /**\brief Search through config file for a particular section and pass back lines
     * Once it reaches the end of the file, it rewinds to the beginning and returns
     * Can specify the number of tokens expected, will return false if too few found */
-    bool getLineFromSection(const std::string find, std::vector<std::string> &tokens, const int len=0);
+    bool getLineFromSection(const std::string find, std::vector<std::string> &tokens, const int len=1);
+
+    bool getKeyFromSection(const std::string &section, const std::string &key,
+                           std::string &value);
+
+    int getIntKeyFromSection(const std::string &section, const std::string &key,
+                             const int default_value);
 };
 
 #endif

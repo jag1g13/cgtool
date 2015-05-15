@@ -86,3 +86,25 @@ void Parser::rewind(){
     file_.clear();
     file_.seekg(0, std::ios::beg);
 }
+
+bool Parser::getKeyFromSection(const string &section, const string &key,
+                               string &value){
+    vector<string> tmp;
+    while(getLineFromSection(section, tmp, 2)){
+        if(tmp[0] == key){
+            value = tmp[1];
+            return true;
+        }
+    }
+    return false;
+}
+
+int Parser::getIntKeyFromSection(const std::string &section, const std::string &key,
+                                 const int default_value){
+    string tmp;
+    if(getKeyFromSection(section, key, tmp)){
+        return stoi(tmp);
+    }else{
+        return default_value;
+    }
+}

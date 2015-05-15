@@ -47,6 +47,9 @@ double distSqrPlane(const double c1[3], const double c2[3]);
 /** \brief Convert 3d vector as double[3] to polar coordinates */
 void polar(const double cart[3], double polar[3]);
 
+/** \brief Get (approximate) number of frames in XTC file */
+int get_xtc_num_frames(const std::string &xtcname);
+
 struct StatsBox{
     /** RMS difference between items */
     double rmsd = 0.;

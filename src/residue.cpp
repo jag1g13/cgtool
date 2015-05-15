@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+#include <assert.h>
+
 using std::string;
 using std::cout;
 using std::endl;

@@ -19,7 +19,7 @@ Membrane::Membrane(const vector<Residue> &residues){
     residues_ = residues;
 }
 
-void Membrane::sortBilayer(const Frame &frame){
+void Membrane::sortBilayer(const Frame &frame, const int blocks){
 //TODO fix this so that ref_atom can be used by name
 //    const int ref_atom = frame.nameToNum_.at(residue_.ref_atom);
 
@@ -30,7 +30,6 @@ void Membrane::sortBilayer(const Frame &frame){
 
     // Find middle of membrane in z coord
     // Do this in blocks to account for curvature - more curvature needs more blocks
-    const int blocks = 2;
     Array block_avg_z(blocks, blocks);
     Array block_tot_residues(blocks, blocks);
 
@@ -70,10 +69,7 @@ void Membrane::sortBilayer(const Frame &frame){
 }
 
 void Membrane::thickness(const Frame &frame, const bool with_reset){
-    if(with_reset){
-        thickness_.zero();
-        numFrames_ = 0;
-    }
+    if(with_reset) reset();
 
     makePairs(frame, upperHeads_, lowerHeads_, upperPair_);
     makePairs(frame, lowerHeads_, upperHeads_, lowerPair_);
@@ -175,4 +171,9 @@ void Membrane::setResolution(const int n){
     thickness_.init(grid_, grid_);
     step_[0] = box_[0] / grid_;
     step_[1] = box_[1] / grid_;
+}
+
+void Membrane::reset(){
+    thickness_.zero();
+    numFrames_ = 0;
 }

@@ -7,8 +7,6 @@
 
 #include <string>
 
-#include <assert.h>
-
 class Residue{
 public:
     std::string resname = "";

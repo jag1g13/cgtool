@@ -9,6 +9,7 @@
 #include <cassert>
 
 #include <sys/stat.h>
+#include <fstream>
 
 using std::string;
 using std::cout;
@@ -81,6 +82,27 @@ double distSqrPlane(const double c1[3], const double c2[3]){
 
 void polar(const double cart[3], double polar[3]){
     throw std::logic_error("Not implemented yet");
+}
+
+uint32_t u4_from_buffer(char b[]){
+    return uint8_t(b[3]) <<  0 | uint8_t(b[2]) <<  8
+           | uint8_t(b[1]) << 16 | uint8_t(b[0]) << 24;
+}
+
+int get_xtc_num_frames(const string &xtcname){
+    // Based on http://comments.gmane.org/gmane.science.biology.gromacs.devel/3901
+    std::ifstream xtc;
+    xtc.open(xtcname.c_str(), std::ios::binary);
+    if(!xtc.is_open()) return -1;
+
+    // Get frame size
+    char header[92];
+    xtc.read(header, 92);
+    xtc.close();
+    uint32_t frame_size = u4_from_buffer(header+88);
+
+    const long total_size = file_size(xtcname);
+    return total_size / frame_size;
 }
 
 StatsBox vector_stats(const vector<double> &a, const vector<double> &b){

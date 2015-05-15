@@ -106,7 +106,7 @@ protected:
 
     void createAtoms(int natoms=-1);
     bool initFromXTC(const std::string &xtcname);
-    void initFromGRO(const std::string &groname, std::vector<Residue> &residues);
+    bool initFromGRO(const std::string &groname, std::vector<Residue> &residues);
     void copyCoordsIntoAtoms(int natoms=-1);
 
     /**
@@ -189,6 +189,9 @@ public:
 
     /** \brief Print all atoms up to n to GRO file.  Default print all. */
     void printGRO(std::string filename="", int natoms=-1);
+
+    /** \brief Print box vectors */
+    void printBox();
 
     /**
     * \brief Calculate distance between two atoms in a BondStruct object

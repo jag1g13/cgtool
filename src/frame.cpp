@@ -3,7 +3,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <cstring>
 
 #include <math.h>
 #include <assert.h>
@@ -48,12 +47,16 @@ Frame::Frame(const string &itpname, const string &xtcname,
         exit(EX_UNAVAILABLE);
     };
     createAtoms(numAtoms_);
-    copyCoordsIntoAtoms(numAtoms_);
 
     // Populate atoms_
-    if(file_exists(groname)) initFromGRO(groname, residues);
+    if(!initFromGRO(groname, residues)){
+        printf("Something went wrong with reading GRO file\n");
+        exit(EX_UNAVAILABLE);
+    };
+
     residues_ = residues;
     if(file_exists(itpname)) initFromITP(itpname);
+    copyCoordsIntoAtoms(numAtoms_);
 }
 
 Frame::~Frame(){
@@ -108,7 +111,6 @@ bool Frame::initFromXTC(const string &xtcname){
     int status = read_xtc_natoms(xtcname.c_str(), &numAtoms_);
     if(status != exdrOK) return false;
 
-    printf("XTC contains %'d atoms\n", numAtoms_);
     xtcInput_ = xdrfile_open(xtcname.c_str(), "r");
     num_ = 0;
 
@@ -116,17 +118,14 @@ bool Frame::initFromXTC(const string &xtcname){
     x_ = (rvec *)malloc(numAtoms_ * sizeof(*x_));
     status = read_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_);
 
-    // Print box vectors
-    printf("Box vectors:\n");
+    // Check box vectors
     boxType_ = BoxType::CUBIC;
     for(int i=0; i<3; i++){
         for(int j=0; j<3; j++){
-            printf("%8.4f", box_[i][j]);
             if(i!=j && box_[i][j] > 0){
                 boxType_ = BoxType::TRICLINIC;
             }
         }
-        cout << endl;
     }
     if(boxType_ != BoxType::CUBIC) printf("NOTE: Box is not cubic\n");
 
@@ -134,16 +133,12 @@ bool Frame::initFromXTC(const string &xtcname){
     return isSetup_;
 }
 
-void Frame::initFromGRO(const string &groname, vector<Residue> &residues){
+bool Frame::initFromGRO(const string &groname, vector<Residue> &residues){
     // Require that atoms have been created
     assert(atomHas_.created);
 
-    printf("Using %s\n", groname.c_str());
     std::ifstream gro(groname);
-    if(!gro.is_open()){
-        printf("Could not open GRO file for reading\n");
-        exit(EX_NOPERM);
-    }
+    if(!gro.is_open()) return false;
 
     // Read top two lines of GRO - before atoms
     string system_name, tmp;
@@ -151,7 +146,6 @@ void Frame::initFromGRO(const string &groname, vector<Residue> &residues){
     getline(gro, system_name);
     getline(gro, tmp);
     num_atoms = stoi(tmp);
-    printf("GRO contains %'d atoms\n", num_atoms);
     assert(num_atoms == numAtoms_);
 
     // The columns of a GRO file
@@ -214,6 +208,8 @@ void Frame::initFromGRO(const string &groname, vector<Residue> &residues){
     res->set_num_atoms(res->total_atoms / res->num_residues);
     res->calc_total();
     res->populated = true;
+
+    return true;
 }
 
 void Frame::copyCoordsIntoAtoms(int natoms){
@@ -249,10 +245,7 @@ void Frame::initFromITP(const string &itpname){
             if(substrs[3] == residues_[0].resname) residues_[0].num_atoms++;
         }
     }
-
-    printf("Found %'d atoms in ITP per %s\n",
-           residues_[0].num_atoms, residues_[0].resname.c_str());
-    residues_[0].total_atoms = residues_[0].num_residues * residues_[0].num_atoms;
+    residues_[0].calc_total();
 
     for(int i = 0; i < residues_[0].num_atoms; i++){
         // Read data from topology file for each atom
@@ -364,6 +357,17 @@ void Frame::printGRO(string filename, int natoms){
     fprintf(gro, "%10.5f%10.5f%10.5f\n", max[0]-min[0], max[1]-min[1], max[2]-min[2]);
 
     fclose(gro);
+}
+
+void Frame::printBox(){
+    // Print box vectors
+    printf("Box vectors:\n");
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            printf("%8.4f", box_[i][j]);
+        }
+        cout << endl;
+    }
 }
 
 double Frame::bondLength(BondStruct &bond, const int offset) {

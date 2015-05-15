@@ -22,7 +22,7 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
     vector<string> parts(3);
 
     // Split help string and parse it into options and default values
-    desc_.add_options()("help,h", "show this help text");
+    desc_.add_options()("help,h", "Show this help text");
     boost::split(lines, helpString_, boost::is_any_of("\n"));
     for(const string &line : lines){
         boost::split(parts, line, boost::is_any_of("\t"));
