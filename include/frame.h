@@ -23,24 +23,37 @@ struct GROLine{
 
     /** \brief Populate from String - line of GRO */
     int populate(const std::string &line){
-        if(line.size() < 44) return 0;
+        if(line.size() < 41) return 0;
+
+        // Adjust for 7.2f formatting
+        int float_len = 8;
+        if(line.size() == 41) float_len = 7;
+
         resnum = std::stoi(line.substr(0, 5));
         resname = line.substr(5, 5);
         boost::trim(resname);
         atomname = line.substr(10, 5);
         boost::trim(atomname);
         atomnum = std::stoi(line.substr(15, 5));
-        coords[0] = std::stof(line.substr(20, 8));
-        coords[1] = std::stof(line.substr(28, 8));
-        coords[2] = std::stof(line.substr(36, 8));
+        coords[0] = std::stof(line.substr(20, float_len));
+        coords[1] = std::stof(line.substr(28, float_len));
+        coords[2] = std::stof(line.substr(36, float_len));
+
         if(line.size() >= 68){
-            velocity[0] = std::stof(line.substr(44, 8));
-            velocity[1] = std::stof(line.substr(52, 8));
-            velocity[2] = std::stof(line.substr(60, 8));
+            velocity[0] = std::stof(line.substr(44, float_len));
+            velocity[1] = std::stof(line.substr(52, float_len));
+            velocity[2] = std::stof(line.substr(60, float_len));
             return 2;
         }
         return 1;
     };
+
+    /** \brief Print the parsed line for debugging */
+    void print(){
+        printf("%5d%5s%5s%5d%8.3f%8.3f%8.3f\n",
+               resnum, resname.c_str(), atomname.c_str(),
+               atomnum, coords[0], coords[1], coords[2]);
+    }
 };
 
 /** \brief Struct to keep track of which data have been loaded into atoms */
@@ -113,8 +126,6 @@ protected:
 public:
     /** Has the Frame been properly setup yet? */
     bool isSetup_ = false;
-    /** The number of atoms stored in this frame that we find interesting */
-    int numAtomsTrack_ = 0;
     /** Vector of Atoms; Each Atom contains position and type data */
     std::vector<Atom> atoms_;
     /** The number of atoms stored in this frame */

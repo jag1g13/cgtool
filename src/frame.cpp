@@ -164,7 +164,7 @@ void Frame::initFromGRO(const string &groname, vector<Residue> &residues){
     for(int i=1; i<numAtoms_; i++){
         getline(gro, tmp);
         grolines[i].populate(tmp);
-        assert(grolines[i].atomnum = i+1);
+        assert(grolines[i].atomnum == i+1);
         if(grolines[i].resname.compare(grolines[i-1].resname)) num_residues++;
     }
     gro.close();
@@ -194,6 +194,7 @@ void Frame::initFromGRO(const string &groname, vector<Residue> &residues){
             res->set_num_residues(resnum);
             res->set_total_atoms(atomnum);
             res->set_num_atoms(res->total_atoms / res->num_residues);
+            res->calc_total();
             res->populated = true;
 
             num_residues++;
@@ -204,12 +205,14 @@ void Frame::initFromGRO(const string &groname, vector<Residue> &residues){
         }
     }
 
+    // Complete final residue
     resnum++;
     atomnum++;
     res->set_resname(grolines[numAtoms_-1].resname);
     res->set_num_residues(resnum);
     res->set_total_atoms(atomnum);
     res->set_num_atoms(res->total_atoms / res->num_residues);
+    res->calc_total();
     res->populated = true;
 }
 
@@ -315,11 +318,11 @@ void Frame::recentreBox(const int atom_num){
 
 void Frame::printAtoms(int natoms){
     assert(isSetup_);
-    if(natoms == -1) natoms = numAtomsTrack_;
-    printf("   Num   Name   Mass   Charge   Posx    Posy    Posz\n");
+    if(natoms == -1) natoms = numAtoms_;
+    printf("  Num Name    Mass  Charge    Posx    Posy    Posz\n");
     for(int i=0; i<natoms; i++){
-        printf("%6i %6s %7.3f %7.3f %7.4f %7.4f %7.4f\n",
-               nameToNum_.at(atoms_[i].atom_type), atoms_[i].atom_type.c_str(),
+        printf("%5i%5s%8.3f%8.3f%8.3f%8.3f%8.3f\n",
+               i, atoms_[i].atom_type.c_str(),
                atoms_[i].mass, atoms_[i].charge,
                atoms_[i].coords[0], atoms_[i].coords[1], atoms_[i].coords[2]);
     }
@@ -328,7 +331,7 @@ void Frame::printAtoms(int natoms){
 void Frame::printGRO(string filename, int natoms){
     assert(isSetup_);
     if(filename == "") filename = residues_[0].resname + ".gro";
-    if(natoms == -1) natoms = numAtomsTrack_;
+    if(natoms == -1) natoms = numAtoms_;
     backup_old_file(filename);
 
     FILE *gro = std::fopen(filename.c_str(), "w");

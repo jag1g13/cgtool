@@ -21,7 +21,6 @@
 #include "cmd.h"
 #endif
 
-#define PROGRESS_UPDATE_FREQ 10
 #define ELECTRIC_FIELD_FREQ 100
 
 using std::string;
@@ -48,7 +47,7 @@ int main(const int argc, const char *argv[]){
             "--xtc\tGROMACS XTC file\tmd.xtc\t0\n"
             "--gro\tGROMACS GRO file\tmd.gro\t0\n"
             "--dir\tDirectory containing all of the above\t./\t0\n"
-            "--frames\tNumber of frames to read\t-1\t2\n";
+            "--frames\tNumber of frames to read\t-1\t2";
 
     // Allow comma separators in numbers for printf
     setlocale(LC_ALL, "");
@@ -135,17 +134,18 @@ int main(const int argc, const char *argv[]){
     // ##############################################################################
 
     int i = 1;
-    int progress_update_freq = PROGRESS_UPDATE_FREQ;
+    int progress_update_freq = 10;
     double last_update = start_timer();
     // Keep reading frames until something goes wrong (run out of frames) or hit limit
     while(frame.readNext() && (num_frames_max == -1 || i < num_frames_max)){
         // Process each frame as we read it, frames are not retained
 #ifdef UPDATE_PROGRESS
         if(i % progress_update_freq == 0){
+            // Set time between progress updates to nice number
             const double time_since_update = end_timer(last_update);
             if(time_since_update > 0.5f){
-                progress_update_freq /= 10;
-            }else if(time_since_update < 0.01f){
+                if(progress_update_freq >= 10) progress_update_freq /= 10;
+            }else if(time_since_update < 0.05f){
                 progress_update_freq *= 10;
             }
 
@@ -164,11 +164,10 @@ int main(const int argc, const char *argv[]){
         }
 #endif
 
-        // Calculate bonds and store in BondStructs
+        // Do membrane thickness calculations - separate every 50 frames
         if(i % 50 == 0){
             mem.normalize(0);
             mem.printCSV("thickness_" + std::to_string(i));
-            printf("Membrane thickness: %5.3f\n", mem.mean());
             mem.thickness(frame, true);
         }else{
             mem.thickness(frame);

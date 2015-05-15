@@ -47,9 +47,8 @@ protected:
     /** \brief What type of mapping are we going to apply?  CM, GC, or atom centred
     * Default is geometric centre of component atoms. */
     MapType mapType_ = MapType::GC;
-    /** Where does the block of residues we're mapping start? */
-    int resBlockStart_ = 0;
-    Residue residue_;
+    Residue aa_residue_;
+    Residue cg_residue_;
 
 public:
     /** Number of beads defined */

@@ -18,6 +18,7 @@ public:
     int num_residues = -1;
     int total_atoms = -1;
     int start = -1;
+    int end = -1;
     bool populated = false;
 
     Residue& operator=(const Residue other);

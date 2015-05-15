@@ -4,7 +4,11 @@
 
 #include "residue.h"
 
+#include <iostream>
+
 using std::string;
+using std::cout;
+using std::endl;
 
 Residue& Residue::operator=(const Residue other){
     resname = other.resname;
@@ -12,12 +16,15 @@ Residue& Residue::operator=(const Residue other){
     num_atoms = other.num_atoms;
     num_residues = other.num_residues;
     total_atoms = other.total_atoms;
+    start = other.start;
+    end = other.end;
 
     return *this;
 }
 
 void Residue::calc_total(){
     total_atoms = num_atoms * num_residues;
+    end = start + total_atoms;
 };
 
 void Residue::init(){
@@ -42,6 +49,10 @@ void Residue::set_start(const int val){
 
 void Residue::set_resname(const string &val){
     if(resname.compare("")) assert(!val.compare(resname));
+    // If already set
+//    if(resname.compare("")){
+//        cout << resname << " but found " << val << endl;
+//    }
     resname = val;
 };
 

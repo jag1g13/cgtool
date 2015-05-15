@@ -18,7 +18,6 @@
 #include "cmd.h"
 #endif
 
-#define PROGRESS_UPDATE_FREQ 10
 #define ELECTRIC_FIELD_FREQ 100
 
 using std::string;
@@ -105,7 +104,7 @@ int main(const int argc, const char *argv[]){
     cout << "XTC file: " << xtcname << endl;
     cout << "ITP file: " << topname << endl;
     // GRO file is not required but helps find residues
-    if(!file_exists(xtcname) || !file_exists(cfgname)){
+    if(!file_exists(xtcname) || !file_exists(cfgname) || !file_exists(groname)){
         cout << "Input file does not exist" << endl;
         exit(EX_NOINPUT);
     }
@@ -169,12 +168,6 @@ int main(const int argc, const char *argv[]){
     FieldMap field(1, 1, 1, 1);
     if(do_field) field.init(100, 100, 100, mapping.numBeads_);
 
-    Membrane mem(residues);
-    if(!do_map){
-        mem.sortBilayer(frame);
-        mem.setResolution(100);
-    }
-
     // Read and process simulation frames
     split_text_output("Reading frames", start);
     start = start_timer();
@@ -189,13 +182,14 @@ int main(const int argc, const char *argv[]){
     // ##############################################################################
 
     int i = 1;
-    int progress_update_freq = PROGRESS_UPDATE_FREQ;
+    int progress_update_freq = 10;
     double last_update = start_timer();
     // Keep reading frames until something goes wrong (run out of frames) or hit limit
     while(frame.readNext() && (num_frames_max == -1 || i < num_frames_max)){
         // Process each frame as we read it, frames are not retained
         #ifdef UPDATE_PROGRESS
         if(i % progress_update_freq == 0){
+            // Set time between progress updates to nice number
             const double time_since_update = end_timer(last_update);
             if(time_since_update > 0.5f){
                 progress_update_freq /= 10;
@@ -225,14 +219,6 @@ int main(const int argc, const char *argv[]){
             bond_set.calcBondsInternal(cg_frame);
         }else{
             bond_set.calcBondsInternal(frame);
-            if(i % 50 == 0){
-                mem.normalize(0);
-                mem.printCSV("thickness_" + std::to_string(i));
-                printf("Membrane thickness: %5.3f\n", mem.mean());
-                mem.thickness(frame, true);
-            }else{
-                mem.thickness(frame);
-            }
         }
 
         // Calculate electric field/dipoles
@@ -273,17 +259,6 @@ int main(const int argc, const char *argv[]){
         itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
     }else{
         bond_set.calcAvgs();
-
-        // Membrane thickness simulation average
-        mem.normalize(0);
-        printf("Membrane thickness: %5.3f\n", mem.mean());
-        mem.printCSV("thickness_running");
-
-        // Membrane thickness in final frame
-        mem.setResolution(500);
-        mem.thickness(frame, true);
-        mem.normalize(0);
-        mem.printCSV("thickness_final");
     }
 
     // Write out all frame bond lengths/angles/dihedrals to file
