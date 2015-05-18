@@ -18,15 +18,6 @@ enum class ArgType{PATH, STRING, INT, FLOAT, BOOL};
 */
 class CMD{
 protected:
-    /** Stores string argument names */
-    std::map<std::string, std::string> stringArgs_;
-
-    /** Stores boolean arguments accessed by argument name */
-    std::map<std::string, bool> boolArgs_;
-
-    /** Stores integer arguments accessed by argument name */
-    std::map<std::string, int> intArgs_;
-
     /** Program help string.  Should be parsed to generate arguments */
     std::string helpString_;
 

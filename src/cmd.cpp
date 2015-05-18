@@ -27,7 +27,7 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
     for(const string &line : lines){
         boost::split(parts, line, boost::is_any_of("\t"));
         const string arg = boost::trim_left_copy_if(parts[0], boost::is_any_of("-"));
-        switch(static_cast<ArgType>(stoi(parts[3]))){
+        switch(static_cast<ArgType>(stoi(parts[2]))){
             case ArgType::PATH:
             case ArgType::STRING:
                 // Is there a default value given?
@@ -35,25 +35,23 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
                     throw std::logic_error("String argument without default value no implemented");
                 }else{
                     desc_.add_options()((arg + "," + arg[0]).c_str(),
-                                        po::value<string>()->default_value(parts[2].c_str()),
+//                                        po::value<string>()->default_value(parts[2].c_str()),
+                                        po::value<string>(),
                                         parts[1].c_str());
-                    stringArgs_.emplace(arg, parts[2]);
                 }
                 break;
             case ArgType::INT:
                 desc_.add_options()((arg+","+arg[0]).c_str(),
-                                    po::value<int>()->default_value(stoi(parts[2])),
+                                    po::value<int>()->default_value(stoi(parts[3])),
                                     parts[1].c_str());
-                intArgs_.emplace(arg, stoi(parts[2]));
                 break;
             case ArgType::FLOAT:
                 break;
             case ArgType::BOOL:
                 // Boolean arguments don't get a short form - too many overlapping
                 desc_.add_options()((arg).c_str(),
-                                    po::value<bool>()->default_value(stoi(parts[2])),
+                                    po::value<bool>()->default_value(stoi(parts[3])),
                                     parts[1].c_str());
-                boolArgs_.emplace(arg, stoi(parts[2]));
                 break;
         }
     }
@@ -67,7 +65,6 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
         exit(EX_USAGE);
     }
 
-    //command_line_parser(argc, argv).options(desc).allow_unregistered().run();
     po::notify(options_);
     if (options_.count("help")) {
         cout << help_header << endl;
@@ -89,25 +86,15 @@ const std::string CMD::getFileArg(const string &arg){
         }
     }
 
-    // Does the argument have a default value?
-    if(stringArgs_.count(arg)){
-        if(options_.count("dir")){
-            return options_["dir"].as<string>() + "/" + stringArgs_[arg];
-        }else{
-            return stringArgs_[arg];
-        }
-    }
-
-    // Can't find it - error
-    cout << "Necessary argument not provied" << endl;
-    exit(EX_USAGE);
+    // Error no default value - assume empty
+    cout << "NON-FATAL ERROR: No default value for parameter "
+    << arg << " assuming empty" << endl;
+    return "";
 }
 
 const bool CMD::getBoolArg(const string &arg){
     // If it was set true by the user return it
     if(options_.count(arg)) return options_[arg].as<bool>();
-    // Otherwise return default value
-    if(boolArgs_.count(arg)) return boolArgs_[arg];
 
     // Error no default value - assume false
     cout << "NON-FATAL ERROR: No default value for parameter "
@@ -118,10 +105,8 @@ const bool CMD::getBoolArg(const string &arg){
 const int CMD::getIntArg(const string &arg){
     // If it was set by the user return it
     if(options_.count(arg)) return options_[arg].as<int>();
-    // Otherwise return default value
-    if(intArgs_.count(arg)) return intArgs_[arg];
 
-    // Error no default value - assume false
+    // Error no default value - assume -1
     cout << "NON-FATAL ERROR: No default value for parameter "
          << arg  << " assuming -1" << endl;
     return -1;

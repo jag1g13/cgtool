@@ -12,10 +12,7 @@
 #include "parser.h"
 #include "small_functions.h"
 #include "membrane.h"
-
-#ifndef NO_CMD_PARSER
 #include "cmd.h"
-#endif
 
 #define ELECTRIC_FIELD_FREQ 100
 
@@ -39,11 +36,11 @@ int main(const int argc, const char *argv[]){
             "Usage:\n"
             "cgtool_thickness -c <cfg file> -x <xtc file> -g <gro file> [-f <num frames>]\n";
     const string help_options =
-            "--cfg\tCGTOOL mapping file\tcg.cfg\t0\n"
-            "--xtc\tGROMACS XTC file\tmd.xtc\t0\n"
-            "--gro\tGROMACS GRO file\tmd.gro\t0\n"
-            "--dir\tDirectory containing all of the above\t./\t0\n"
-            "--frames\tNumber of frames to read\t-1\t2";
+            "--cfg\tCGTOOL mapping file\t0\n"
+            "--xtc\tGROMACS XTC file\t0\n"
+            "--gro\tGROMACS GRO file\t0\n"
+            "--dir\tDirectory containing all of the above\t0\n"
+            "--frames\tNumber of frames to read\t2";
 
     // Allow comma separators in numbers for printf
     setlocale(LC_ALL, "");
@@ -62,8 +59,16 @@ int main(const int argc, const char *argv[]){
     cout << "CFG file: " << cfgname << endl;
     cout << "XTC file: " << xtcname << endl;
     cout << "GRO file: " << groname << endl;
-    if(!file_exists(xtcname) || !file_exists(cfgname) || !file_exists(groname)){
-        cout << "Input file does not exist" << endl;
+    if(!file_exists(cfgname)){
+        cout << "CFG file does not exist" << endl;
+        exit(EX_NOINPUT);
+    }
+    if(!file_exists(xtcname)){
+        cout << "XTC file does not exist" << endl;
+        exit(EX_NOINPUT);
+    }
+    if(!file_exists(groname)){
+        cout << "GRO file does not exist" << endl;
         exit(EX_NOINPUT);
     }
 
@@ -125,12 +130,20 @@ int main(const int argc, const char *argv[]){
     mem.sortBilayer(frame, blocks);
     mem.setResolution(resolution);
 
+    // Calculate from GRO file
+    mem.thickness(frame);
+    mem.normalize(0);
+    mem.printCSV("thickness_gro");
+    mem.reset();
+
     // Read and process simulation frames
     split_text_output("Reading frames", start);
     start = start_timer();
+    const int full_xtc_frames = get_xtc_num_frames(xtcname);
+    printf("Total of %'6d frames in XTC\n", full_xtc_frames);
     if(num_frames_max == -1){
         printf("Reading all frames from XTC\n");
-        num_frames_max = get_xtc_num_frames(xtcname);
+        num_frames_max = full_xtc_frames;
     }else{
         printf("Reading %'6d frames from XTC\n", num_frames_max);
     }
@@ -168,7 +181,7 @@ int main(const int argc, const char *argv[]){
 
         // Do membrane thickness calculations - separate every N frames
         if(i % calc_every_N == 0) mem.thickness(frame);
-        if(i % exp_every_N == 0){
+        if(exp_every_N > 0 && i % exp_every_N == 0){
             mem.normalize(0);
             mem.printCSV("thickness_" + std::to_string(i));
             mem.reset();
@@ -186,6 +199,12 @@ int main(const int argc, const char *argv[]){
     const double time = end_timer(start);
     const double MBrate = file_size(xtcname) / (time * 1024 * 1024);
     printf("Read %'9d frames @ %'4d FPS %'6.1f MBps\n", i, int(i/time), MBrate);
+
+    // Calculate thickness average if requested
+    if(exp_every_N < 0){
+        mem.normalize(0);
+        mem.printCSV("thickness_average");
+    }
 
     // Final timer
     split_text_output("Finished", very_start);

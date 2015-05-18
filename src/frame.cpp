@@ -56,7 +56,6 @@ Frame::Frame(const string &itpname, const string &xtcname,
 
     residues_ = residues;
     if(file_exists(itpname)) initFromITP(itpname);
-    copyCoordsIntoAtoms(numAtoms_);
 }
 
 Frame::~Frame(){
@@ -179,6 +178,9 @@ bool Frame::initFromGRO(const string &groname, vector<Residue> &residues){
     for(int i=1; i<numAtoms_; i++){
         atoms_[i].resnum = grolines[i].resnum;
         atoms_[i].atom_type = grolines[i].atomname;
+        atoms_[i].coords[0] = grolines[i].coords[0];
+        atoms_[i].coords[1] = grolines[i].coords[1];
+        atoms_[i].coords[2] = grolines[i].coords[2];
 
         if(grolines[i].resnum != grolines[i-1].resnum) resnum++;
         atomnum++;

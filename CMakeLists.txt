@@ -100,13 +100,7 @@ ExternalProject_Add(flens
 # Find Boost library - required
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED)
-find_package(Boost COMPONENTS program_options)
-if(Boost_PROGRAM_OPTIONS_FOUND)
-    MESSAGE("Found Boost Program_Options")
-else(Boost_PROGRAM_OPTIONS_FOUND)
-    MESSAGE("Boost Program_Options not found - using simple command line")
-    set(NO_CMD_PARSER ON)
-endif(Boost_PROGRAM_OPTIONS_FOUND)
+find_package(Boost COMPONENTS REQUIRED program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES})
 
@@ -164,7 +158,7 @@ target_link_libraries (gtest_array gtest gtest_main ${EXTRA_LIBS})
 add_test(GTestArrayAll gtest_array)
 
 # Integration test - does it run
-add_test(IntegrationRUN cgtool --dir ../test_data/ALLA)
+add_test(IntegrationRUN cgtool --dir ../test_data/ALLA --cfg cg.cfg --xtc md.xtc --gro md.gro --itp topol.top)
 # Integration test - check output files
 add_test(IntegrationITP ${CMAKE_COMMAND} -E compare_files
    ${CMAKE_SOURCE_DIR}/build/ALLA.itp ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.itp)

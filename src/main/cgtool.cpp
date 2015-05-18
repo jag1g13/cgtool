@@ -12,11 +12,7 @@
 #include "small_functions.h"
 #include "file_io.h"
 #include "field_map.h"
-#include "membrane.h"
-
-#ifndef NO_CMD_PARSER
 #include "cmd.h"
-#endif
 
 #define ELECTRIC_FIELD_FREQ 100
 
@@ -46,16 +42,16 @@ int main(const int argc, const char *argv[]){
             "cgtool --dir <path to files>\n"
             "cgtool --cfg <cfg file> --xtc <xtc file> --itp <itp file>\n";
     const string help_options =
-            "--cfg\tCGTOOL mapping file\tcg.cfg\t0\n"
-            "--xtc\tGROMACS XTC file\tmd.xtc\t0\n"
-            "--itp\tGROMACS ITP file\ttopol.top\t0\n"
-            "--gro\tGROMACS GRO file\tmd.gro\t0\n"
-            "--dir\tDirectory containing all of the above\t./\t0\n"
-            "--frames\tNumber of frames to read\t-1\t2\n"
-            "--csv\tOutput bond measurements to CSV\t0\t4\n"
-            "--nomap\tDon't perform cg mapping\t0\t4\n"
-            "--fcround\tRound force constants\t0\t4\n"
-            "--field\tCalculate electric field\t0\t4";
+            "--cfg\tCGTOOL mapping file\t0\n"
+            "--xtc\tGROMACS XTC file\t0\n"
+            "--itp\tGROMACS ITP file\t0\n"
+            "--gro\tGROMACS GRO file\t0\n"
+            "--dir\tDirectory containing all of the above\t0\n"
+            "--frames\tNumber of frames to read\t2\t-1\n"
+            "--csv\tOutput bond measurements to CSV\t4\t0\n"
+            "--nomap\tDon't perform cg mapping\t4\t-1\n"
+            "--fcround\tRound force constants\t4\t0\n"
+            "--field\tCalculate electric field\t4\t0";
 
     // Allow comma separators in numbers for printf
     setlocale(LC_ALL, "");
@@ -66,39 +62,11 @@ int main(const int argc, const char *argv[]){
 
     // Get input files
     split_text_output(version_string, start);
-    // If not using command line parser, replace with a simple one
-    // Do this so we can compile without Boost program_options
-    //TODO add test
-    #ifdef NO_CMD_PARSER
-    const string cfgname, xtcname, topname, groname;
-    if(argc > 1 && (string(argv[1]) == "-h" || string(argv[1]) == "--help")){
-        cout << help_header << endl;
-        exit(EX_OK);
-    }
-    if(argc == 3 && string(argv[1]) == "--dir"){
-        string dir = string(argv[2]);
-        cfgname = dir + "/cg.cfg";
-        xtcname = dir + "/md.xtc";
-        topname = dir + "/topol.top";
-        groname = dir + "/md.gro";
-    }else if(argc == 7 && string(argv[1]) == "--cfg" && string(argv[3]) == "--xtc" && string(argv[5]) == "--itp"){
-        cfgname = string(argv[2]);
-        xtcname = string(argv[4]);
-        topname = string(argv[6]);
-        groname = "NONE";
-    }else{
-        cout << "Wrong arguments provided for simple parser" << endl;
-        cout << help_header << endl;
-        exit(EX_USAGE);
-    }
-    #else
-
     CMD cmd_parser(help_header, help_options, argc, argv);
     const string cfgname = cmd_parser.getFileArg("cfg");
     const string xtcname = cmd_parser.getFileArg("xtc");
     const string topname = cmd_parser.getFileArg("itp");
     const string groname = cmd_parser.getFileArg("gro");
-    #endif
 
     cout << "CFG file: " << cfgname << endl;
     cout << "XTC file: " << xtcname << endl;
