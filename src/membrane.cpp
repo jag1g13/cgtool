@@ -37,8 +37,8 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
         if(res.ref_atom < 0) continue;
         for(int i = 0; i < res.num_residues; i++){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
-            const int x = int(frame.x_[num][0] * blocks / box_[0]);
-            const int y = int(frame.x_[num][1] * blocks / box_[1]);
+            const int x = int(fmax((frame.x_[num][0] * blocks / box_[0]), 0.));
+            const int y = int(fmin((frame.x_[num][1] * blocks / box_[1]), blocks-1));
             block_avg_z(x, y) += frame.x_[num][2];
             block_tot_residues(x, y)++;
         }
@@ -162,7 +162,20 @@ void Membrane::normalize(const int smooth_iter){
     thickness_ /= 2 * numFrames_;
 }
 
-void Membrane::printCSV(const std::string &filename){
+void Membrane::printCSV(const std::string &filename, const bool header){
+    if(header){
+        const string file = filename + ".dat";
+        // Backup using small_functions.h
+        backup_old_file(file);
+        FILE *f = fopen(file.c_str(), "w");
+
+        fprintf(f, "@legend Membrane thickness\n");
+        fprintf(f, "@xlabel X (nm)\n");
+        fprintf(f, "@ylabel Y (nm)\n");
+        fprintf(f, "@xwidth %f\n", box_[0]);
+        fprintf(f, "@ywidth %f\n", box_[1]);
+        fclose(f);
+    }
     thickness_.printCSV(filename);
 }
 

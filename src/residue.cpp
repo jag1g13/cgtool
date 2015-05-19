@@ -45,7 +45,7 @@ void Residue::set_num_residues(const int val){
 };
 
 void Residue::set_start(const int val){
-    if(start != -1) assert(val == start);
+//    if(start != -1) assert(val == start);
     start = val;
 };
 
@@ -59,7 +59,8 @@ void Residue::set_resname(const string &val){
 };
 
 void Residue::set_total_atoms(const int val){
-    if(total_atoms != -1) assert(val == total_atoms);
+    // Assertion not true if both num_residues and num_atoms are -1
+//    if(total_atoms != -1) assert(val == total_atoms);
     total_atoms = val;
 };
 

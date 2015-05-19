@@ -40,7 +40,8 @@ int main(const int argc, const char *argv[]){
             "--xtc\tGROMACS XTC file\t0\n"
             "--gro\tGROMACS GRO file\t0\n"
             "--dir\tDirectory containing all of the above\t0\n"
-            "--frames\tNumber of frames to read\t2";
+            "--frames\tNumber of frames to read\t2\t-1\n"
+            "--header\tPrint file header in membrane export\t4\t0";
 
     // Allow comma separators in numbers for printf
     setlocale(LC_ALL, "");
@@ -112,11 +113,10 @@ int main(const int argc, const char *argv[]){
 
     // Open files and do setup
     split_text_output("Frame setup", start);
-    string topname = "";
-    Frame frame(topname, xtcname, groname, residues);
+    Frame frame(xtcname, groname, residues);
 
     // Print residue info
-    printf("Residues\n----------\n");
+    printf("\nResidues\n----------\n");
     for(Residue &res : residues) res.print();
 
     // Read settings from config or default value
@@ -127,13 +127,16 @@ int main(const int argc, const char *argv[]){
 
     // Setup membrane
     Membrane mem(residues);
+    printf("\nBilayer\n----------\n");
     mem.sortBilayer(frame, blocks);
     mem.setResolution(resolution);
+    const bool mem_header = cmd_parser.getBoolArg("header");
+    if(mem_header) printf("Exporting membrane thickness with header\n");
 
     // Calculate from GRO file
     mem.thickness(frame);
     mem.normalize(0);
-    mem.printCSV("thickness_gro");
+    mem.printCSV("thickness_gro", mem_header);
     mem.reset();
 
     // Read and process simulation frames
@@ -183,7 +186,7 @@ int main(const int argc, const char *argv[]){
         if(i % calc_every_N == 0) mem.thickness(frame);
         if(exp_every_N > 0 && i % exp_every_N == 0){
             mem.normalize(0);
-            mem.printCSV("thickness_" + std::to_string(i));
+            mem.printCSV("thickness_" + std::to_string(i), mem_header);
             mem.reset();
         }
 
@@ -203,7 +206,7 @@ int main(const int argc, const char *argv[]){
     // Calculate thickness average if requested
     if(exp_every_N < 0){
         mem.normalize(0);
-        mem.printCSV("thickness_average");
+        mem.printCSV("thickness_average", mem_header);
     }
 
     // Final timer

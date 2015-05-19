@@ -181,12 +181,12 @@ void Array::print(const int width, const int prec, const double scale){
 void Array::printCSV(const std::string &filename, const int remove_border){
     const int r = remove_border;
     assert(r >= 0);
-    const string file = filename + ".csv";
+    const string file = filename + ".dat";
 
     // Backup using small_functions.h
 //    backup_old_file(file);
 
-    FILE *f = fopen(file.c_str(), "w");
+    FILE *f = fopen(file.c_str(), "a");
 
     if(dimensions_ == 1){
         for(int i=r; i < size_[0]-r; i++) fprintf(f, "%8.3f\n", array_[i]);

@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <sstream>
-#include <string>
 
 #include <math.h>
 #include <assert.h>
@@ -40,8 +39,8 @@ Frame::Frame(const Frame &frame){
     isSetup_ = true;
 }
 
-Frame::Frame(const string &itpname, const string &xtcname,
-             const string &groname, vector<Residue> &residues){
+Frame::Frame(const string &xtcname, const string &groname,
+             vector<Residue> &residues){
     if(!initFromXTC(xtcname)){
         printf("Something went wrong with reading XTC file\n");
         exit(EX_UNAVAILABLE);
@@ -55,7 +54,6 @@ Frame::Frame(const string &itpname, const string &xtcname,
     };
 
     residues_ = residues;
-    if(file_exists(itpname)) initFromITP(itpname);
 }
 
 Frame::~Frame(){
@@ -139,10 +137,10 @@ bool Frame::initFromGRO(const string &groname, vector<Residue> &residues){
     std::ifstream gro(groname);
     if(!gro.is_open()) return false;
 
-    // Read top two lines of GRO - before atoms
-    string system_name, tmp;
+    // Read top two lines of GRO - system name and number of atoms
+    string tmp;
     int num_atoms = 0;
-    getline(gro, system_name);
+    getline(gro, name_);
     getline(gro, tmp);
     num_atoms = stoi(tmp);
     assert(num_atoms == numAtoms_);
@@ -157,7 +155,8 @@ bool Frame::initFromGRO(const string &groname, vector<Residue> &residues){
     for(int i=1; i<numAtoms_; i++){
         getline(gro, tmp);
         grolines[i].populate(tmp);
-        assert(grolines[i].atomnum == i+1);
+        // Assertion not true for large systems
+//        assert(grolines[i].atomnum == i+1);
         if(grolines[i].resname.compare(grolines[i-1].resname)) num_residues++;
     }
     gro.close();
@@ -280,6 +279,10 @@ void Frame::initFromITP(const string &itpname){
 
 }
 
+void Frame::initFromFLD(const std::string &fldname){
+
+}
+
 bool Frame::readNext(){
     assert(xtcInput_ != nullptr);
     int status = read_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_);
@@ -372,46 +375,3 @@ void Frame::printBox(){
     }
 }
 
-double Frame::bondLength(BondStruct &bond, const int offset) {
-    const int a = bond.atomNums_[0] + offset;
-    const int b = bond.atomNums_[1] + offset;
-
-    double vec[3];
-    vec[0] = atoms_[a].coords[0] - atoms_[b].coords[0];
-    vec[1] = atoms_[a].coords[1] - atoms_[b].coords[1];
-    vec[2] = atoms_[a].coords[2] - atoms_[b].coords[2];
-
-    return abs(vec);
-}
-
-//TODO move this and bondLength into bond_struct.cpp
-double Frame::bondAngle(BondStruct &bond, const int offset){
-    const int a = bond.atomNums_[0] + offset;
-    const int b = bond.atomNums_[1] + offset;
-    int c, d;
-
-    switch(bond.atomNums_.size()){
-        case 4:
-            c = bond.atomNums_[2] + offset;
-            d = bond.atomNums_[3] + offset;
-            break;
-        case 3:
-            c = bond.atomNums_[1] + offset;
-            d = bond.atomNums_[2] + offset;
-            break;
-        default:
-            throw std::logic_error("Passing a bond length as an angle");
-    }
-
-    double vec1[3], vec2[3];
-    vec1[0] = atoms_[b].coords[0] - atoms_[a].coords[0];
-    vec1[1] = atoms_[b].coords[1] - atoms_[a].coords[1];
-    vec1[2] = atoms_[b].coords[2] - atoms_[a].coords[2];
-
-    vec2[0] = atoms_[d].coords[0] - atoms_[c].coords[0];
-    vec2[1] = atoms_[d].coords[1] - atoms_[c].coords[1];
-    vec2[2] = atoms_[d].coords[2] - atoms_[c].coords[2];
-
-    const double angle = acos(dot(vec1, vec2) / (abs(vec1) * abs(vec2)));
-    return (180. - (angle * 180. / M_PI));
-}

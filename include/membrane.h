@@ -68,7 +68,7 @@ public:
     void normalize(const int smooth_iter=1);
 
     /** \brief Print thickness array to CSV */
-    void printCSV(const std::string &filename);
+    void printCSV(const std::string &filename, const bool header=false);
 
     /** \brief Set resolution of calculation
      * Number of grid points in x and y */

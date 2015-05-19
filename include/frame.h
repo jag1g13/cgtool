@@ -9,7 +9,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "bond_struct.h"
 #include "residue.h"
 
 /** \brief Contains data from a line of a GRO file */
@@ -21,7 +20,7 @@ struct GROLine{
     float coords[3] = {0.f, 0.f, 0.f};
     float velocity[3] = {0.f, 0.f, 0.f};
 
-    /** \brief Populate from String - line of GRO */
+    /** \brief Populate from string - line of GRO file */
     int populate(const std::string &line){
         if(line.size() < 41) return 0;
 
@@ -36,8 +35,8 @@ struct GROLine{
         boost::trim(atomname);
         atomnum = std::stoi(line.substr(15, 5));
         coords[0] = std::stof(line.substr(20, float_len));
-        coords[1] = std::stof(line.substr(28, float_len));
-        coords[2] = std::stof(line.substr(36, float_len));
+        coords[1] = std::stof(line.substr(20 + float_len, float_len));
+        coords[2] = std::stof(line.substr(20 + 2*float_len, float_len));
 
         if(line.size() >= 68){
             velocity[0] = std::stof(line.substr(44, float_len));
@@ -57,13 +56,21 @@ struct GROLine{
 };
 
 /** \brief Struct to keep track of which data have been loaded into atoms */
-struct AtomHas{
+struct AtomsHave{
+    /** \brief Atoms have been created */
     bool created = false;
+    /** \brief Atoms have been assigned a type */
     bool atom_type = false;
+    /** \brief Atoms have been assigned coordinates */
     bool coords = false;
+    /** \brief Atoms have been assigned a charge */
     bool charge = false;
+    /** \brief Atoms have been assigned a mass */
     bool mass = false;
+    /** \brief Atoms have been assigned a residue number */
     bool resnum = false;
+    /** \brief Atoms have been assigned Lennard Jones parameters */
+    bool lj = false;
 };
 
 /** \brief Struct to hold atom data */
@@ -105,9 +112,6 @@ protected:
     BoxType boxType_ = BoxType::CUBIC;
 
     void createAtoms(int natoms=-1);
-    bool initFromXTC(const std::string &xtcname);
-    bool initFromGRO(const std::string &groname, std::vector<Residue> &residues);
-    void copyCoordsIntoAtoms(int natoms=-1);
 
     /**
     * \brief Create Frame, allocate atoms and read in data from start of XTC file
@@ -116,7 +120,10 @@ protected:
     * Uses libxdrfile to get number of atoms and allocate storage.
     * This function uses this data to create a Frame object to process this data.
     */
-    void initFromITP(const std::string &topname);
+    bool initFromXTC(const std::string &xtcname);
+    bool initFromGRO(const std::string &groname, std::vector<Residue> &residues);
+    void copyCoordsIntoAtoms(int natoms=-1);
+
 
     /** \brief Recentre simulation box on an atom
     * Avoids problems where a residue is split by the periodic boundary,
@@ -144,7 +151,7 @@ public:
     /** Holds atomic coordinates for GROMACS */
     rvec *x_ = nullptr;
     /** Which data have been loaded into atoms? */
-    AtomHas atomHas_;
+    AtomsHave atomHas_;
 
 
     /** \brief Create Frame passing frame number, number of atoms to store and the frame name
@@ -154,8 +161,8 @@ public:
 
     /** \brief Create Frame passing config files.
     * Replaces calls to the function Frame::setupFrame() */
-    Frame(const std::string &itpname, const std::string &xtcname,
-          const std::string &groname, std::vector<Residue> &residues);
+    Frame(const std::string &xtcname, const std::string &groname,
+          std::vector<Residue> &residues);
 
     /** \brief Create Frame by copying data from another Frame
     * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied. */
@@ -172,6 +179,9 @@ public:
     * The same Frame object should be used for each frame to save time in allocation.
     */
     bool readNext();
+
+    void initFromITP(const std::string &topname);
+    void initFromFLD(const std::string &fldname);
 
     /**
     * \brief Prepare to write XTC output.
@@ -192,19 +202,6 @@ public:
 
     /** \brief Print box vectors */
     void printBox();
-
-    /**
-    * \brief Calculate distance between two atoms in a BondStruct object
-    * Wrapper around float bondLength(int, int)
-    */
-    double bondLength(BondStruct &bond, const int offset=0);
-
-    /**
-    * \brief Calculate angle or dihedral between atoms in a BondStruct object
-    * Wrapper around float bondAngle(int, int, int, int)
-    */
-    double bondAngle(BondStruct &bond, const int offset=0);
-
 };
 
 #endif

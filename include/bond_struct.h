@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include "frame.h"
+
 enum class BondType{LENGTH, ANGLE, DIHEDRAL};
 
 /**
@@ -31,6 +33,18 @@ public:
     BondStruct(){};
     /** Copy constructor - required to push into vectors */
     BondStruct(const BondStruct &other);
+
+    /**
+    * \brief Calculate distance between two atoms in a BondStruct object
+    * Wrapper around float bondLength(int, int)
+    */
+    double bondLength(const Frame &frame, const int offset);
+
+    /**
+    * \brief Calculate angle or dihedral between atoms in a BondStruct object
+    * Wrapper around float bondAngle(int, int, int, int)
+    */
+    double bondAngle(const Frame &frame, const int offset);
 };
 
 #endif

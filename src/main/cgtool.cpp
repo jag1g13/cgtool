@@ -39,13 +39,15 @@ int main(const int argc, const char *argv[]){
             "configuration file as input.  The config file provides the mapping and\n"
             "bond parameters to be calculated as well as serveral other options.\n\n"
             "Usage:\n"
-            "cgtool --dir <path to files>\n"
-            "cgtool --cfg <cfg file> --xtc <xtc file> --itp <itp file>\n";
+            "cgtool -c <cfg file> -x <xtc file> -i <itp file>\n";
+    // Option syntax is <long flag> \t <comment> \t <flag type> [ \t <default value>]
+    // Flag types are 0 - path, 1 - string, 2 - int, 3 - float, 4 - bool
     const string help_options =
             "--cfg\tCGTOOL mapping file\t0\n"
             "--xtc\tGROMACS XTC file\t0\n"
             "--itp\tGROMACS ITP file\t0\n"
             "--gro\tGROMACS GRO file\t0\n"
+            "--fld\tGROMACS forcefield file\t0\n"
             "--dir\tDirectory containing all of the above\t0\n"
             "--frames\tNumber of frames to read\t2\t-1\n"
             "--csv\tOutput bond measurements to CSV\t4\t0\n"
@@ -65,12 +67,15 @@ int main(const int argc, const char *argv[]){
     CMD cmd_parser(help_header, help_options, argc, argv);
     const string cfgname = cmd_parser.getFileArg("cfg");
     const string xtcname = cmd_parser.getFileArg("xtc");
-    const string topname = cmd_parser.getFileArg("itp");
+    const string itpname = cmd_parser.getFileArg("itp");
     const string groname = cmd_parser.getFileArg("gro");
+    const string fldname = cmd_parser.getFileArg("fld");
 
     cout << "CFG file: " << cfgname << endl;
     cout << "XTC file: " << xtcname << endl;
-    cout << "ITP file: " << topname << endl;
+    cout << "GRO file: " << groname << endl;
+    if(itpname != "") cout << "ITP file: " << itpname << endl;
+    if(fldname != "") cout << "FLD file: " << fldname << endl;
     // GRO file is not required but helps find residues
     if(!file_exists(xtcname) || !file_exists(cfgname) || !file_exists(groname)){
         cout << "Input file does not exist" << endl;
@@ -120,7 +125,9 @@ int main(const int argc, const char *argv[]){
 
     // Open files and do setup
     split_text_output("Frame setup", start);
-    Frame frame(topname, xtcname, groname, residues);
+    Frame frame(xtcname, groname, residues);
+    if(itpname != "") frame.initFromITP(itpname);
+    if(fldname != "") frame.initFromFLD(fldname);
     for(Residue &res : residues) res.print();
 
     Frame cg_frame(frame);
