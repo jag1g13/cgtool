@@ -49,7 +49,7 @@ int main(const int argc, const char *argv[]){
             "--dir\tDirectory containing all of the above\t0\n"
             "--frames\tNumber of frames to read\t2\t-1\n"
             "--csv\tOutput bond measurements to CSV\t4\t0\n"
-            "--nomap\tDon't perform cg mapping\t4\t-1\n"
+            "--nomap\tDon't perform cg mapping\t4\t0\n"
             "--fcround\tRound force constants\t4\t0\n"
             "--field\tCalculate electric field\t4\t0";
 
