@@ -17,7 +17,9 @@ using std::vector;
 using std::cout;
 using std::endl;
 using std::stoi;
+using std::stof;
 using std::printf;
+using std::map;
 
 
 Frame::Frame(const int num, const int natoms, const string name){
@@ -155,8 +157,6 @@ bool Frame::initFromGRO(const string &groname, vector<Residue> &residues){
     for(int i=1; i<numAtoms_; i++){
         getline(gro, tmp);
         grolines[i].populate(tmp);
-        // Assertion not true for large systems
-//        assert(grolines[i].atomnum == i+1);
         if(grolines[i].resname.compare(grolines[i-1].resname)) num_residues++;
     }
     gro.close();
@@ -173,10 +173,10 @@ bool Frame::initFromGRO(const string &groname, vector<Residue> &residues){
 
     // Final pass to populate residues
     atoms_[0].resnum = grolines[0].resnum;
-    atoms_[0].atom_type = grolines[0].atomname;
+    atoms_[0].atom_name = grolines[0].atomname;
     for(int i=1; i<numAtoms_; i++){
         atoms_[i].resnum = grolines[i].resnum;
-        atoms_[i].atom_type = grolines[i].atomname;
+        atoms_[i].atom_name = grolines[i].atomname;
         atoms_[i].coords[0] = grolines[i].coords[0];
         atoms_[i].coords[1] = grolines[i].coords[1];
         atoms_[i].coords[2] = grolines[i].coords[2];
@@ -209,6 +209,10 @@ bool Frame::initFromGRO(const string &groname, vector<Residue> &residues){
     res->set_num_atoms(res->total_atoms / res->num_residues);
     res->calc_total();
     res->populated = true;
+
+    atomHas_.atom_name = true;
+    atomHas_.resnum = true;
+    atomHas_.coords = true;
 
     return true;
 }
@@ -251,8 +255,10 @@ void Frame::initFromITP(const string &itpname){
     for(int i = 0; i < residues_[0].num_atoms; i++){
         // Read data from topology file for each atom
         itp_parser.getLineFromSection("atoms", substrs, 5);
+        const string type = substrs[1];
         const string name = substrs[4];
         atomHas_.atom_type = true;
+        atomHas_.atom_name = true;
 
         double charge = 0.;
         if(substrs.size() >= 7){
@@ -266,12 +272,13 @@ void Frame::initFromITP(const string &itpname){
             atomHas_.mass = true;
         }
         //TODO why doesn't this work
-        nameToNum_[atoms_[i].atom_type] = i;
+        nameToNum_[atoms_[i].atom_name] = i;
 
         for(int j = 0; j < residues_[0].num_residues; j++){
             const int num = i + j * residues_[0].num_atoms;
             atoms_[num] = Atom();
-            atoms_[num].atom_type = name;
+            atoms_[num].atom_type = type;
+            atoms_[num].atom_name = name;
             atoms_[num].charge = charge;
             atoms_[num].mass = mass;
         }
@@ -280,7 +287,27 @@ void Frame::initFromITP(const string &itpname){
 }
 
 void Frame::initFromFLD(const std::string &fldname){
+    // Require that atoms have been created and assigned names
+    assert(atomHas_.created);
+    assert(atomHas_.atom_type);
 
+    Parser parser(fldname, FileFormat::GROMACS);
+
+    map<string, double> c06;
+    map<string, double> c12;
+
+    vector<string> tokens;
+    while(parser.getLineFromSection("atomtypes", tokens, 7)){
+        c06[tokens[0]] = stof(tokens[5]);
+        c12[tokens[0]] = stof(tokens[6]);
+    }
+
+    for(int i=0; i<residues_[0].total_atoms; i++){
+        atoms_[i].c06 = c06.at(atoms_[i].atom_type);
+        atoms_[i].c12 = c12.at(atoms_[i].atom_type);
+    }
+
+    atomHas_.lj = true;
 }
 
 bool Frame::readNext(){
@@ -320,7 +347,7 @@ void Frame::printAtoms(int natoms){
     printf("  Num Name    Mass  Charge    Posx    Posy    Posz\n");
     for(int i=0; i<natoms; i++){
         printf("%5i%5s%8.3f%8.3f%8.3f%8.3f%8.3f\n",
-               i, atoms_[i].atom_type.c_str(),
+               i, atoms_[i].atom_name.c_str(),
                atoms_[i].mass, atoms_[i].charge,
                atoms_[i].coords[0], atoms_[i].coords[1], atoms_[i].coords[2]);
     }
@@ -351,7 +378,8 @@ void Frame::printGRO(string filename, int natoms){
     fprintf(gro, "%s", stream.str().c_str());
     for(int i=0; i < natoms; i++){
         fprintf(gro, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n",
-                1+(i/residues_[0].num_atoms), residues_[0].resname.c_str(), atoms_[i].atom_type.c_str(), i+1,
+                1+(i/residues_[0].num_atoms), residues_[0].resname.c_str(),
+                atoms_[i].atom_name.c_str(), i+1,
                 atoms_[i].coords[0], atoms_[i].coords[1], atoms_[i].coords[2]);
 
         for(int j=0; j < 3; j++){

@@ -61,6 +61,8 @@ struct AtomsHave{
     bool created = false;
     /** \brief Atoms have been assigned a type */
     bool atom_type = false;
+    /** \brief Atoms have been assigned a name */
+    bool atom_name = false;
     /** \brief Atoms have been assigned coordinates */
     bool coords = false;
     /** \brief Atoms have been assigned a charge */
@@ -77,14 +79,20 @@ struct AtomsHave{
 struct Atom{
     /** Atomtype as a string */
     std::string atom_type = "";
+    /** Atomname as a string */
+    std::string atom_name = "";
     /** Atomic coordinates in x, y, z */
     double coords[3] = {0., 0., 0.};
     /** Atomic charge from the force field */
     double charge = 0.;
     /** Atomic mass */
-    double mass = 1.;
+    double mass = 0.;
     /** Residue number */
     int resnum = 0;
+    /** Lennard-Jones C6 parameter */
+    double c06 = 0.;
+    /** Lennard-Jones C12 parameter */
+    double c12 = 0.;
     /** Create a blank Atom instance */
     Atom(){};
 };

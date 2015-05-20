@@ -81,45 +81,53 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
 
     // Create atom for each CG bead
     int i = 0;
+    cg_frame.atomHas_.mass = true;
     for(BeadMap &bead : mapping_) {
-        for(int j=0; j < cg_residue_.num_residues; j++){
-            const int num_cg = i + j * cg_residue_.num_atoms;
-            cg_frame.atoms_[num_cg].atom_type = bead.name;
-            cg_frame.atoms_[num_cg].coords[0] = 0.;
-            cg_frame.atoms_[num_cg].coords[1] = 0.;
-            cg_frame.atoms_[num_cg].coords[2] = 0.;
-        }
-
         // Add bead to dictionaries so we can find it by name
-        cg_frame.nameToNum_[bead.name]= i;
-        for(const string &atomname : bead.atoms) {
-            atomname_to_bead_.emplace(atomname, &bead);
+        cg_frame.nameToNum_[bead.name] = i;
 
-            for(int j=aa_residue_.start; j<aa_residue_.end; j++){
-                if(aa_frame.atoms_[j].atom_type == atomname){
-                    cg_frame.atoms_[i].mass += aa_frame.atoms_[j].mass;
-                    cg_frame.atoms_[i].charge += aa_frame.atoms_[j].charge;
+        // Calculate bead properties from atomistic frame
+        for(const string &atomname : bead.atoms) {
+            for(int j=aa_residue_.start; j<aa_residue_.start+aa_residue_.num_atoms; j++){
+                if(aa_frame.atoms_[j].atom_name == atomname){
+                    bead.mass += aa_frame.atoms_[j].mass;
+                    bead.charge += aa_frame.atoms_[j].charge;
+                    bead.c06 += aa_frame.atoms_[j].c06;
+                    bead.c12 += aa_frame.atoms_[j].c12;
                     bead.atom_nums.push_back(j);
                 }
             }
         }
 
-        // Copy values back into beads
-        mapping_[i].mass = cg_frame.atoms_[i].mass;
-        mapping_[i].charge = cg_frame.atoms_[i].charge;
+        // Put properties into CG frame
         for(int j=0; j < aa_residue_.num_residues; j++){
             const int num_cg = i + j * cg_frame.residues_[0].num_atoms;
-            cg_frame.atoms_[num_cg].mass = mapping_[i].mass;
-            cg_frame.atoms_[num_cg].charge = mapping_[i].charge;
+            cg_frame.atoms_[num_cg].atom_type = bead.name;
+            cg_frame.atoms_[num_cg].atom_name = bead.name;
+            cg_frame.atoms_[num_cg].charge = bead.charge;
+            cg_frame.atoms_[num_cg].mass = bead.mass;
+            cg_frame.atoms_[num_cg].resnum = j;
+            cg_frame.atoms_[num_cg].c06 = bead.c06;
+            cg_frame.atoms_[num_cg].c12 = bead.c12;
         }
         i++;
+
+        // Check if
+        if(bead.charge != 0.) cg_frame.atomHas_.charge = true;
+        if(bead.mass == 0.) cg_frame.atomHas_.mass = false;
+        if(bead.c06 != 0. && bead.c12 != 0.) cg_frame.atomHas_.lj = true;
     }
 
-    // Total number of atoms could include solvent later, but doesn't yet
     cg_frame.numAtoms_ = i * aa_residue_.num_residues;
 
-    cg_frame.isSetup_ = true;
     apply(aa_frame, cg_frame);
+
+    cg_frame.isSetup_ = true;
+    cg_frame.atomHas_.atom_type = true;
+    cg_frame.atomHas_.atom_name = true;
+    cg_frame.atomHas_.resnum = true;
+    cg_frame.atomHas_.coords = true;
+
     cout << "Done init cg_frame" << endl;
 }
 

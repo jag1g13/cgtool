@@ -29,6 +29,10 @@ struct BeadMap{
     double mass;
     /** Total charge on bead */
     double charge;
+    /** Lennard-Jones C6 parameter */
+    double c06 = 0.;
+    /** Lennard-Jones C12 parameter */
+    double c12 = 0.;
 };
 
 enum class MapType{CM, GC, ATOM};
@@ -42,11 +46,10 @@ enum class MapType{CM, GC, ATOM};
 */
 class CGMap{
 protected:
-    /** Dictionary mapping an atom to the bead it should be mapped into */
-    std::map<std::string, BeadMap*> atomname_to_bead_;
     /** \brief What type of mapping are we going to apply?  CM, GC, or atom centred
     * Default is geometric centre of component atoms. */
     MapType mapType_ = MapType::GC;
+
     Residue aa_residue_;
     Residue cg_residue_;
 

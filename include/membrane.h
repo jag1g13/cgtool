@@ -23,9 +23,10 @@ protected:
     /** Distance from ref in lower leaflet to closest in upper */
     std::map<int, double> lowerPair_;
 
-    /** The residue that's present - to be made plural soon */
-    Residue residue_;
+    /** List of residues present in simulation */
     std::vector<Residue> residues_;
+    /** Total number of lipids */
+    int numLipids_ = 0;
     /** Size of he simulation box - assume orthorhombic */
     double box_[3];
     /** Distance between grid points in xy plane */
@@ -33,9 +34,12 @@ protected:
     /** 2d Array to hold the membrane thickness on a grid */
     Array thickness_;
     /** Number of grid points in x and y direction */
-    int grid_;
+    int grid_ = 0;
     /** Total number of frames processed - for averaging */
     int numFrames_ = 0;
+
+    /** Average surface area per lipid */
+    double areaPerLipid_ = 0.;
 
     /** \brief Create closest pairs of reference groups between layers */
     void makePairs(const Frame &frame, const std::vector<int> &ref,
@@ -61,7 +65,7 @@ public:
     /** \brief Calculate thickness of bilayer */
     void thickness(const Frame &frame, const bool with_reset=false);
 
-    /** \brief Calculate averages - to be used after all frames have been processed */
+    /** \brief Calculate average thickness */
     double mean();
 
     /** \brief Normalize membrane thickness array in place */

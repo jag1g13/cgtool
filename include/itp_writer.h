@@ -48,14 +48,17 @@ public:
     /** Close output file in destructor */
     ~ITPWriter();
 
-    /** \brief Print atoms section of itp.
+    /** \brief Print atoms section of ITP.
     * If isMartini is true, don't print a masses column
     * and only put charges on 'charged/Q' beads.
     */
     void printAtoms(const CGMap &map, const bool isMartini=true);
 
-    /** Print bond params to itp */
+    /** Print bond params to ITP */
     void printBonds(const BondSet &bond_set, const bool round=false);
+
+    /** Print atomtypes to ITP */
+    void printAtomTypes(const CGMap &cgmap);
 };
 
 #endif

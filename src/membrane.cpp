@@ -35,6 +35,7 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
 
     for(const Residue &res : residues_){
         if(res.ref_atom < 0) continue;
+        numLipids_ += res.num_residues;
         for(int i = 0; i < res.num_residues; i++){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
             const int x = int(fmax((frame.x_[num][0] * blocks / box_[0]), 0.));
@@ -70,6 +71,14 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
 
 void Membrane::thickness(const Frame &frame, const bool with_reset){
     if(with_reset) reset();
+
+    // Copy box from Frame - assume orthorhombic
+    box_[0] = frame.box_[0][0];
+    box_[1] = frame.box_[1][1];
+    box_[2] = frame.box_[2][2];
+
+    areaPerLipid_ = box_[0]*box_[1] / numLipids_;
+//    printf("APL %8.3f\n", areaPerLipid_);
 
     makePairs(frame, upperHeads_, lowerHeads_, upperPair_);
     makePairs(frame, lowerHeads_, upperHeads_, lowerPair_);

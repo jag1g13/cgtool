@@ -29,7 +29,7 @@ int main(const int argc, const char *argv[]){
     double start = very_start;
 
     const string version_string =
-            "CGTOOL THICKNESS v0.3.225:2aa06e3c59aa";
+            "CGTOOL THICKNESS v0.3.232:63326f510f40";
 
     const string help_header =
             "CGTOOL THICKNESS James Graham <J.A.Graham@soton.ac.uk> University of Southampton\n\n"
@@ -144,9 +144,8 @@ int main(const int argc, const char *argv[]){
     start = start_timer();
     const int full_xtc_frames = get_xtc_num_frames(xtcname);
     printf("Total of %'6d frames in XTC\n", full_xtc_frames);
-    if(num_frames_max == -1){
+    if(num_frames_max < 0){
         printf("Reading all frames from XTC\n");
-        num_frames_max = full_xtc_frames;
     }else{
         printf("Reading %'6d frames from XTC\n", num_frames_max);
     }
@@ -174,7 +173,8 @@ int main(const int argc, const char *argv[]){
             const double time = end_timer(start);
             const double fps = i / time;
 
-            const double t_remain = (num_frames_max - i) / fps;
+            double t_remain = (num_frames_max - i) / fps;
+            if(num_frames_max < 0) t_remain = (full_xtc_frames - i) / fps;
             printf("Read %'9d frames @ %'d FPS %6.1fs remaining\r", i, int(fps), t_remain);
             std::flush(cout);
 

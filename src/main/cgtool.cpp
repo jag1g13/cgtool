@@ -28,7 +28,7 @@ int main(const int argc, const char *argv[]){
     double start = very_start;
 
     const string version_string =
-            "CGTOOL v0.3.225:2aa06e3c59aa";
+            "CGTOOL v0.3.232:63326f510f40";
 
     const string help_header =
             "CGTOOL James Graham <J.A.Graham@soton.ac.uk> University of Southampton\n\n"
@@ -140,13 +140,15 @@ int main(const int argc, const char *argv[]){
     }
 
     bool do_field = cmd_parser.getBoolArg("field");
-    FieldMap field(1, 1, 1, 1);
+    FieldMap field;
     if(do_field) field.init(100, 100, 100, mapping.numBeads_);
 
     // Read and process simulation frames
     split_text_output("Reading frames", start);
     start = start_timer();
-    if(num_frames_max == -1){
+    const int full_xtc_frames = get_xtc_num_frames(xtcname);
+    printf("Total of %'6d frames in XTC\n", full_xtc_frames);
+    if(num_frames_max < 0){
         printf("Reading all frames from XTC\n");
     }else{
         printf("Reading %'6d frames from XTC\n", num_frames_max);
@@ -160,7 +162,7 @@ int main(const int argc, const char *argv[]){
     int progress_update_freq = 10;
     double last_update = start_timer();
     // Keep reading frames until something goes wrong (run out of frames) or hit limit
-    while(frame.readNext() && (num_frames_max == -1 || i < num_frames_max)){
+    while(frame.readNext() && (num_frames_max < 0 || i < num_frames_max)){
         // Process each frame as we read it, frames are not retained
         #ifdef UPDATE_PROGRESS
         if(i % progress_update_freq == 0){
@@ -175,12 +177,9 @@ int main(const int argc, const char *argv[]){
             const double time = end_timer(start);
             const double fps = i / time;
 
-            if(num_frames_max == -1){
-                printf("Read %'9d frames @ %'d FPS\r", i, int(fps));
-            }else{
-                const double t_remain = (num_frames_max - i) / fps;
-                printf("Read %'9d frames @ %'d FPS %6.1fs remaining\r", i, int(fps), t_remain);
-            }
+            double t_remain = (num_frames_max - i) / fps;
+            if(num_frames_max < 0) t_remain = (full_xtc_frames - i) / fps;
+            printf("Read %'9d frames @ %'d FPS %6.1fs remaining\r", i, int(fps), t_remain);
             std::flush(cout);
 
             last_update = start_timer();
@@ -232,6 +231,7 @@ int main(const int argc, const char *argv[]){
         ITPWriter itp(residues, FileFormat::GROMACS);
         itp.printAtoms(mapping, true);
         itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
+        if(cg_frame.atomHas_.lj) itp.printAtomTypes(mapping);
     }else{
         bond_set.calcAvgs();
     }

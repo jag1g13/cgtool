@@ -175,3 +175,19 @@ void ITPWriter::printBonds(const BondSet &bond_set, const bool round){
     }
 }
 
+void ITPWriter::printAtomTypes(const CGMap &cgmap){
+    switch(format_){
+        case FileFormat::GROMACS:
+            newSection("atomtype");
+            fprintf(itp_, ";name  at.num   mass      charge  ptype       c6           c12\n");
+            for(const BeadMap &bead : cgmap.mapping_){
+                fprintf(itp_, "%5s%5i%11.3f%11.3f%6s%14.10f%14.10f\n",
+                        bead.name.c_str(), 0, bead.mass, bead.charge,
+                        "A", bead.c06, bead.c12);
+            }
+            break;
+        case FileFormat::LAMMPS:
+            printf("LAMMPS Non-bonded output not yet supported\n");
+            exit(EX_USAGE);
+    }
+}
