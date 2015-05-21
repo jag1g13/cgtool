@@ -85,8 +85,8 @@ void Membrane::thickness(const Frame &frame, const bool with_reset){
 
 #pragma omp parallel default(none) shared(frame)
     {
-        thicknessWithRef(frame, upperHeads_, lowerHeads_, upperPair_);
-        thicknessWithRef(frame, lowerHeads_, upperHeads_, lowerPair_);
+        thicknessWithRef(frame, upperHeads_, upperPair_);
+        thicknessWithRef(frame, lowerHeads_, lowerPair_);
     }
 
     numFrames_++;
@@ -125,7 +125,7 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
 }
 
 void Membrane::thicknessWithRef(const Frame &frame, const vector<int> &ref,
-                                    const vector<int> &other, const map<int, double> &pairs){
+                                const map<int, double> &pairs){
     const double max_box = box_[0] > box_[1] ? box_[0] : box_[1];
 
     double grid_coords[3];

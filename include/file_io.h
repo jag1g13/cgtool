@@ -6,5 +6,6 @@
 #define CGTOOL_FILE_IO_H
 
 enum class FileFormat{GROMACS, LAMMPS};
+enum class FieldFormat{MARTINI, ELBA, OTHER};
 
 #endif //CGTOOL_FILE_IO_H

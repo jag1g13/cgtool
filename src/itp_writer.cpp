@@ -13,8 +13,10 @@ using std::cout;
 using std::endl;
 using std::vector;
 
-ITPWriter::ITPWriter(const vector<Residue> &residues, const FileFormat format, string itpname){
-    format_ = format;
+ITPWriter::ITPWriter(const vector<Residue> &residues, const FileFormat file_format,
+                     const FieldFormat field_format, string itpname){
+    format_ = file_format;
+    fieldFormat_ = field_format;
     resName_ = residues[0].resname;
 
     switch(format_){
@@ -64,7 +66,7 @@ ITPWriter::~ITPWriter(){
     if(itp_ != NULL) std::fclose(itp_);
 }
 
-void ITPWriter::newSection(const string &section_name){
+void ITPWriter::newSection(const string &section_name) const{
     section_ = section_name;
     switch(format_){
         case FileFormat::GROMACS:
@@ -76,7 +78,7 @@ void ITPWriter::newSection(const string &section_name){
     }
 }
 
-void ITPWriter::printAtoms(const CGMap &map, const bool isMartini){
+void ITPWriter::printAtoms(const CGMap &map) const{
     switch(format_){
         case FileFormat::GROMACS:
             newSection("atoms");
@@ -85,7 +87,7 @@ void ITPWriter::printAtoms(const CGMap &map, const bool isMartini){
             for(BeadMap bead : map.mapping_){
                 // MARTINI only has charge on 'Qx' beads
                 double charge = bead.charge;
-                if(isMartini){
+                if(fieldFormat_ == FieldFormat::MARTINI){
                     if(bead.type[0] == 'Q'){
                         // Convert to integer with rounding - Mac doesn't have round()
                         charge = floor(charge + copysign(0.5, charge));
@@ -99,7 +101,7 @@ void ITPWriter::printAtoms(const CGMap &map, const bool isMartini){
                         bead.name.c_str(), bead.num+1, charge);
 
                 // MARTINI doesn't include masses - all beads are assumed same mass
-                if(!isMartini) fprintf(itp_, " %10.4f", bead.mass);
+                if(fieldFormat_ != FieldFormat::MARTINI) fprintf(itp_, " %10.4f", bead.mass);
                 fprintf(itp_, ";\n");
             }
             break;
@@ -115,7 +117,7 @@ void ITPWriter::printAtoms(const CGMap &map, const bool isMartini){
     }
 }
 
-void ITPWriter::printBonds(const BondSet &bond_set, const bool round){
+void ITPWriter::printBonds(const BondSet &bond_set, const bool round) const{
     const double scale = 3.;
     switch(format_){
         case FileFormat::GROMACS:
@@ -175,14 +177,14 @@ void ITPWriter::printBonds(const BondSet &bond_set, const bool round){
     }
 }
 
-void ITPWriter::printAtomTypes(const CGMap &cgmap){
+void ITPWriter::printAtomTypes(const CGMap &cgmap) const{
     switch(format_){
         case FileFormat::GROMACS:
             newSection("atomtype");
             fprintf(itp_, ";name  at.num   mass      charge  ptype       c6           c12\n");
             for(const BeadMap &bead : cgmap.mapping_){
                 fprintf(itp_, "%5s%5i%11.3f%11.3f%6s%14.10f%14.10f\n",
-                        bead.name.c_str(), 0, bead.mass, bead.charge,
+                        bead.type.c_str(), 0, bead.mass, bead.charge,
                         "A", bead.c06, bead.c12);
             }
             break;

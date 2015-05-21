@@ -14,8 +14,6 @@
 #include "field_map.h"
 #include "cmd.h"
 
-#define ELECTRIC_FIELD_FREQ 100
-
 using std::string;
 using std::cout;
 using std::cin;
@@ -43,7 +41,7 @@ int main(const int argc, const char *argv[]){
     // Option syntax is <long flag> \t <comment> \t <flag type> [ \t <default value>]
     // Flag types are 0 - path, 1 - string, 2 - int, 3 - float, 4 - bool
     const string help_options =
-            "--cfg\tCGTOOL mapping file\t0\n"
+            "--cfg\tCGTOOL config file\t0\n"
             "--xtc\tGROMACS XTC file\t0\n"
             "--itp\tGROMACS ITP file\t0\n"
             "--gro\tGROMACS GRO file\t0\n"
@@ -141,6 +139,7 @@ int main(const int argc, const char *argv[]){
 
     bool do_field = cmd_parser.getBoolArg("field");
     FieldMap field;
+    const int electric_field_freq = cfg_parser.getIntKeyFromSection("field", "freq", 100);
     if(do_field) field.init(100, 100, 100, mapping.numBeads_);
 
     // Read and process simulation frames
@@ -196,7 +195,7 @@ int main(const int argc, const char *argv[]){
         }
 
         // Calculate electric field/dipoles
-        if(do_field && i % ELECTRIC_FIELD_FREQ == 0){
+        if(do_field && i % electric_field_freq == 0){
             field.calculate(frame, cg_frame, mapping);
         }
 
@@ -226,10 +225,13 @@ int main(const int argc, const char *argv[]){
         cg_frame.printGRO();
         bond_set.BoltzmannInversion();
 
+        const FileFormat file_format = FileFormat::GROMACS;
+        const FieldFormat field_format = FieldFormat::MARTINI;
+
         cout << "Printing results to ITP" << endl;
         //TODO put format choice in config file or command line option
-        ITPWriter itp(residues, FileFormat::GROMACS);
-        itp.printAtoms(mapping, true);
+        ITPWriter itp(residues, file_format, field_format);
+        itp.printAtoms(mapping);
         itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
         if(cg_frame.atomHas_.lj) itp.printAtomTypes(mapping);
     }else{

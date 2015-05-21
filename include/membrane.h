@@ -47,8 +47,7 @@ protected:
 
     /** \brief Calculate thickness with reference to upper or lower leaflet */
     void thicknessWithRef(const Frame &frame, const std::vector<int> &ref,
-                            const std::vector<int> &other,
-                            const std::map<int, double> &pairs);
+                          const std::map<int, double> &pairs);
 
 public:
 

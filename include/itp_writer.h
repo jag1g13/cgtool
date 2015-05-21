@@ -24,9 +24,10 @@ protected:
     /** Residue name */
     std::string resName_;
     /** Which section of the file are we writing at the moment? */
-    std::string section_;
+    mutable std::string section_;
     /** Which output format should be written? */
     FileFormat format_;
+    FieldFormat fieldFormat_;
     /** Character to use as comment marker */
     char comment_ = ';';
     /** Header printed at the top of every ITP file */
@@ -39,11 +40,14 @@ protected:
         };
 
     /** Create a new section in the ITP file */
-    void newSection(const std::string &section_name);
+    void newSection(const std::string &section_name) const;
 
 public:
     /** Create an ITP file and prepare to write */
-    ITPWriter(const std::vector<Residue> &residues, const FileFormat format=FileFormat::GROMACS, std::string itpname="");
+    ITPWriter(const std::vector<Residue> &residues,
+              const FileFormat format=FileFormat::GROMACS,
+              const FieldFormat field_format=FieldFormat::MARTINI,
+              string itpname="");
 
     /** Close output file in destructor */
     ~ITPWriter();
@@ -52,13 +56,13 @@ public:
     * If isMartini is true, don't print a masses column
     * and only put charges on 'charged/Q' beads.
     */
-    void printAtoms(const CGMap &map, const bool isMartini=true);
+    void printAtoms(const CGMap &map) const;
 
     /** Print bond params to ITP */
-    void printBonds(const BondSet &bond_set, const bool round=false);
+    void printBonds(const BondSet &bond_set, const bool round=false) const;
 
     /** Print atomtypes to ITP */
-    void printAtomTypes(const CGMap &cgmap);
+    void printAtomTypes(const CGMap &cgmap) const;
 };
 
 #endif

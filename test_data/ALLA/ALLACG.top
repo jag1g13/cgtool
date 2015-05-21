@@ -1,5 +1,5 @@
 ; Include forcefield parameters
-#include "ALLACG.itp"
+#include "ALLA.itp"
 
 [ system ]
 ALLA

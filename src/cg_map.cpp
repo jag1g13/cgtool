@@ -102,7 +102,7 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
         // Put properties into CG frame
         for(int j=0; j < aa_residue_.num_residues; j++){
             const int num_cg = i + j * cg_frame.residues_[0].num_atoms;
-            cg_frame.atoms_[num_cg].atom_type = bead.name;
+            cg_frame.atoms_[num_cg].atom_type = bead.type;
             cg_frame.atoms_[num_cg].atom_name = bead.name;
             cg_frame.atoms_[num_cg].charge = bead.charge;
             cg_frame.atoms_[num_cg].mass = bead.mass;

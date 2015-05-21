@@ -14,8 +14,6 @@
 #include "membrane.h"
 #include "cmd.h"
 
-#define ELECTRIC_FIELD_FREQ 100
-
 using std::string;
 using std::cout;
 using std::cin;
@@ -36,7 +34,7 @@ int main(const int argc, const char *argv[]){
             "Usage:\n"
             "cgtool_thickness -c <cfg file> -x <xtc file> -g <gro file> [-f <num frames>]\n";
     const string help_options =
-            "--cfg\tCGTOOL mapping file\t0\n"
+            "--cfg\tCGTOOL config file\t0\n"
             "--xtc\tGROMACS XTC file\t0\n"
             "--gro\tGROMACS GRO file\t0\n"
             "--dir\tDirectory containing all of the above\t0\n"
