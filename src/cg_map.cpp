@@ -84,7 +84,7 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
     cg_frame.atomHas_.mass = true;
     for(BeadMap &bead : mapping_) {
         // Add bead to dictionaries so we can find it by name
-        cg_frame.nameToNum_[bead.name] = i;
+        cg_frame.residues_[0].name_to_num.insert(std::pair<string, int>(bead.name, i));
 
         // Calculate bead properties from atomistic frame
         for(const string &atomname : bead.atoms) {

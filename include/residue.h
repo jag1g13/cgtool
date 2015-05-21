@@ -6,6 +6,7 @@
 #define CGTOOL_RESIDUE_H
 
 #include <string>
+#include <map>
 
 class Residue{
 public:
@@ -18,6 +19,8 @@ public:
     int start = -1;
     int end = -1;
     bool populated = false;
+    /** Map mapping atom names to numbers for each residue */
+    std::map<std::string, int> name_to_num;
 
     Residue& operator=(const Residue other);
 

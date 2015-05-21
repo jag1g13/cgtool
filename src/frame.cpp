@@ -214,6 +214,17 @@ bool Frame::initFromGRO(const string &groname, vector<Residue> &residues){
     atomHas_.resnum = true;
     atomHas_.coords = true;
 
+    for(Residue &res : residues){
+        for(int i=0; i<res.num_atoms; i++){
+            const int atom = res.start + i;
+            res.name_to_num.insert(std::pair<string, int>(atoms_[atom].atom_name, i));
+        }
+        res.ref_atom = -1;
+        if(res.ref_atom_name != ""){
+            res.ref_atom = res.name_to_num.at(res.ref_atom_name);
+        }
+    }
+
     return true;
 }
 
@@ -271,8 +282,6 @@ void Frame::initFromITP(const string &itpname){
             mass = atof(substrs[7].c_str());
             atomHas_.mass = true;
         }
-        //TODO why doesn't this work
-        nameToNum_[atoms_[i].atom_name] = i;
 
         for(int j = 0; j < residues_[0].num_residues; j++){
             const int num = i + j * residues_[0].num_atoms;

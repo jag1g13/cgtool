@@ -20,9 +20,6 @@ Membrane::Membrane(const vector<Residue> &residues){
 }
 
 void Membrane::sortBilayer(const Frame &frame, const int blocks){
-//TODO fix this so that ref_atom can be used by name
-//    const int ref_atom = frame.nameToNum_.at(residue_.ref_atom);
-
     // Copy box from Frame - assume orthorhombic
     box_[0] = frame.box_[0][0];
     box_[1] = frame.box_[1][1];
@@ -35,6 +32,7 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
 
     for(const Residue &res : residues_){
         if(res.ref_atom < 0) continue;
+        printf("Residue %6s ref %6s%5i\n", res.resname.c_str(), res.ref_atom_name.c_str(), res.ref_atom);
         numLipids_ += res.num_residues;
         for(int i = 0; i < res.num_residues; i++){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
@@ -52,8 +50,8 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
         int num_in_leaflet[2] = {0, 0};
         for(int i = 0; i < res.num_residues; i++){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
-            const int x = int(frame.x_[num][0] * blocks / box_[0]);
-            const int y = int(frame.x_[num][1] * blocks / box_[1]);
+            const int x = std::max(int(frame.x_[num][0] * blocks / box_[0]), 0);
+            const int y = std::min(int(frame.x_[num][1] * blocks / box_[1]), blocks-1);
             const double z = frame.x_[num][2];
 
             if(z < block_avg_z(x, y)){

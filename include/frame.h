@@ -5,7 +5,6 @@
 
 #include <vector>
 #include <string>
-#include <map>
 
 #include <boost/algorithm/string.hpp>
 
@@ -151,8 +150,6 @@ public:
     int num_ = 0;
     /** The simulation step corresponding to this frame */
     int step_ = 0;
-    /** Map mapping atom names to numbers for each residue */
-    std::map<std::string, int> nameToNum_;
     /** Size of the simulation box */
     float box_[3][3];
     std::vector<Residue> residues_;

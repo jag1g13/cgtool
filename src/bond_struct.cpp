@@ -4,9 +4,6 @@
 
 #include "small_functions.h"
 
-using std::cout;
-using std::endl;
-
 BondStruct::BondStruct(const int size){
     atomNums_.resize(size);
     switch(size){

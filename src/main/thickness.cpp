@@ -27,7 +27,7 @@ int main(const int argc, const char *argv[]){
     double start = very_start;
 
     const string version_string =
-            "CGTOOL THICKNESS v0.3.232:63326f510f40";
+            "CGTOOL THICKNESS v0.3.234:d59a67674392";
 
     const string help_header =
             "CGTOOL THICKNESS James Graham <J.A.Graham@soton.ac.uk> University of Southampton\n\n"
@@ -97,6 +97,7 @@ int main(const int argc, const char *argv[]){
             res->populated = true;
         }
         if(tokens.size() > 3) res->ref_atom = stoi(tokens[3]);
+        if(tokens.size() > 4) res->ref_atom_name = tokens[4];
     }
 
     const int num_residues = residues.size();
