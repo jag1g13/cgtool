@@ -39,7 +39,7 @@ int main(const int argc, const char *argv[]){
             "--gro\tGROMACS GRO file\t0\n"
             "--dir\tDirectory containing all of the above\t0\n"
             "--frames\tNumber of frames to read\t2\t-1\n"
-            "--header\tPrint file header in membrane export\t4\t0";
+            "--header\tPrint file header in membrane export\t4\t1";
 
     // Allow comma separators in numbers for printf
     setlocale(LC_ALL, "");
