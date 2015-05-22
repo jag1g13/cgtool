@@ -36,8 +36,8 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
         numLipids_ += res.num_residues;
         for(int i = 0; i < res.num_residues; i++){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
-            const int x = int(fmax((frame.x_[num][0] * blocks / box_[0]), 0.));
-            const int y = int(fmin((frame.x_[num][1] * blocks / box_[1]), blocks-1));
+            const int x = std::max(int(frame.x_[num][0] * blocks / box_[0]), 0);
+            const int y = std::min(int(frame.x_[num][1] * blocks / box_[1]), blocks-1);
             block_avg_z(x, y) += frame.x_[num][2];
             block_tot_residues(x, y)++;
         }
@@ -109,7 +109,7 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
             coords_j[1] = frame.x_[j][1];
             coords_j[2] = 0.;
 
-            const double dist_2 = distSqr(coords_i, coords_j);
+            const double dist_2 = distSqrPlane(coords_i, coords_j);
             if(dist_2 < min_dist_2){
                 min_dist_2 = dist_2;
                 closest = j;

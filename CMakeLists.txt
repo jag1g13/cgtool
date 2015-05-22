@@ -35,8 +35,8 @@ MESSAGE("C     ${CMAKE_SYSTEM_NAME} ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VE
 MESSAGE("MOD   ${CMAKE_MODULE_PATH}")
 
 # TODO add C++11 checks
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -msse2 -ffast-math")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -ffast-math -march=native -msse2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Og -march=native -msse2")
 
 # Should we ignore warnings - default ignore a few - only on gcc
 option(INGORE_SOME_WARNINGS "Don't ignore any warnings" ON)

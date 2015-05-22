@@ -8,6 +8,7 @@
 #include <string>
 #include <ctime>
 #include <vector>
+#include <cmath>
 
 #include <time.h>
 
@@ -33,16 +34,27 @@ bool backup_old_file(const std::string name);
 void split_text_output(const std::string &name, const double start);
 
 /** \brief Dot product of 3d vectors as double[3] */
-double dot(const double A[3], const double B[3]);
+inline double dot(const double A[3], const double B[3]){
+    return A[0]*B[0] + A[1]*B[1] + A[2]*B[2];
+}
 
 /** \brief Magnitude of 3d vector as double[3] */
-double abs(const double vec[3]);
+inline double abs(const double vec[3]){
+    return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
+}
 
 /** \brief Distance squared between two points as double[3] */
-double distSqr(const double c1[3], const double c2[3]);
+inline double distSqr(const double c1[3], const double c2[3]){
+    return (c1[0] - c2[0]) * (c1[0] - c2[0]) +
+           (c1[1] - c2[1]) * (c1[1] - c2[1]) +
+           (c1[2] - c2[2]) * (c1[2] - c2[2]);
+}
 
 /** \brief Distance squared between two points in a plane as double[3] */
-double distSqrPlane(const double c1[3], const double c2[3]);
+inline double distSqrPlane(const double c1[3], const double c2[3]){
+    return (c1[0] - c2[0]) * (c1[0] - c2[0]) +
+           (c1[1] - c2[1]) * (c1[1] - c2[1]);
+}
 
 /** \brief Convert 3d vector as double[3] to polar coordinates */
 void polar(const double cart[3], double polar[3]);
