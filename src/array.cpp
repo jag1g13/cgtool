@@ -157,7 +157,7 @@ void Array::zero(){
     for(int i=0; i<elems_; i++) array_[i] = 0.;
 }
 
-void Array::print(const int width, const int prec, const double scale){
+void Array::print(const int width, const int prec, const double scale) const{
     assert(allocated_);
     // Print if 1d or 2d, otherwise ignore
 
@@ -178,7 +178,7 @@ void Array::print(const int width, const int prec, const double scale){
     }
 }
 
-void Array::printCSV(const std::string &filename, const int remove_border){
+void Array::printCSV(const std::string &filename, const int remove_border) const{
     const int r = remove_border;
     assert(r >= 0);
     const string file = filename + ".dat";
@@ -216,14 +216,14 @@ Array::~Array(){
     free();
 }
 
-double Array::sum(){
+double Array::sum() const{
     assert(allocated_);
     double sum = 0.;
     for(int i=0; i<elems_; i++) sum += array_[i];
     return sum;
 }
 
-double Array::mean(){
+double Array::mean() const{
     assert(allocated_);
     return sum() / elems_;
 }

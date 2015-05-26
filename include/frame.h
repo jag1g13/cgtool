@@ -200,13 +200,13 @@ public:
     bool writeToXtc();
 
     /** \brief Print info for all atoms up to n.  Default print all. */
-    void printAtoms(int natoms=-1);
+    void printAtoms(int natoms=-1) const;
 
     /** \brief Print all atoms up to n to GRO file.  Default print all. */
-    void printGRO(std::string filename="", int natoms=-1);
+    void printGRO(std::string filename="", int natoms=-1) const;
 
     /** \brief Print box vectors */
-    void printBox();
+    void printBox() const;
 };
 
 #endif

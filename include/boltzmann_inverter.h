@@ -5,6 +5,7 @@
 
 #include "bond_struct.h"
 #include "array.h"
+#include "histogram.h"
 
 /** \brief Class to perform Boltzmann Inversion
 *
@@ -12,7 +13,7 @@
 class BoltzmannInverter{
 protected:
     /** Store histogram frequencies */
-    Array histogram_;
+    Histogram histogram_;
     Array gaussian_;
     Array harmonic_;
     int bins_ = 55, n_ = 0, meanBin_=0;

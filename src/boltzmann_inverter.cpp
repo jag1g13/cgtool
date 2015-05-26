@@ -99,12 +99,7 @@ void BoltzmannInverter::binHistogram(const vector<double> &vec){
     int loc = 0;
     for(const double val : vec){
         loc = int((val - min_) / step_);
-        if(loc < 0 || loc > bins_-1){
-//            cout << val << ": " << loc << endl;
-            printf(".");
-        }else{
-            histogram_(loc)++;
-        }
+        histogram_.increment(loc);
     }
 }
 
@@ -118,7 +113,7 @@ double BoltzmannInverter::gaussianRSquared(){
         double x = min_ + (i + 0.5) * step_;
         double gau = prefactor * exp(-(x-mean_) * (x-mean_) * postfactor);
         gaussian_(i) = gau;
-        y_bar += int(histogram_(i));
+        y_bar += histogram_.at(i);
     }
 
     y_bar /= bins_;
@@ -128,7 +123,7 @@ double BoltzmannInverter::gaussianRSquared(){
     double sse = 0.;
     // Second pass to calculate R^2
     for(int i=0; i<bins_; i++){
-        int actual = int(histogram_(i));
+        int actual = histogram_.at(i);
         gaussian_(i) *= integral_;
         const double gau = gaussian_(i);
         ss_reg += (gau - y_bar) * (gau - y_bar);
@@ -184,4 +179,4 @@ void BoltzmannInverter::printGraph(Array &arr, const int scale){
         }
         printf("|%5.3f\n", max_);
     }
-};
+}

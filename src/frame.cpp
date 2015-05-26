@@ -350,7 +350,7 @@ void Frame::recentreBox(const int atom_num){
 }
 
 
-void Frame::printAtoms(int natoms){
+void Frame::printAtoms(int natoms) const{
     assert(isSetup_);
     if(natoms == -1) natoms = numAtoms_;
     printf("  Num Name    Mass  Charge    Posx    Posy    Posz\n");
@@ -362,7 +362,7 @@ void Frame::printAtoms(int natoms){
     }
 }
 
-void Frame::printGRO(string filename, int natoms){
+void Frame::printGRO(string filename, int natoms) const{
     assert(isSetup_);
     if(filename == "") filename = residues_[0].resname + ".gro";
     if(natoms == -1) natoms = numAtoms_;
@@ -401,7 +401,7 @@ void Frame::printGRO(string filename, int natoms){
     fclose(gro);
 }
 
-void Frame::printBox(){
+void Frame::printBox() const{
     // Print box vectors
     printf("Box vectors:\n");
     for(int i=0; i<3; i++){
@@ -410,5 +410,6 @@ void Frame::printBox(){
         }
         cout << endl;
     }
+    cout << "XTC precision: " << prec_ << endl;
 }
 

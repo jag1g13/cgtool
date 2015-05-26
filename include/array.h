@@ -83,9 +83,9 @@ public:
     // Printing
     // ##############################################################################
     /** Print all elements of the array */
-    void print(const int width=8, const int prec=4, const double scale=1);
+    void print(const int width=8, const int prec=4, const double scale=1) const;
     /** Print array to CSV */
-    void printCSV(const std::string &filename, const int remove_border=0);
+    void printCSV(const std::string &filename, const int remove_border=0) const;
 
 
     // ##############################################################################
@@ -134,9 +134,9 @@ public:
     Array& operator-=(const double sub);
 
     /** \brief Sum all elements in the array */
-    double sum();
+    double sum() const;
     /** \brief Mean of all elements in array */
-    double mean();
+    double mean() const;
 
     // ##############################################################################
     // Elementwise operators

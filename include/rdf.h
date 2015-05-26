@@ -9,10 +9,12 @@
 
 #include "residue.h"
 #include "frame.h"
+#include "histogram.h"
 
 class RDF{
 protected:
     std::vector<Residue> residues_;
+    Histogram histogram_;
 
 public:
     RDF(const std::vector<Residue> &residues);
