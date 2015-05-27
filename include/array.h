@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include "histogram.h"
+
 
 /**
 * \brief Array of doubles with safety features.
@@ -150,6 +152,10 @@ public:
     void elementMultiply(const Array &other);
     /** Elementwise in place divide */
     void elementDivide(const Array &other);
+    /** Elementwise in place multiply */
+    void elementMultiply(const Histogram &other);
+    /** Elementwise in place divide */
+    void elementDivide(const Histogram &other);
 
     /** RMS difference between two arrays */
     friend double rmsd(const Array &a, const Array &b);

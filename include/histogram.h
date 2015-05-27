@@ -44,6 +44,9 @@ public:
     // ##############################################################################
     void print(const int width=8) const;
     void printGraph(const int scale=10) const;
+    void exportGraph() const;
+
+    friend class Array;
 };
 
 #endif //CGTOOL_HISTOGRAM_H

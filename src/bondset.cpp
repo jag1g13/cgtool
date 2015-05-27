@@ -131,7 +131,7 @@ void BondSet::writeCSV(){
     // Scale increment so that ~10k molecules are printed to CSV
     // Should be enough to be a good sample - but is much quicker
     int scale = 1;
-    if(numMeasures_ > 1e4) scale = int(numMeasures_ / 1e4);
+    if(numMeasures_ > 1e4) scale = static_cast<int>(numMeasures_ / 1e4);
 
     for(int i=0; i < numMeasures_; i+=scale){
         for(BondStruct &bond : bonds_) fprintf(f_bond, "%8.3f", bond.values_[i]);

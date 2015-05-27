@@ -174,7 +174,7 @@ int main(const int argc, const char *argv[]){
 
             double t_remain = (num_frames_max - i) / fps;
             if(num_frames_max < 0) t_remain = (full_xtc_frames - i) / fps;
-            printf("Read %'9d frames @ %'d FPS %6.1fs remaining\r", i, int(fps), t_remain);
+            printf("Read %'9d frames @ %'d FPS %6.1fs remaining\r", i, static_cast<int>(fps), t_remain);
             std::flush(cout);
 
             last_update = start_timer();
@@ -200,7 +200,7 @@ int main(const int argc, const char *argv[]){
     cout << string(80, ' ') << "\r";
     const double time = end_timer(start);
     const double MBrate = file_size(xtcname) / (time * 1024 * 1024);
-    printf("Read %'9d frames @ %'4d FPS %'6.1f MBps\n", i, int(i/time), MBrate);
+    printf("Read %'9d frames @ %'4d FPS %'6.1f MBps\n", i, static_cast<int>(i/time), MBrate);
 
     // Calculate thickness average if requested
     if(exp_every_N < 0){

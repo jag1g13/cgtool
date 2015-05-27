@@ -13,6 +13,7 @@
 #include "file_io.h"
 #include "field_map.h"
 #include "cmd.h"
+#include "rdf.h"
 
 using std::string;
 using std::cout;
@@ -134,7 +135,16 @@ int main(const int argc, const char *argv[]){
     if(do_map){
         mapping.fromFile(cfgname);
         mapping.initFrame(frame, cg_frame);
+        mapping.correctLJ();
         cg_frame.setupOutput();
+    }
+
+    bool do_rdf = cfg_parser.findSection("rdf");
+    RDF rdf;
+    if(do_rdf){
+        const double cutoff = cfg_parser.getDoubleKeyFromSection("rdf", "cutoff", 2.);
+        const int resolution = cfg_parser.getIntKeyFromSection("rdf", "resolution", 100.);
+        rdf.init(residues, cutoff, resolution);
     }
 
     bool do_field = cmd_parser.getBoolArg("field");
@@ -178,7 +188,7 @@ int main(const int argc, const char *argv[]){
 
             double t_remain = (num_frames_max - i) / fps;
             if(num_frames_max < 0) t_remain = (full_xtc_frames - i) / fps;
-            printf("Read %'9d frames @ %'d FPS %6.1fs remaining\r", i, int(fps), t_remain);
+            printf("Read %'9d frames @ %'d FPS %6.1fs remaining\r", i, static_cast<int>(fps), t_remain);
             std::flush(cout);
 
             last_update = start_timer();
@@ -211,7 +221,7 @@ int main(const int argc, const char *argv[]){
     printf("Read %'9d frames", i);
     const double time = end_timer(start);
     const double fps = i / time;
-    printf(" @ %'d FPS", int(fps));
+    printf(" @ %'d FPS", static_cast<int>(fps));
     if(num_frames_max == -1){
         // Bitrate (in MiBps) of XTC input - only meaningful if we read whole file
         const double bitrate = file_size(xtcname) / (time * 1024 * 1024);
@@ -231,9 +241,9 @@ int main(const int argc, const char *argv[]){
         cout << "Printing results to ITP" << endl;
         //TODO put format choice in config file or command line option
         ITPWriter itp(residues, file_format, field_format);
+        if(cg_frame.atomHas_.lj) itp.printAtomTypes(mapping);
         itp.printAtoms(mapping);
         itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
-        if(cg_frame.atomHas_.lj) itp.printAtomTypes(mapping);
     }else{
         bond_set.calcAvgs();
     }
@@ -241,6 +251,9 @@ int main(const int argc, const char *argv[]){
     // Write out all frame bond lengths/angles/dihedrals to file
     // This bit is slow - IO limited
     if(cmd_parser.getBoolArg("csv")) bond_set.writeCSV();
+
+    // Calculate RDF
+    if(do_rdf) rdf.calculateRDF(frame);
 
     // Print something so I can check results by eye
     for(int j=0; j<6 && j<bond_set.bonds_.size(); j++){

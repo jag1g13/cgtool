@@ -44,7 +44,7 @@ void CGMap::fromFile(const string &filename){
         new_bead.type = substrs[1];
         new_bead.num = i++;
         new_bead.atoms = vector<string>(substrs.begin() + 2, substrs.end());
-        new_bead.num_atoms = int(new_bead.atoms.size());
+        new_bead.num_atoms = static_cast<int>(new_bead.atoms.size());
 
         mapping_.push_back(new_bead);
 
@@ -129,6 +129,21 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
     cg_frame.atomHas_.coords = true;
 
     cout << "Done init cg_frame" << endl;
+}
+
+void CGMap::correctLJ(){
+    //TODO Empirical scaling - kill it with fire
+    // WARNING - CLUMSY HACK INCOMING
+    // DON'T DO THIS
+    // SERIOUSLY - THIS DOESN'T MAKE SENSE
+    // BUT THEY DID IT FIRST - http://dx.doi.org/10.1021%2Fct500455u
+
+    for(BeadMap &bead : mapping_){
+        bead.c06 *= 4.5;
+        bead.c12 *= 4.5;
+    }
+
+    // AAAARGH, IT BURNS
 }
 
 bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){

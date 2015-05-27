@@ -180,7 +180,7 @@ void ITPWriter::printBonds(const BondSet &bond_set, const bool round) const{
 void ITPWriter::printAtomTypes(const CGMap &cgmap) const{
     switch(format_){
         case FileFormat::GROMACS:
-            newSection("atomtype");
+            newSection("atomtypes");
             fprintf(itp_, ";name  at.num   mass      charge  ptype       c6           c12\n");
             for(const BeadMap &bead : cgmap.mapping_){
                 fprintf(itp_, "%5s%5i%11.3f%11.3f%6s%14.10f%14.10f\n",

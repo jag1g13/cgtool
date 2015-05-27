@@ -94,11 +94,11 @@ void BoltzmannInverter::binHistogram(const vector<double> &vec){
 //        max_ = mean_ * 1.25;
 //    }
     step_ = (max_ - min_) / (bins_-1);
-    meanBin_ = int((mean_ - min_) / step_);
+    meanBin_ = static_cast<int>((mean_ - min_) / step_);
 
     int loc = 0;
     for(const double val : vec){
-        loc = int((val - min_) / step_);
+        loc = static_cast<int>((val - min_) / step_);
         histogram_.increment(loc);
     }
 }
@@ -164,7 +164,7 @@ double BoltzmannInverter::statisticalMoments(const vector<double> &vec){
 void BoltzmannInverter::printGraph(Array &arr, const int scale){
     int max_num = 0;
     for(int i=0; i<bins_; i++){
-        if(int(arr(i)) > max_num) max_num = int(arr(i));
+        if(static_cast<int>(arr(i)) > max_num) max_num = static_cast<int>(arr(i));
     }
 
     // Go down rows in terminal and print marker if h_ is greater

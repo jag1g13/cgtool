@@ -104,3 +104,11 @@ void Histogram::printGraph(const int scale) const{
         printf("|%5.3f\n", max_);
     }
 }
+
+void Histogram::exportGraph() const{
+    double x = min_;
+    for(int i=0; i<size_; i++){
+        printf("%10.3f %10.3d\n", x, array_[i]);
+        x += step_;
+    }
+}

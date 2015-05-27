@@ -305,6 +305,19 @@ void Array::elementDivide(const Array &other){
     for(int i=0; i<elems_; i++) array_[i] /= other.array_[i];
 }
 
+void Array::elementMultiply(const Histogram &other){
+    assert(dimensions_ == 1);
+    assert(elems_ == other.size_);
+    for(int i=0; i<elems_; i++) array_[i] *= other.array_[i];
+}
+
+void Array::elementDivide(const Histogram &other){
+    assert(dimensions_ == 1);
+    assert(elems_ == other.size_);
+
+    for(int i=0; i<elems_; i++) array_[i] /= other.array_[i];
+}
+
 void Array::replaceNaN(){
     vector<int> nans;
     for(int i=0; i<elems_; i++){

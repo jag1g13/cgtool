@@ -108,3 +108,13 @@ int Parser::getIntKeyFromSection(const std::string &section, const std::string &
         return default_value;
     }
 }
+
+double Parser::getDoubleKeyFromSection(const std::string &section, const std::string &key,
+                                    const double default_value){
+    string tmp;
+    if(getKeyFromSection(section, key, tmp)){
+        return stof(tmp);
+    }else{
+        return default_value;
+    }
+}

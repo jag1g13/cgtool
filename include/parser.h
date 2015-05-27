@@ -63,6 +63,8 @@ public:
 
     int getIntKeyFromSection(const std::string &section, const std::string &key,
                              const int default_value);
+    double getDoubleKeyFromSection(const std::string &section, const std::string &key,
+                                   const double default_value);
 };
 
 #endif

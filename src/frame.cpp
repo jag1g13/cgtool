@@ -162,7 +162,7 @@ bool Frame::initFromGRO(const string &groname, vector<Residue> &residues){
     gro.close();
 
     if(residues.size() < num_residues){
-        printf("Found %'d residue(s) not listed in CFG\n", num_residues - int(residues.size()));
+        printf("Found %'d residue(s) not listed in CFG\n", num_residues - static_cast<int>(residues.size()));
         exit(EX_NOINPUT);
     }
 
