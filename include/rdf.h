@@ -20,6 +20,8 @@ protected:
     int resolution_ = 100;
     double cutoff_ = 2.;
     int grid_ = 200;
+    int frames_ = 0;
+    double density_ = 0.;
 
 public:
     RDF(){};
@@ -29,6 +31,7 @@ public:
               const double cutoff, const int resolution);
 
     void calculateRDF(const Frame &frame);
+    void normalize();
 };
 
 #endif //CGTOOL_RDF_H

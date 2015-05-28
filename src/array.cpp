@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include "array.h"
+#include "small_functions.h"
 
 using std::vector;
 using std::cout;
@@ -178,13 +179,14 @@ void Array::print(const int width, const int prec, const double scale) const{
     }
 }
 
-void Array::printCSV(const std::string &filename, const int remove_border) const{
+void Array::printCSV(const std::string &filename, const bool suppress_backup,
+                     const int remove_border) const{
     const int r = remove_border;
     assert(r >= 0);
     const string file = filename + ".dat";
 
     // Backup using small_functions.h
-//    backup_old_file(file);
+    if(!suppress_backup) backup_old_file(file);
 
     FILE *f = fopen(file.c_str(), "a");
 

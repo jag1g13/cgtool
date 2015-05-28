@@ -92,7 +92,7 @@ int main(const int argc, const char *argv[]){
     if(cfg_parser.getLineFromSection("frames", tokens, 1)) num_frames_max = stoi(tokens[0]);
     if(cmd_parser.getIntArg("frames") != 0) num_frames_max = cmd_parser.getIntArg("frames");
 
-    bool do_map = !cmd_parser.getBoolArg("nomap");
+    bool do_map = !cmd_parser.getBoolArg("nomap") && cfg_parser.findSection("mapping");
 
     vector<Residue> residues;
     while(cfg_parser.getLineFromSection("residues", tokens, 1)){
@@ -106,10 +106,8 @@ int main(const int argc, const char *argv[]){
             res->calc_total();
             res->populated = true;
         }
-        if(tokens.size() > 3) res->ref_atom = stoi(tokens[3]);
-
-        printf("Mapping %'6d %5s residue(s)\n",
-               residues.back().num_residues, residues.back().resname.c_str());
+        if(tokens.size() > 3) res->ref_atom_name = tokens[3];
+        if(tokens.size() > 4) throw std::runtime_error("Old input file");
     }
 
     const int num_residues = residues.size();
@@ -140,6 +138,7 @@ int main(const int argc, const char *argv[]){
     }
 
     bool do_rdf = cfg_parser.findSection("rdf");
+    const int rdf_freq = cfg_parser.getIntKeyFromSection("rdf", "freq", 1);
     RDF rdf;
     if(do_rdf){
         const double cutoff = cfg_parser.getDoubleKeyFromSection("rdf", "cutoff", 2.);
@@ -147,9 +146,9 @@ int main(const int argc, const char *argv[]){
         rdf.init(residues, cutoff, resolution);
     }
 
-    bool do_field = cmd_parser.getBoolArg("field");
-    FieldMap field;
+    bool do_field = cfg_parser.findSection("field");
     const int electric_field_freq = cfg_parser.getIntKeyFromSection("field", "freq", 100);
+    FieldMap field;
     if(do_field) field.init(100, 100, 100, mapping.numBeads_);
 
     // Read and process simulation frames
@@ -168,19 +167,20 @@ int main(const int argc, const char *argv[]){
     // ##############################################################################
 
     int i = 1;
-    int progress_update_freq = 10;
+    int progress_update_loc = 0;
+    const int progress_update_freqs[6] = {1, 2, 5, 10, 100, 1000};
     double last_update = start_timer();
     // Keep reading frames until something goes wrong (run out of frames) or hit limit
     while(frame.readNext() && (num_frames_max < 0 || i < num_frames_max)){
         // Process each frame as we read it, frames are not retained
         #ifdef UPDATE_PROGRESS
-        if(i % progress_update_freq == 0){
+        if(i % progress_update_freqs[progress_update_loc] == 0){
             // Set time between progress updates to nice number
             const double time_since_update = end_timer(last_update);
-            if(time_since_update > 0.5f){
-                progress_update_freq /= 10;
-            }else if(time_since_update < 0.01f){
-                progress_update_freq *= 10;
+            if(time_since_update > 0.5f && progress_update_loc > 0){
+                progress_update_loc--;
+            }else if(time_since_update < 0.01f && progress_update_loc < 6){
+                progress_update_loc++;
             }
 
             const double time = end_timer(start);
@@ -208,6 +208,8 @@ int main(const int argc, const char *argv[]){
         if(do_field && i % electric_field_freq == 0){
             field.calculate(frame, cg_frame, mapping);
         }
+
+        if(do_rdf && i % rdf_freq == 0) rdf.calculateRDF(frame);
 
         i++;
     }
@@ -253,7 +255,7 @@ int main(const int argc, const char *argv[]){
     if(cmd_parser.getBoolArg("csv")) bond_set.writeCSV();
 
     // Calculate RDF
-    if(do_rdf) rdf.calculateRDF(frame);
+    if(do_rdf) rdf.normalize();
 
     // Print something so I can check results by eye
     for(int j=0; j<6 && j<bond_set.bonds_.size(); j++){

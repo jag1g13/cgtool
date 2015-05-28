@@ -219,7 +219,6 @@ bool Frame::initFromGRO(const string &groname, vector<Residue> &residues){
             const int atom = res.start + i;
             res.name_to_num.insert(std::pair<string, int>(atoms_[atom].atom_name, i));
         }
-        res.ref_atom = -1;
         if(res.ref_atom_name != ""){
             res.ref_atom = res.name_to_num.at(res.ref_atom_name);
         }

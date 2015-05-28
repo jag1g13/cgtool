@@ -183,7 +183,8 @@ void Membrane::printCSV(const std::string &filename, const bool header){
         fprintf(f, "@ywidth %f\n", box_[1]);
         fclose(f);
     }
-    thickness_.printCSV(filename);
+    // Print CSV - true suppresses backup - file has been opened already
+    thickness_.printCSV(filename, true);
 }
 
 void Membrane::setResolution(const int n){

@@ -87,7 +87,8 @@ public:
     /** Print all elements of the array */
     void print(const int width=8, const int prec=4, const double scale=1) const;
     /** Print array to CSV */
-    void printCSV(const std::string &filename, const int remove_border=0) const;
+    void printCSV(const std::string &filename, const bool suppress_backup=false,
+                  const int remove_border=0) const;
 
 
     // ##############################################################################

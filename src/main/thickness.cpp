@@ -96,8 +96,8 @@ int main(const int argc, const char *argv[]){
             res->calc_total();
             res->populated = true;
         }
-        if(tokens.size() > 3) res->ref_atom = stoi(tokens[3]);
-        if(tokens.size() > 4) res->ref_atom_name = tokens[4];
+        if(tokens.size() > 3) res->ref_atom_name = tokens[3];
+        if(tokens.size() > 4) throw std::runtime_error("Old input file");
     }
 
     const int num_residues = residues.size();
