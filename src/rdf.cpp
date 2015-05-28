@@ -29,9 +29,6 @@ void RDF::calculateRDF(const Frame &frame){
     const double volume = box[0] * box[1] * box[2];
     density_ += frame.residues_[0].num_residues / volume;
 
-    const double min_box = std::min(std::min(box[0], box[1]), box[2]);
-    const double pbc_check = min_box - cutoff_;
-
     Residue &res = residues_[0];
     #pragma omp parallel for default(none) shared(res, frame, box)
     for(int i=0; i<res.num_residues; i++){
@@ -43,23 +40,14 @@ void RDF::calculateRDF(const Frame &frame){
         R_a[1] = frame.x_[atom_a][1];
         R_a[2] = frame.x_[atom_a][2];
 
-        bool do_pbc[3][3][3];
         int pbc_axis[3];
 
+        // Assumes cubic/orthorhombic box
         for(int ii=0; ii<3; ii++){
             pbc_axis[ii] = 0;
             if(R_a[ii] < cutoff_) pbc_axis[ii] = -1;
             if(R_a[ii] > box[ii] - cutoff_) pbc_axis[ii] = 1;
         }
-
-        for(int ii=-1; ii<=1; ii++){
-            for(int jj=-1; jj<=1; jj++){
-                for(int kk=-1; kk<=1; kk++){
-                    do_pbc[ii+1][jj+1][kk+1] = pbc_axis[0]==ii && pbc_axis[1]==jj && pbc_axis[2]==kk;
-                }
-            }
-        }
-        do_pbc[1][1][1] = true;
 
         for(int j=0; j<res.num_residues; j++){
             if(i == j) continue;
@@ -70,11 +58,14 @@ void RDF::calculateRDF(const Frame &frame){
             R_b[1] = frame.x_[atom_b][1];
             R_b[2] = frame.x_[atom_b][2];
 
-            // Loop over neighbouring boxes
+            // Loop over centre and neighbouring boxes
             for(int ii=-1; ii<=1; ii++){
+                if(pbc_axis[0] != ii && ii != 0) continue;
                 for(int jj=-1; jj<=1; jj++){
+                    if(pbc_axis[1] != jj && jj != 0) continue;
                     for(int kk=-1; kk<=1; kk++){
-//                        if(!do_pbc[ii+1][jj+1][kk+1]) break;
+                        if(pbc_axis[2] != kk && kk != 0) continue;
+
                         double R_b_adj[3];
                         R_b_adj[0] = R_b[0] + ii*box[0];
                         R_b_adj[1] = R_b[1] + jj*box[1];
@@ -106,14 +97,11 @@ void RDF::normalize(){
         const double r_outer = r_inner + r_scale;
         const double v_inner = r_inner * r_inner * r_inner;
         const double v_outer = r_outer * r_outer * r_outer;
-        rdf_(i) = 1 / (density_ * prefactor * (v_outer - v_inner));
+        rdf_(i) = 1. / (density_ * prefactor * (v_outer - v_inner));
     }
 
     rdf_.elementMultiply(histogram_);
     rdf_ *= recip_frames;
-
-//    histogram_.print();
-//    rdf_.print();
     rdf_.printCSV("rdf");
     frames_ = 0;
 }

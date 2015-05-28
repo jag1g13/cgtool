@@ -132,7 +132,6 @@ void Membrane::thicknessWithRef(const Frame &frame, const vector<int> &ref,
     grid_coords[2] = 0.;
     ref_coords[2] = 0.;
 
-     // For each grid point
     #pragma omp for
     for(int i=0; i<grid_; i++){
         grid_coords[0] = (i + 0.5) * step_[0];

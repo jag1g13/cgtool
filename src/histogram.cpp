@@ -49,6 +49,7 @@ void Histogram::increment(int loc){
     if(loc < 0) loc = size_ + loc;
     assert(loc >= 0);
 
+    #pragma omp atomic
     array_[loc]++;
 }
 
@@ -59,6 +60,7 @@ void Histogram::decrement(int loc){
     if(loc < 0) loc = size_ + loc;
     assert(loc >= 0);
 
+    #pragma omp atomic
     array_[loc]--;
 }
 
