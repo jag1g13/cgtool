@@ -17,6 +17,7 @@
 #include "field_map.h"
 #include "cmd.h"
 #include "rdf.h"
+#include "membrane.h"
 
 struct CheckedFile{
     std::string name = "";
@@ -53,46 +54,57 @@ protected:
     std::map<std::string, DoFunction> doFunction_;
 
     // Objects
+    std::vector<std::string> requiredObjects_;
     std::vector<Residue> residues_;
-    Frame    *frame_;
-    Frame    *cgFrame_;
-    BondSet  *bondSet_;
-    CGMap    *cgMap_;
-    RDF      *rdf_;
-    FieldMap *field_;
+    Frame    *frame_ = nullptr;
+    Frame    *cgFrame_ = nullptr;
+    BondSet  *bondSet_ = nullptr;
+    CGMap    *cgMap_ = nullptr;
+    RDF      *rdf_ = nullptr;
+    FieldMap *field_ = nullptr;
+    Membrane *membrane_ = nullptr;
 
     // Progress updates
     const int updateFreq_[10] = {1, 2, 5, 10, 20, 50, 100, 200, 500, 1000};
     int updateLoc_ = 0;
 
-    // Function to perform in main loop
-//    std::function<void(void)> *mainLoop;
+    // Protected functions
+    /** \brief Read config file and determine which functions should be performed */
+    void findDoFunctions();
 
+    /** \brief Read residues from config file - will be modified by frame later */
+    void getResidues();
 
+    /** \brief Construct objects which are required to perform requested functions */
+    void setupObjects();
+
+    /** \brief Prepare for and run the main calculation loop */
+    void doMainLoop();
+
+    /** \brief Update progress timer within the main loop */
+    void updateProgress();
+
+    /** \brief Function executed within the main loop - performs most significant work*/
+    void mainLoop();
+
+    /** \brief Perform final calculations and end program */
+    void postProcess();
 
 public:
     Common();
+    ~Common();
 
+    /** \brief Set help information */
     void setHelpStrings(const std::string &version, const std::string &header,
                         const std::string &options);
 
+    /** \brief Verify existance of required input files */
     void collectInput(const int argc, const char *argv[],
                       const std::vector<std::string> &req_files,
                       const std::vector<std::string> &opt_files);
 
-    void findDoFunctions();
-
-    void getResidues();
-
-    void setupObjects();
-
-    void doMainLoop();
-
-    void updateProgress();
-
-    void mainLoop();
-
-    int do_stuff(const int argc, const char *argv[]);
+    /** \brief Perform all calculations */
+    int run();
 };
 
 #endif //CGTOOL_COMMON_H

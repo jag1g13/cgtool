@@ -26,6 +26,16 @@ Common::Common(){
     sectionStart_ = veryStart_;
 }
 
+Common::~Common(){
+    if(frame_) delete frame_;
+    if(cgFrame_) delete cgFrame_;
+    if(bondSet_) delete bondSet_;
+    if(cgMap_) delete cgMap_;
+    if(rdf_) delete rdf_;
+    if(field_) delete field_;
+    if(membrane_) delete membrane_;
+}
+
 void Common::setHelpStrings(const std::string &version, const std::string &header,
                     const std::string &options){
     versionString_ = version;
@@ -59,20 +69,58 @@ void Common::collectInput(const int argc, const char *argv[],
     if(cmd_parser.getIntArg("frames") != 0) numFramesMax_ = cmd_parser.getIntArg("frames");
 }
 
+int Common::run(){
+    findDoFunctions();
+    getResidues();
+    setupObjects();
+    doMainLoop();
+    postProcess();
+    return EX_OK;
+}
+
 void Common::findDoFunctions(){
     Parser cfg_parser(inputFiles_["cfg"].name);
 
-    doFunction_["map"].on = cfg_parser.findSection("mapping");
+    doFunction_["map"].on =
+            cfg_parser.findSection("mapping");
 
-    doFunction_["rdf"].on = cfg_parser.findSection("rdf");
-    doFunction_["rdf"].freq = cfg_parser.getIntKeyFromSection("rdf", "freq", 1);
+    doFunction_["bonds"].on =
+            cfg_parser.findSection("length") || cfg_parser.findSection("angle") ||
+            cfg_parser.findSection("dihedral");
+
+    doFunction_["csv"].on =
+            cfg_parser.findSection("csv");
+    doFunction_["csv"].intProperty["molecules"] =
+            cfg_parser.getIntKeyFromSection("csv", "molecules", 10000);
+
+    doFunction_["rdf"].on =
+            cfg_parser.findSection("rdf");
+    doFunction_["rdf"].freq =
+            cfg_parser.getIntKeyFromSection("rdf", "freq", 1);
     doFunction_["rdf"].doubleProperty["cutoff"] =
             cfg_parser.getDoubleKeyFromSection("rdf", "cutoff", 2.);
     doFunction_["rdf"].intProperty["resolution"] =
             cfg_parser.getIntKeyFromSection("rdf", "resolution", 100);
 
-    doFunction_["field"].on = cfg_parser.findSection("field");
-    doFunction_["field"].freq = cfg_parser.getIntKeyFromSection("field", "freq", 100);
+    doFunction_["field"].on =
+            cfg_parser.findSection("field");
+    doFunction_["field"].freq =
+            cfg_parser.getIntKeyFromSection("field", "freq", 100);
+    doFunction_["field"].intProperty["resolution"] =
+            cfg_parser.getIntKeyFromSection("field", "resolution", 100);
+
+    doFunction_["mem"].on =
+            cfg_parser.findSection("membrane");
+    doFunction_["mem"].freq =
+            cfg_parser.getIntKeyFromSection("membrane", "calculate", 1);
+    doFunction_["mem"].intProperty["export"] =
+            cfg_parser.getIntKeyFromSection("membrane", "export", 100);
+    doFunction_["mem"].intProperty["calculate"] =
+            cfg_parser.getIntKeyFromSection("membrane", "calculate", 1);
+    doFunction_["mem"].intProperty["resolution"] =
+            cfg_parser.getIntKeyFromSection("membrane", "resolution", 100);
+    doFunction_["mem"].intProperty["blocks"] =
+            cfg_parser.getIntKeyFromSection("membrane", "blocks", 4);
 }
 
 void Common::getResidues(){
@@ -116,24 +164,30 @@ void Common::setupObjects(){
     if(inputFiles_["fld"].exists) frame_->initFromFLD(inputFiles_["fld"].name);
     for(Residue &res : residues_) res.print();
 
-    cgFrame_ = new Frame(*frame_);
-    bondSet_ = new BondSet(inputFiles_["cfg"].name, residues_);
-    cgMap_ = new CGMap(residues_);
+    if(doFunction_["bonds"].on)
+        bondSet_ = new BondSet(inputFiles_["cfg"].name, residues_);
+
     if(doFunction_["map"].on){
+        cgFrame_ = new Frame(*frame_);
+        cgMap_ = new CGMap(residues_);
         cgMap_->fromFile(inputFiles_["cfg"].name);
         cgMap_->initFrame(*frame_, *cgFrame_);
         cgMap_->correctLJ();
         cgFrame_->setupOutput();
     }
 
-    rdf_ = new RDF();
-    if(doFunction_["rdf"].on){
-        rdf_->init(residues_, doFunction_["rdf"].doubleProperty["cutoff"],
-                   doFunction_["rdf"].intProperty["resolution"]);
-    }
+    if(doFunction_["rdf"].on)
+        rdf_ = new RDF(residues_, doFunction_["rdf"].doubleProperty["cutoff"],
+                       doFunction_["rdf"].intProperty["resolution"]);
 
-    field_ = new FieldMap();
-    if(doFunction_["field"].on) field_->init(100, 100, 100, cgMap_->numBeads_);
+    if(doFunction_["field"].on)
+        field_ = new FieldMap(doFunction_["field"].intProperty["resolution"], cgMap_->numBeads_);
+
+    if(doFunction_["mem"].on){
+        membrane_ = new Membrane(residues_);
+        membrane_->sortBilayer(*frame_, doFunction_["mem"].intProperty["blocks"]);
+        membrane_->setResolution(doFunction_["mem"].intProperty["resolution"]);
+    }
 }
 
 void Common::doMainLoop(){
@@ -157,6 +211,7 @@ void Common::doMainLoop(){
     while(frame_->readNext() && (untilEnd_ || currFrame_ < numFramesMax_)){
         if(currFrame_ % updateFreq_[updateLoc_] == 0) updateProgress();
         mainLoop();
+        currFrame_++;
     }
 
     // Print some data at the end
@@ -179,9 +234,9 @@ void Common::mainLoop(){
     if(doFunction_["map"].on){
         cgMap_->apply(*frame_, *cgFrame_);
         cgFrame_->writeToXtc();
-        bondSet_->calcBondsInternal(*cgFrame_);
+        if(doFunction_["bonds"].on) bondSet_->calcBondsInternal(*cgFrame_);
     }else{
-        bondSet_->calcBondsInternal(*frame_);
+        if(doFunction_["bonds"].on) bondSet_->calcBondsInternal(*frame_);
     }
 
     // Calculate electric field/dipoles
@@ -192,8 +247,6 @@ void Common::mainLoop(){
     if(doFunction_["rdf"].on && currFrame_ % doFunction_["rdf"].freq == 0){
         rdf_->calculateRDF(*frame_);
     }
-
-    currFrame_++;
 }
 
 void Common::updateProgress(){
@@ -218,46 +271,42 @@ void Common::updateProgress(){
 }
 
 
-int Common::do_stuff(const int argc, const char *argv[]){
-    // ##############################################################################
-    // Post processing / Averaging
-    // ##############################################################################
-
-    // Post processing
+void Common::postProcess(){
     split_text_output("Post processing", sectionStart_);
-    if(doFunction_["map"].on){
-        cgFrame_->printGRO();
-        bondSet_->BoltzmannInversion();
+    if(doFunction_["bonds"].on){
+        if(doFunction_["map"].on){
+            bondSet_->BoltzmannInversion();
 
-        const FileFormat file_format = FileFormat::GROMACS;
-        const FieldFormat field_format = FieldFormat::MARTINI;
+            const FileFormat file_format = FileFormat::GROMACS;
+            const FieldFormat field_format = FieldFormat::MARTINI;
 
-        cout << "Printing results to ITP" << endl;
-        //TODO put format choice in config file or command line option
-        ITPWriter itp(residues_, file_format, field_format);
-        if(cgFrame_->atomHas_.lj) itp.printAtomTypes(*cgMap_);
-        itp.printAtoms(*cgMap_);
-        itp.printBonds(*bondSet_);
-    }else{
-        bondSet_->calcAvgs();
+            cout << "Printing results to ITP" << endl;
+            //TODO put format choice in config file or command line option
+            ITPWriter itp(residues_, file_format, field_format);
+            if(cgFrame_->atomHas_.lj) itp.printAtomTypes(*cgMap_);
+            itp.printAtoms(*cgMap_);
+            itp.printBonds(*bondSet_);
+        } else{
+            bondSet_->calcAvgs();
+        }
+
+        // Write out all frame bond lengths/angles/dihedrals to file
+        // This bit is slow - IO limited
+        if(doFunction_["csv"].on)
+            bondSet_->writeCSV(doFunction_["csv"].intProperty["molecules"]);
+
+        // Print something so to check results by eye
+        for(int j=0; j<6 && j<bondSet_->bonds_.size(); j++){
+            printf("%8.4f", bondSet_->bonds_[j].avg_);
+        }
+        if(bondSet_->bonds_.size() > 6) printf("  ...");
+        cout << endl;
     }
 
-    // Write out all frame bond lengths/angles/dihedrals to file
-    // This bit is slow - IO limited
-//    if(cmd_parser.getBoolArg("csv")) bondSet_->writeCSV();
-
-    // Calculate RDF
+    if(doFunction_["map"].on) cgFrame_->printGRO();
     if(doFunction_["rdf"].on) rdf_->normalize();
-
-    // Print something so to check results by eye
-    for(int j=0; j<6 && j<bondSet_->bonds_.size(); j++){
-        printf("%8.4f", bondSet_->bonds_[j].avg_);
-    }
-    if(bondSet_->bonds_.size() > 6) printf("  ...");
-    cout << endl;
 
     // Final timer
     split_text_output("Finished", veryStart_);
-    return EX_OK;
 }
 

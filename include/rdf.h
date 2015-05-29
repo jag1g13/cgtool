@@ -26,6 +26,7 @@ protected:
 public:
     RDF(){};
     RDF(const std::vector<Residue> &residues);
+    RDF(const std::vector<Residue> &residues, const double cutoff, const int resolution);
 
     void init(const std::vector<Residue> &residues,
               const double cutoff, const int resolution);

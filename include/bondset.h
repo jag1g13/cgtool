@@ -61,7 +61,7 @@ public:
     /** \brief Write all bond parameters to CSVs.
     * SLOW.  This takes about the same amount of time as the complete
     * XTC input -> Boltzmann Inversion process so is turned off by default. */
-    void writeCSV();
+    void writeCSV(const int num_molecules) const;
 };
 
 #endif

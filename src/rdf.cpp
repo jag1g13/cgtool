@@ -14,6 +14,10 @@ RDF::RDF(const vector<Residue> &residues){
     init(residues, 2., 100);
 }
 
+RDF::RDF(const vector<Residue> &residues, const double cutoff, const int resolution){
+    init(residues, cutoff, resolution);
+}
+
 void RDF::init(const vector<Residue> &residues, const double cutoff, const int resolution){
     residues_ = residues;
     cutoff_ = cutoff;
@@ -86,10 +90,8 @@ void RDF::calculateRDF(const Frame &frame){
 }
 
 void RDF::normalize(){
-    const double recip_frames = 1. / frames_;
-    density_ *= recip_frames;
-
     // Populate rdf_ with reciprocal of expected number per shell
+    // Both histogram_ and density_ are cumulative, so number of frames cancels
     const double prefactor = (4. / 3.) * M_PI;
     const double r_scale = cutoff_ / resolution_;
     for(int i=0; i<grid_; i++){
@@ -101,7 +103,6 @@ void RDF::normalize(){
     }
 
     rdf_.elementMultiply(histogram_);
-    rdf_ *= recip_frames;
     rdf_.printCSV("rdf");
     frames_ = 0;
 }

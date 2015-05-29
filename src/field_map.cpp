@@ -22,6 +22,10 @@ FieldMap::FieldMap(const int a, const int b, const int c, const int ndipoles){
     init(a, b, c, ndipoles);
 }
 
+FieldMap::FieldMap(const int res, const int ndipoles){
+    init(res, res, res, ndipoles);
+}
+
 void FieldMap::init(const int a, const int b, const int c, const int ndipoles){
     gridDims_[0] = a; gridDims_[1] = b; gridDims_[2] = c;
 

@@ -87,6 +87,7 @@ public:
 
     /** Constructor for FieldMap to perform setup - uses init() */
     FieldMap(const int a, const int b, const int c, const int natoms=0);
+    FieldMap(const int res, const int natoms=0);
 
     /** Init FieldMap */
     void init(const int a, const int b, const int c, const int ndipoles);

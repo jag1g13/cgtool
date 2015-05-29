@@ -1,8 +1,7 @@
-
-#include "common.h"
-
 #include <string>
 #include <vector>
+
+#include "common.h"
 
 using std::string;
 using std::vector;
@@ -31,9 +30,7 @@ int main(const int argc, const char *argv[]){
             "--fld\tGROMACS forcefield file\t0\n"
             "--dir\tDirectory containing all of the above\t0\n"
             "--frames\tNumber of frames to read\t2\t-1\n"
-            "--csv\tOutput bond measurements to CSV\t4\t0\n"
-            "--fcround\tRound force constants\t4\t0\n"
-            "--field\tCalculate electric field\t4\t0";
+            "--csv\tOutput bond measurements to CSV\t4\t0";
 
     Common common;
     common.setHelpStrings(version_string, help_header, help_options);
@@ -42,11 +39,7 @@ int main(const int argc, const char *argv[]){
     vector<string> opt_files = {"itp", "fld"};
 
     common.collectInput(argc, argv, req_files, opt_files);
-    common.findDoFunctions();
-    common.getResidues();
-    common.setupObjects();
-    common.doMainLoop();
-    return common.do_stuff(argc, argv);
+    return common.run();
 }
 
 

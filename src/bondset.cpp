@@ -115,7 +115,7 @@ void BondSet::calcAvgs(){
     for(BondStruct &bond : dihedrals_) bond.avg_ = bi.statisticalMoments(bond.values_);
 }
 
-void BondSet::writeCSV(){
+void BondSet::writeCSV(const int num_molecules) const{
     const string bond_file = residue_.resname + "_bonds.csv";
     const string angle_file = residue_.resname + "_angles.csv";
     const string dihedral_file = residue_.resname + "_dihedrals.csv";
@@ -131,16 +131,17 @@ void BondSet::writeCSV(){
     // Scale increment so that ~10k molecules are printed to CSV
     // Should be enough to be a good sample - but is much quicker
     int scale = 1;
-    if(numMeasures_ > 1e4) scale = static_cast<int>(numMeasures_ / 1e4);
+    if(numMeasures_ > num_molecules)
+        scale = static_cast<int>(numMeasures_ / static_cast<double>(num_molecules));
 
     for(int i=0; i < numMeasures_; i+=scale){
-        for(BondStruct &bond : bonds_) fprintf(f_bond, "%8.3f", bond.values_[i]);
+        for(const BondStruct &bond : bonds_) fprintf(f_bond, "%8.3f", bond.values_[i]);
         fprintf(f_bond, "\n");
 
-        for(BondStruct &bond : angles_) fprintf(f_angle, "%8.3f", bond.values_[i]);
+        for(const BondStruct &bond : angles_) fprintf(f_angle, "%8.3f", bond.values_[i]);
         fprintf(f_angle, "\n");
 
-        for(BondStruct &bond : dihedrals_) fprintf(f_dihedral, "%8.3f", bond.values_[i]);
+        for(const BondStruct &bond : dihedrals_) fprintf(f_dihedral, "%8.3f", bond.values_[i]);
         fprintf(f_dihedral, "\n");
     }
     printf("Written %'d molecules to CSV\n", numMeasures_/scale);
