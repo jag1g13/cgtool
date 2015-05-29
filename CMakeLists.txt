@@ -134,7 +134,7 @@ add_dependencies(cgtoollib flens)
 set(EXTRA_LIBS ${EXTRA_LIBS} cgtoollib)
 
 # Add main target
-add_executable(cgtool "src/main/cgtool.cpp")
+add_executable(cgtool "src/main/cgtool.cpp" "src/main/common.cpp")
 target_link_libraries (cgtool ${EXTRA_LIBS})
 
 add_executable(thickness "src/main/thickness.cpp")
