@@ -2,8 +2,10 @@
 #include "common.h"
 
 #include <string>
+#include <vector>
 
 using std::string;
+using std::vector;
 
 int main(const int argc, const char *argv[]){
     const string version_string =
@@ -35,6 +37,15 @@ int main(const int argc, const char *argv[]){
 
     Common common;
     common.setHelpStrings(version_string, help_header, help_options);
+
+    vector<string> req_files = {"cfg", "xtc", "gro"};
+    vector<string> opt_files = {"itp", "fld"};
+
+    common.collectInput(argc, argv, req_files, opt_files);
+    common.findDoFunctions();
+    common.getResidues();
+    common.setupObjects();
+    common.doMainLoop();
     return common.do_stuff(argc, argv);
 }
 

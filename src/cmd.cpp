@@ -87,8 +87,8 @@ const std::string CMD::getFileArg(const string &arg){
     }
 
     // Error no default value - assume empty
-    cout << "NON-FATAL ERROR: No default value for parameter "
-    << arg << " assuming empty" << endl;
+//    cout << "NON-FATAL ERROR: No default value for parameter "
+//    << arg << " assuming empty" << endl;
     return "";
 }
 
@@ -97,8 +97,8 @@ const bool CMD::getBoolArg(const string &arg){
     if(options_.count(arg)) return options_[arg].as<bool>();
 
     // Error no default value - assume false
-    cout << "NON-FATAL ERROR: No default value for parameter "
-         << arg << " assuming false" << endl;
+//    cout << "NON-FATAL ERROR: No default value for parameter "
+//         << arg << " assuming false" << endl;
     return false;
 }
 
@@ -107,7 +107,7 @@ const int CMD::getIntArg(const string &arg){
     if(options_.count(arg)) return options_[arg].as<int>();
 
     // Error no default value - assume -1
-    cout << "NON-FATAL ERROR: No default value for parameter "
-         << arg  << " assuming -1" << endl;
+//    cout << "NON-FATAL ERROR: No default value for parameter "
+//         << arg  << " assuming -1" << endl;
     return -1;
 }

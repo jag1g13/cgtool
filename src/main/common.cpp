@@ -10,15 +10,8 @@
 #include <sysexits.h>
 #include <locale.h>
 
-#include "frame.h"
-#include "cg_map.h"
-#include "itp_writer.h"
-#include "parser.h"
 #include "small_functions.h"
 #include "file_io.h"
-#include "field_map.h"
-#include "cmd.h"
-#include "rdf.h"
 
 using std::string;
 using std::cout;
@@ -60,7 +53,7 @@ void Common::collectInput(const int argc, const char *argv[],
     }
 
     for(const auto &item : inputFiles_){
-        cout << std::toupper(item.first) << ": " << item.second.name << endl;
+        cout << item.first << ": " << item.second.name << endl;
     }
 
     if(cmd_parser.getIntArg("frames") != 0) numFramesMax_ = cmd_parser.getIntArg("frames");
@@ -73,6 +66,10 @@ void Common::findDoFunctions(){
 
     doFunction_["rdf"].on = cfg_parser.findSection("rdf");
     doFunction_["rdf"].freq = cfg_parser.getIntKeyFromSection("rdf", "freq", 1);
+    doFunction_["rdf"].doubleProperty["cutoff"] =
+            cfg_parser.getDoubleKeyFromSection("rdf", "cutoff", 2.);
+    doFunction_["rdf"].intProperty["resolution"] =
+            cfg_parser.getIntKeyFromSection("rdf", "resolution", 100);
 
     doFunction_["field"].on = cfg_parser.findSection("field");
     doFunction_["field"].freq = cfg_parser.getIntKeyFromSection("field", "freq", 100);
@@ -111,129 +108,126 @@ void Common::getResidues(){
     }
 }
 
-int Common::do_stuff(const int argc, const char *argv[]){
-    double start = veryStart_;
-
-    // ##############################################################################
-    // System Setup
-    // ##############################################################################
-
-    // Read number of frames from config, if number not found read them all
-    int num_frames_max = -1;
-
-
+void Common::setupObjects(){
     // Open files and do setup
-    split_text_output("Frame setup", start);
-    Frame frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, residues_);
-    if(inputFiles_["itp"].exists) frame.initFromITP(inputFiles_["itp"].name);
-    if(inputFiles_["fld"].exists) frame.initFromFLD(inputFiles_["fld"].name);
+    split_text_output("Frame setup", sectionStart_);
+    frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, residues_);
+    if(inputFiles_["itp"].exists) frame_->initFromITP(inputFiles_["itp"].name);
+    if(inputFiles_["fld"].exists) frame_->initFromFLD(inputFiles_["fld"].name);
     for(Residue &res : residues_) res.print();
 
-    Frame cg_frame(frame);
-    BondSet bond_set(inputFiles_["cfg"].name, residues_);
-    CGMap mapping(residues_);
+    cgFrame_ = new Frame(*frame_);
+    bondSet_ = new BondSet(inputFiles_["cfg"].name, residues_);
+    cgMap_ = new CGMap(residues_);
     if(doFunction_["map"].on){
-        mapping.fromFile(inputFiles_["cfg"].name);
-        mapping.initFrame(frame, cg_frame);
-        mapping.correctLJ();
-        cg_frame.setupOutput();
+        cgMap_->fromFile(inputFiles_["cfg"].name);
+        cgMap_->initFrame(*frame_, *cgFrame_);
+        cgMap_->correctLJ();
+        cgFrame_->setupOutput();
     }
 
-    RDF rdf;
+    rdf_ = new RDF();
     if(doFunction_["rdf"].on){
-        const double cutoff = cfg_parser.getDoubleKeyFromSection("rdf", "cutoff", 2.);
-        const int resolution = cfg_parser.getIntKeyFromSection("rdf", "resolution", 100.);
-        rdf.init(residues_, cutoff, resolution);
+        rdf_->init(residues_, doFunction_["rdf"].doubleProperty["cutoff"],
+                   doFunction_["rdf"].intProperty["resolution"]);
     }
 
-    FieldMap field;
-    if(doFunction_["field"].on) field.init(100, 100, 100, mapping.numBeads_);
+    field_ = new FieldMap();
+    if(doFunction_["field"].on) field_->init(100, 100, 100, cgMap_->numBeads_);
+}
 
+void Common::doMainLoop(){
     // Read and process simulation frames
-    split_text_output("Reading frames", start);
-    start = start_timer();
-    const int full_xtc_frames = get_xtc_num_frames(inputFiles_["xtc"].name);
-    printf("Total of %'6d frames in XTC\n", full_xtc_frames);
-    if(num_frames_max < 0){
+    split_text_output("Reading frames", sectionStart_);
+    sectionStart_ = start_timer();
+
+    wholeXTCFrames_ = get_xtc_num_frames(inputFiles_["xtc"].name);
+    printf("Total of %'6d frames in XTC\n", wholeXTCFrames_);
+
+    untilEnd_ = numFramesMax_ < 0;
+    if(untilEnd_){
         printf("Reading all frames from XTC\n");
     }else{
-        printf("Reading %'6d frames from XTC\n", num_frames_max);
+        printf("Reading %'6d frames from XTC\n", numFramesMax_);
     }
 
-    // ##############################################################################
-    // Main loop
-    // ##############################################################################
+    lastUpdate_ = start_timer();
 
-    int i = 1;
-    int progress_update_loc = 0;
-    const int progress_update_freqs[6] = {1, 2, 5, 10, 100, 1000};
-    double last_update = start_timer();
-    // Keep reading frames until something goes wrong (run out of frames) or hit limit
-    while(frame.readNext() && (num_frames_max < 0 || i < num_frames_max)){
-        // Process each frame as we read it, frames are not retained
-#ifdef UPDATE_PROGRESS
-        if(i % progress_update_freqs[progress_update_loc] == 0){
-            // Set time between progress updates to nice number
-            const double time_since_update = end_timer(last_update);
-            if(time_since_update > 0.5f && progress_update_loc > 0){
-                progress_update_loc--;
-            }else if(time_since_update < 0.01f && progress_update_loc < 6){
-                progress_update_loc++;
-            }
-
-            const double time = end_timer(start);
-            const double fps = i / time;
-
-            double t_remain = (num_frames_max - i) / fps;
-            if(num_frames_max < 0) t_remain = (full_xtc_frames - i) / fps;
-            printf("Read %'9d frames @ %'d FPS %6.1fs remaining\r", i, static_cast<int>(fps), t_remain);
-            std::flush(cout);
-
-            last_update = start_timer();
-        }
-#endif
-
-        // Calculate bonds and store in BondStructs
-        if(doFunction_["map"].on){
-            mapping.apply(frame, cg_frame);
-            cg_frame.writeToXtc();
-            bond_set.calcBondsInternal(cg_frame);
-        }else{
-            bond_set.calcBondsInternal(frame);
-        }
-
-        // Calculate electric field/dipoles
-        if(doFunction_["field"].on && i % doFunction_["field"].freq == 0){
-            field.calculate(frame, cg_frame, mapping);
-        }
-
-        if(doFunction_["rdf"].on && i % doFunction_["rdf"].freq == 0) rdf.calculateRDF(frame);
-
-        i++;
+    // Process each frame as we read it, frames are not retained
+    while(frame_->readNext() && (untilEnd_ || currFrame_ < numFramesMax_)){
+        if(currFrame_ % updateFreq_[updateLoc_] == 0) updateProgress();
+        mainLoop();
     }
-
-    // ##############################################################################
-    // Post processing / Averaging
-    // ##############################################################################
 
     // Print some data at the end
     cout << string(80, ' ') << "\r";
-    printf("Read %'9d frames", i);
-    const double time = end_timer(start);
-    const double fps = i / time;
+    printf("Read %'9d frames", currFrame_);
+    const double time = end_timer(sectionStart_);
+    const double fps = currFrame_ / time;
     printf(" @ %'d FPS", static_cast<int>(fps));
-    if(num_frames_max == -1){
+    if(numFramesMax_ == -1){
         // Bitrate (in MiBps) of XTC input - only meaningful if we read whole file
         const double bitrate = file_size(inputFiles_["xtc"].name) / (time * 1024 * 1024);
         printf("%6.1f MBps", bitrate);
     }
     printf("\n");
 
-    // Post processing
-    split_text_output("Post processing", start);
+}
+
+void Common::mainLoop(){
+    // Calculate bonds and store in BondStructs
     if(doFunction_["map"].on){
-        cg_frame.printGRO();
-        bond_set.BoltzmannInversion();
+        cgMap_->apply(*frame_, *cgFrame_);
+        cgFrame_->writeToXtc();
+        bondSet_->calcBondsInternal(*cgFrame_);
+    }else{
+        bondSet_->calcBondsInternal(*frame_);
+    }
+
+    // Calculate electric field/dipoles
+    if(doFunction_["field"].on && currFrame_ % doFunction_["field"].freq == 0){
+        field_->calculate(*frame_, *cgFrame_, *cgMap_);
+    }
+
+    if(doFunction_["rdf"].on && currFrame_ % doFunction_["rdf"].freq == 0){
+        rdf_->calculateRDF(*frame_);
+    }
+
+    currFrame_++;
+}
+
+void Common::updateProgress(){
+    // Set time between progress updates to nice number
+    const double time_since_update = end_timer(lastUpdate_);
+    if(time_since_update > 0.5f && updateLoc_ > 0){
+        updateLoc_--;
+    }else if(time_since_update < 0.01f && updateLoc_ < 10){
+        updateLoc_++;
+    }
+
+    const double time = end_timer(sectionStart_);
+    const double fps = currFrame_ / time;
+    double t_remain = (numFramesMax_ - currFrame_) / fps;
+    if(numFramesMax_ < 0) t_remain = (wholeXTCFrames_ - currFrame_) / fps;
+
+    printf("Read %'9d frames @ %'d FPS %6.1fs remaining\r",
+           currFrame_, static_cast<int>(fps), t_remain);
+    std::flush(cout);
+
+    lastUpdate_ = start_timer();
+}
+
+
+int Common::do_stuff(const int argc, const char *argv[]){
+    // ##############################################################################
+    // Post processing / Averaging
+    // ##############################################################################
+
+    // Post processing
+    split_text_output("Post processing", sectionStart_);
+    if(doFunction_["map"].on){
+        cgFrame_->printGRO();
+        bondSet_->BoltzmannInversion();
 
         const FileFormat file_format = FileFormat::GROMACS;
         const FieldFormat field_format = FieldFormat::MARTINI;
@@ -241,25 +235,25 @@ int Common::do_stuff(const int argc, const char *argv[]){
         cout << "Printing results to ITP" << endl;
         //TODO put format choice in config file or command line option
         ITPWriter itp(residues_, file_format, field_format);
-        if(cg_frame.atomHas_.lj) itp.printAtomTypes(mapping);
-        itp.printAtoms(mapping);
-        itp.printBonds(bond_set, cmd_parser.getBoolArg("fcround"));
+        if(cgFrame_->atomHas_.lj) itp.printAtomTypes(*cgMap_);
+        itp.printAtoms(*cgMap_);
+        itp.printBonds(*bondSet_);
     }else{
-        bond_set.calcAvgs();
+        bondSet_->calcAvgs();
     }
 
     // Write out all frame bond lengths/angles/dihedrals to file
     // This bit is slow - IO limited
-    if(cmd_parser.getBoolArg("csv")) bond_set.writeCSV();
+//    if(cmd_parser.getBoolArg("csv")) bondSet_->writeCSV();
 
     // Calculate RDF
-    if(doFunction_["rdf"].on) rdf.normalize();
+    if(doFunction_["rdf"].on) rdf_->normalize();
 
-    // Print something so I can check results by eye
-    for(int j=0; j<6 && j<bond_set.bonds_.size(); j++){
-        printf("%8.4f", bond_set.bonds_[j].avg_);
+    // Print something so to check results by eye
+    for(int j=0; j<6 && j<bondSet_->bonds_.size(); j++){
+        printf("%8.4f", bondSet_->bonds_[j].avg_);
     }
-    if(bond_set.bonds_.size() > 6) printf("  ...");
+    if(bondSet_->bonds_.size() > 6) printf("  ...");
     cout << endl;
 
     // Final timer
