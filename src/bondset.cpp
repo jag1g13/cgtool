@@ -19,7 +19,7 @@ using std::endl;
 using std::fprintf;
 
 BondSet::BondSet(const string &cfgname, const vector<Residue> &residues){
-    residue_ = residues[0];
+    residues_ = residues;
     fromFile(cfgname);
 }
 
@@ -29,9 +29,14 @@ void BondSet::fromFile(const string &filename){
 
     if(parser.getLineFromSection("temp", tokens, 1)) temp_ = stof(tokens[0]);
 
-    int i = 0;
-    while(parser.getLineFromSection("mapping", tokens, 3)){
-        beadNums_.emplace(tokens[0], i++);
+    if(parser.findSection("mapping")){
+        int i = 0;
+        while(parser.getLineFromSection("mapping", tokens, 1)){
+            beadNums_[tokens[0]] = i;
+            i++;
+        }
+    }else{
+        beadNums_ = residues_[0].name_to_num;
     }
 
     //TODO Can emplace_back() be replaced?
@@ -116,9 +121,9 @@ void BondSet::calcAvgs(){
 }
 
 void BondSet::writeCSV(const int num_molecules) const{
-    const string bond_file = residue_.resname + "_bonds.csv";
-    const string angle_file = residue_.resname + "_angles.csv";
-    const string dihedral_file = residue_.resname + "_dihedrals.csv";
+    const string bond_file = residues_[0].resname + "_bonds.csv";
+    const string angle_file = residues_[0].resname + "_angles.csv";
+    const string dihedral_file = residues_[0].resname + "_dihedrals.csv";
 
     backup_old_file(bond_file);
     backup_old_file(angle_file);
@@ -129,7 +134,7 @@ void BondSet::writeCSV(const int num_molecules) const{
     FILE *f_dihedral = fopen(dihedral_file.c_str(), "w");
 
     // Scale increment so that ~10k molecules are printed to CSV
-    // Should be enough to be a good sample - but is much quicker
+    // Should be enough to be a good sample - but is much quicker than printing all
     int scale = 1;
     if(numMeasures_ > num_molecules)
         scale = static_cast<int>(numMeasures_ / static_cast<double>(num_molecules));

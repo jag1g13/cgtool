@@ -29,6 +29,7 @@ struct DoFunction{
     int freq = 1;
     std::map<std::string, int> intProperty;
     std::map<std::string, double> doubleProperty;
+    std::map<std::string, bool> boolProperty;
 };
 
 class Common{

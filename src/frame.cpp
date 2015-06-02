@@ -60,7 +60,7 @@ Frame::Frame(const string &xtcname, const string &groname,
 
 Frame::~Frame(){
     isSetup_ = false;
-    if(x_) free(x_);
+    if(x_) delete[] x_;
     if(xtcOutput_){
         xdrfile_close(xtcOutput_);
     }
@@ -97,12 +97,12 @@ bool Frame::writeToXtc(){
     if(!outputSetup_) throw std::logic_error("Output has not been setup");
     // need to put atomic coordinates back into x_
     // either it's a CG frame and x_ is empty, or it's atomistic but may have been recentred
-    for(int i=0; i<numAtoms_; i++){
+    for(int i=0; i<residues_[0].total_atoms; i++){
         x_[i][0] = float(atoms_[i].coords[0]);
         x_[i][1] = float(atoms_[i].coords[1]);
         x_[i][2] = float(atoms_[i].coords[2]);
     }
-    return exdrOK == write_xtc(xtcOutput_, numAtoms_, step_, time_, box_, x_, prec_);
+    return exdrOK == write_xtc(xtcOutput_, residues_[0].total_atoms, step_, time_, box_, x_, prec_);
 }
 
 bool Frame::initFromXTC(const string &xtcname){
@@ -114,7 +114,7 @@ bool Frame::initFromXTC(const string &xtcname){
     num_ = 0;
 
     // Init system from XTC file - libxdrfile library
-    x_ = (rvec *)malloc(numAtoms_ * sizeof(*x_));
+    x_ = new rvec[numAtoms_];
     status = read_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_);
 
     // Check box vectors

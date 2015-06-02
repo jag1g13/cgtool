@@ -129,13 +129,13 @@ int main(const int argc, const char *argv[]){
     printf("\nBilayer\n----------\n");
     mem.sortBilayer(frame, blocks);
     mem.setResolution(resolution);
-    const bool mem_header = cmd_parser.getBoolArg("header");
-    if(mem_header) printf("Exporting membrane thickness with header\n");
+    mem.header_ = cmd_parser.getBoolArg("header");
+    if(mem.header_) printf("Exporting membrane thickness with header\n");
 
     // Calculate from GRO file
     mem.thickness(frame);
     mem.normalize(0);
-    mem.printCSV("thickness_gro", mem_header);
+    mem.printCSV("thickness_gro");
     mem.reset();
 
     // Read and process simulation frames
@@ -185,7 +185,7 @@ int main(const int argc, const char *argv[]){
         if(i % calc_every_N == 0) mem.thickness(frame);
         if(exp_every_N > 0 && i % exp_every_N == 0){
             mem.normalize(0);
-            mem.printCSV("thickness_" + std::to_string(i), mem_header);
+            mem.printCSV("thickness_" + std::to_string(i));
             mem.reset();
         }
 
@@ -205,7 +205,7 @@ int main(const int argc, const char *argv[]){
     // Calculate thickness average if requested
     if(exp_every_N < 0){
         mem.normalize(0);
-        mem.printCSV("thickness_average", mem_header);
+        mem.printCSV("thickness_average");
     }
 
     // Final timer

@@ -121,6 +121,8 @@ void Common::findDoFunctions(){
             cfg_parser.getIntKeyFromSection("membrane", "resolution", 100);
     doFunction_["mem"].intProperty["blocks"] =
             cfg_parser.getIntKeyFromSection("membrane", "blocks", 4);
+    doFunction_["mem"].boolProperty["header"] =
+            static_cast<bool>(cfg_parser.getIntKeyFromSection("membrane", "header", 1));
 }
 
 void Common::getResidues(){
@@ -172,7 +174,7 @@ void Common::setupObjects(){
         cgMap_ = new CGMap(residues_);
         cgMap_->fromFile(inputFiles_["cfg"].name);
         cgMap_->initFrame(*frame_, *cgFrame_);
-        cgMap_->correctLJ();
+//        cgMap_->correctLJ();
         cgFrame_->setupOutput();
     }
 
@@ -187,6 +189,7 @@ void Common::setupObjects(){
         membrane_ = new Membrane(residues_);
         membrane_->sortBilayer(*frame_, doFunction_["mem"].intProperty["blocks"]);
         membrane_->setResolution(doFunction_["mem"].intProperty["resolution"]);
+        membrane_->header_ = doFunction_["mem"].boolProperty["header"];
     }
 }
 
@@ -235,17 +238,30 @@ void Common::mainLoop(){
         cgMap_->apply(*frame_, *cgFrame_);
         cgFrame_->writeToXtc();
         if(doFunction_["bonds"].on) bondSet_->calcBondsInternal(*cgFrame_);
+
+        // Calculate electric field/dipoles
+        if(doFunction_["field"].on && currFrame_ % doFunction_["field"].freq == 0){
+            field_->calculate(*frame_, *cgFrame_, *cgMap_);
+        }
     }else{
         if(doFunction_["bonds"].on) bondSet_->calcBondsInternal(*frame_);
     }
 
-    // Calculate electric field/dipoles
-    if(doFunction_["field"].on && currFrame_ % doFunction_["field"].freq == 0){
-        field_->calculate(*frame_, *cgFrame_, *cgMap_);
-    }
-
     if(doFunction_["rdf"].on && currFrame_ % doFunction_["rdf"].freq == 0){
         rdf_->calculateRDF(*frame_);
+    }
+
+    // Membrane thickness calculations
+    if(doFunction_["mem"].on){
+        if(currFrame_ % doFunction_["mem"].intProperty["calculate"] == 0){
+            membrane_->thickness(*frame_);
+        }
+        if(doFunction_["mem"].intProperty["export"] > 0 &&
+           currFrame_ % doFunction_["mem"].intProperty["export"] == 0){
+            membrane_->normalize(0);
+            membrane_->printCSV("thickness_" + std::to_string(currFrame_));
+            membrane_->reset();
+        }
     }
 }
 
@@ -305,6 +321,11 @@ void Common::postProcess(){
 
     if(doFunction_["map"].on) cgFrame_->printGRO();
     if(doFunction_["rdf"].on) rdf_->normalize();
+
+    if(doFunction_["mem"].intProperty["export"] < 0){
+        membrane_->normalize(0);
+        membrane_->printCSV("thickness_avg");
+    }
 
     // Final timer
     split_text_output("Finished", veryStart_);

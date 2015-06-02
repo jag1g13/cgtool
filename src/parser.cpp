@@ -66,6 +66,7 @@ bool Parser::findSection(const string find){
     while(section_ != find){
         if(!getLine(token_buffer)) return false;
     }
+    rewind();
     return true;
 }
 

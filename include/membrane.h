@@ -51,6 +51,9 @@ protected:
 
 public:
 
+    /** \brief Print header in CSV or not */
+    bool header_ = false;
+
     /** \brief Blank constructor */
     Membrane(){};
 
@@ -65,13 +68,13 @@ public:
     void thickness(const Frame &frame, const bool with_reset=false);
 
     /** \brief Calculate average thickness */
-    double mean();
+    double mean() const;
 
     /** \brief Normalize membrane thickness array in place */
     void normalize(const int smooth_iter=1);
 
     /** \brief Print thickness array to CSV */
-    void printCSV(const std::string &filename, const bool header=false);
+    void printCSV(const std::string &filename) const;
 
     /** \brief Set resolution of calculation
      * Number of grid points in x and y */

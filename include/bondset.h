@@ -20,10 +20,10 @@ protected:
     int numMeasures_ = 0;
     /** Temperature of simulation - for Boltzmann Inversion */
     double temp_ = 310.;
-    /** Map of bead names to number - to put numbers into BondStructs */
+    /** Map of bead names to number */
     std::map<std::string, int> beadNums_;
     /** The residue that's present - to be made plural soon */
-    Residue residue_;
+    std::vector<Residue> residues_;
 
 public:
     /** Vector of bond length pairs; Contains all bond lengths that must be calculated */

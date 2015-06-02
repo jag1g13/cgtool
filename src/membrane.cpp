@@ -158,7 +158,7 @@ void Membrane::thicknessWithRef(const Frame &frame, const vector<int> &ref,
     }
 }
 
-double Membrane::mean(){
+double Membrane::mean() const{
     return thickness_.mean();
 }
 
@@ -168,8 +168,8 @@ void Membrane::normalize(const int smooth_iter){
     thickness_ /= 2 * numFrames_;
 }
 
-void Membrane::printCSV(const std::string &filename, const bool header){
-    if(header){
+void Membrane::printCSV(const std::string &filename) const{
+    if(header_){
         const string file = filename + ".dat";
         // Backup using small_functions.h
         backup_old_file(file);
