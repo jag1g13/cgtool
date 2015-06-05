@@ -78,8 +78,6 @@ private:
     /** Print the electric fields */
     void printFields();
 
-    /** Print the electric fields to files */
-    void printFieldsToFile();
 
 public:
     /** Constructor for a blank instance of an electric field map */
@@ -95,6 +93,8 @@ public:
     /** \brief Run all electric field calculations */
     void calculate(const Frame &aa_frame, const Frame &cg_frame, const CGMap &cgmap);
 
+    /** Print the electric field to file */
+    void printFieldsToFile();
 };
 
 /** \brief Calculate the square of the distance between two points */

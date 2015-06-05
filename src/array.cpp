@@ -86,7 +86,7 @@ double& Array::operator()(int x, int y){
     if(fast_) return array_[x * size_[1] + y];
 
     assert(allocated_);
-    assert(dimensions_ >= 2);
+    if(x != 0) assert(dimensions_ >= 2);
     if(x < 0) x = size_[0] + x;
     if(y < 0) y = size_[1] + y;
     assert(x < size_[0] && x >= 0);

@@ -108,6 +108,8 @@ void Common::findDoFunctions(){
             cfg_parser.getIntKeyFromSection("field", "freq", 100);
     doFunction_["field"].intProperty["resolution"] =
             cfg_parser.getIntKeyFromSection("field", "resolution", 100);
+    doFunction_["field"].intProperty["export"] =
+            cfg_parser.getIntKeyFromSection("field", "export", 100);
 
     doFunction_["mem"].on =
             cfg_parser.findSection("membrane");
@@ -176,14 +178,23 @@ void Common::setupObjects(){
         cgMap_->initFrame(*frame_, *cgFrame_);
 //        cgMap_->correctLJ();
         cgFrame_->setupOutput();
+    }else{
+        // If not mapping make both frames the same thing
+        cgFrame_ = frame_;
     }
 
     if(doFunction_["rdf"].on)
         rdf_ = new RDF(residues_, doFunction_["rdf"].doubleProperty["cutoff"],
                        doFunction_["rdf"].intProperty["resolution"]);
 
-    if(doFunction_["field"].on)
-        field_ = new FieldMap(doFunction_["field"].intProperty["resolution"], cgMap_->numBeads_);
+    if(doFunction_["field"].on){
+        if(doFunction_["map"].on){
+            field_ = new FieldMap(doFunction_["field"].intProperty["resolution"], cgMap_->numBeads_);
+        }else{
+            printf("ERROR: Option 'field' requires 'mapping'\n");
+            exit(EX_USAGE);
+        }
+    }
 
     if(doFunction_["mem"].on){
         membrane_ = new Membrane(residues_);
@@ -240,8 +251,13 @@ void Common::mainLoop(){
         if(doFunction_["bonds"].on) bondSet_->calcBondsInternal(*cgFrame_);
 
         // Calculate electric field/dipoles
-        if(doFunction_["field"].on && currFrame_ % doFunction_["field"].freq == 0){
-            field_->calculate(*frame_, *cgFrame_, *cgMap_);
+        if(doFunction_["field"].on){
+            if(currFrame_ % doFunction_["field"].freq == 0){
+                field_->calculate(*frame_, *cgFrame_, *cgMap_);
+            }
+            if(currFrame_ % doFunction_["field"].intProperty["export"] == 0){
+                field_->printFieldsToFile();
+            }
         }
     }else{
         if(doFunction_["bonds"].on) bondSet_->calcBondsInternal(*frame_);
@@ -253,7 +269,7 @@ void Common::mainLoop(){
 
     // Membrane thickness calculations
     if(doFunction_["mem"].on){
-        if(currFrame_ % doFunction_["mem"].intProperty["calculate"] == 0){
+        if(currFrame_ % doFunction_["mem"].freq == 0){
             membrane_->thickness(*frame_);
         }
         if(doFunction_["mem"].intProperty["export"] > 0 &&

@@ -86,17 +86,30 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
         // Add bead to dictionaries so we can find it by name
         cg_frame.residues_[0].name_to_num.insert(std::pair<string, int>(bead.name, i));
 
+        // Vectors to store LJ values within a bead
+        vector<int> c06s;
+        vector<int> c12s;
+
         // Calculate bead properties from atomistic frame
-        for(const string &atomname : bead.atoms) {
+        for(const string &atomname : bead.atoms){
             for(int j=aa_residue_.start; j<aa_residue_.start+aa_residue_.num_atoms; j++){
                 if(aa_frame.atoms_[j].atom_name == atomname){
                     bead.mass += aa_frame.atoms_[j].mass;
                     bead.charge += aa_frame.atoms_[j].charge;
-                    bead.c06 += aa_frame.atoms_[j].c06;
-                    bead.c12 += aa_frame.atoms_[j].c12;
                     bead.atom_nums.push_back(j);
+
+                    if(aa_frame.atomHas_.lj){
+                        c06s.push_back(aa_frame.atoms_[j].c06);
+                        c12s.push_back(aa_frame.atoms_[j].c12);
+                    }
                 }
             }
+        }
+
+        if(aa_frame.atomHas_.lj){
+            bead.c06 = calcLJ(c06s);
+            bead.c12 = calcLJ(c12s);
+            cg_frame.atomHas_.lj = true;
         }
 
         // Put properties into CG frame
@@ -115,7 +128,6 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
         // Check if
         if(bead.charge != 0.) cg_frame.atomHas_.charge = true;
         if(bead.mass == 0.) cg_frame.atomHas_.mass = false;
-        if(bead.c06 != 0. && bead.c12 != 0.) cg_frame.atomHas_.lj = true;
     }
 
     cg_frame.numAtoms_ = i * aa_residue_.num_residues;
@@ -131,19 +143,18 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
     cout << "Done init cg_frame" << endl;
 }
 
-void CGMap::correctLJ(){
-    //TODO Empirical scaling - kill it with fire
-    // WARNING - CLUMSY HACK INCOMING
-    // DON'T DO THIS
-    // SERIOUSLY - THIS DOESN'T MAKE SENSE
-    // BUT THEY DID IT FIRST - http://dx.doi.org/10.1021%2Fct500455u
+double CGMap::calcLJ(const vector<int> &ljs){
+    // Using GROMACS combination rule 1
+    // A_b = sum_i( sum_j( sqrt(A_i*A_j) ) )
 
-    for(BeadMap &bead : mapping_){
-        bead.c06 *= 4.5;
-        bead.c12 *= 4.5;
+    double sum = 0.;
+    for(const int a : ljs){
+        for(const int b : ljs){
+            sum += sqrt(a * b);
+        }
     }
 
-    // AAAARGH, IT BURNS
+    return sum;
 }
 
 bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){

@@ -53,6 +53,9 @@ protected:
     Residue aa_residue_;
     Residue cg_residue_;
 
+    /** \brief Correct LJ parameters for CG */
+    double calcLJ(const std::vector<int> &ljs);
+
 public:
     /** Number of beads defined */
     int numBeads_;
@@ -82,9 +85,6 @@ public:
     * Allocates space for each bead and copies over constant data from the atomistic Frame
     */
     void initFrame(const Frame &aa_frame, Frame &cg_frame);
-
-    /** \brief Correct LJ parameters for CG */
-    void correctLJ();
 
     /**
     * \brief Apply CG mapping to an atomistic Frame
