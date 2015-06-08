@@ -12,6 +12,30 @@
 #include "array.h"
 #include "residue.h"
 
+class LightArray{
+protected:
+    int *array_ = nullptr;
+    int size_[2] = {0, 0};
+public:
+    LightArray(){};
+    ~LightArray(){if(array_ != nullptr) delete[] array_;};
+
+    void alloc(const int x, const int y){
+        size_[0] = x; size_[1] = y;
+        array_ = new int[x*y];
+    }
+
+    int& operator()(const int x, const int y){
+        return array_[x*size_[0] + y];
+    }
+
+    int at(const int x, const int y) const{
+        return array_[x*size_[0] + y];
+    }
+
+
+};
+
 class Membrane{
 protected:
     /** Head group reference atoms in the upper layer */
@@ -22,6 +46,10 @@ protected:
     std::map<int, double> upperPair_;
     /** Distance from ref in lower leaflet to closest in upper */
     std::map<int, double> lowerPair_;
+    /** Closest lipid to grid point in upper leaflet */
+    LightArray closestUpper_;
+    /** Closest lipid to grid point in lower leaflet */
+    LightArray closestLower_;
 
     /** List of residues present in simulation */
     std::vector<Residue> residues_;
@@ -45,9 +73,9 @@ protected:
     void makePairs(const Frame &frame, const std::vector<int> &ref,
                    const std::vector<int> &other, std::map<int, double> &pairs);
 
-    /** \brief Calculate thickness with reference to upper or lower leaflet */
-    void thicknessWithRef(const Frame &frame, const std::vector<int> &ref,
-                          const std::map<int, double> &pairs);
+    /** \brief Find closest head group to each grid cell */
+    void closestLipid(const Frame &frame, const std::vector<int> &ref,
+                      const std::map<int, double> &pairs, LightArray &closest);
 
 public:
 
@@ -66,6 +94,9 @@ public:
 
     /** \brief Calculate thickness of bilayer */
     void thickness(const Frame &frame, const bool with_reset=false);
+
+    /** \brief Calculate surface area per lipid by residue */
+    void areaPerLipid(const LightArray &closest) const;
 
     /** \brief Calculate average thickness */
     double mean() const;

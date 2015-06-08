@@ -61,25 +61,6 @@ void split_text_output(const string &name, const double start){
     cout << "--------------------" << endl;
 }
 
-//double dot(const double A[3], const double B[3]){
-//    return A[0]*B[0] + A[1]*B[1] + A[2]*B[2];
-//}
-//
-//double abs(const double vec[3]){
-//    return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
-//}
-//
-//double distSqr(const double c1[3], const double c2[3]){
-//    return (c1[0]-c2[0])*(c1[0]-c2[0]) +
-//           (c1[1]-c2[1])*(c1[1]-c2[1]) +
-//           (c1[2]-c2[2])*(c1[2]-c2[2]);
-//}
-//
-//double distSqrPlane(const double c1[3], const double c2[3]){
-//    return (c1[0]-c2[0])*(c1[0]-c2[0]) +
-//           (c1[1]-c2[1])*(c1[1]-c2[1]);
-//}
-
 void polar(const double cart[3], double polar[3]){
     throw std::logic_error("Not implemented yet");
 }

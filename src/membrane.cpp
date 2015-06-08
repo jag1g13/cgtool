@@ -83,10 +83,12 @@ void Membrane::thickness(const Frame &frame, const bool with_reset){
 
 #pragma omp parallel default(none) shared(frame)
     {
-        thicknessWithRef(frame, upperHeads_, upperPair_);
-        thicknessWithRef(frame, lowerHeads_, lowerPair_);
+        closestLipid(frame, upperHeads_, upperPair_, closestUpper_);
+        closestLipid(frame, lowerHeads_, lowerPair_, closestLower_);
     }
 
+    areaPerLipid(closestUpper_);
+    areaPerLipid(closestLower_);
     numFrames_++;
 }
 
@@ -122,8 +124,8 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
     }
 }
 
-void Membrane::thicknessWithRef(const Frame &frame, const vector<int> &ref,
-                                const map<int, double> &pairs){
+void Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
+                            const std::map<int, double> &pairs, LightArray &closest){
     const double max_box = box_[0] > box_[1] ? box_[0] : box_[1];
 
     double grid_coords[3];
@@ -132,7 +134,7 @@ void Membrane::thicknessWithRef(const Frame &frame, const vector<int> &ref,
     grid_coords[2] = 0.;
     ref_coords[2] = 0.;
 
-    #pragma omp for
+#pragma omp for
     for(int i=0; i<grid_; i++){
         grid_coords[0] = (i + 0.5) * step_[0];
 
@@ -141,21 +143,45 @@ void Membrane::thicknessWithRef(const Frame &frame, const vector<int> &ref,
             double min_dist2 = max_box*max_box;
 
             // Find closest lipid in reference leaflet
-            int closest = -1;
+            closest(i, j) = -1;
             for(int r : ref){
                 ref_coords[0] = frame.x_[r][0];
                 ref_coords[1] = frame.x_[r][1];
                 const double dist2 = distSqrPlane(grid_coords, ref_coords);
                 if(dist2 < min_dist2){
-                    closest = r;
+                    closest(i, j) = r;
                     min_dist2 = dist2;
                 }
             }
 
-            // Lookup thickness for the closest lipid
-            thickness_(i, j) += pairs.at(closest);
+            thickness_(i, j) += pairs.at(closest.at(i, j));
         }
     }
+}
+
+void Membrane::areaPerLipid(const LightArray &closest) const{
+    vector<int> numPointsPerLipid(residues_.size());
+
+    for(int i=0; i<grid_; i++){
+        for(int j=0; j<grid_; j++){
+            const int lipid = closest.at(i, j);
+            for(int k=0; k<residues_.size(); k++){
+                if(lipid >= residues_[k].start && lipid < residues_[k].end){
+                    numPointsPerLipid[k]++;
+                }
+            }
+        }
+    }
+
+//    printf("  Num     Perc    Area    APL\n");
+//    for(int i=0; i<numPointsPerLipid.size(); i++){
+//        const int num = numPointsPerLipid[i];
+//        const double percent = 100 * num / (grid_*grid_);
+//        const double area = num * step_[0] * step_[1];
+//        const double APL = area / residues_[i].num_residues;
+//        printf("%8d%8.3f%8.3f%8.3f\n", num, percent, area, APL);
+//    }
+//    printf("\n");
 }
 
 double Membrane::mean() const{
@@ -184,6 +210,8 @@ void Membrane::printCSV(const std::string &filename) const{
     }
     // Print CSV - true suppresses backup - file has been opened already
     thickness_.printCSV(filename, true);
+
+//    areaPerLipid(closestUpper_);
 }
 
 void Membrane::setResolution(const int n){
@@ -191,6 +219,9 @@ void Membrane::setResolution(const int n){
     thickness_.init(grid_, grid_);
     step_[0] = box_[0] / grid_;
     step_[1] = box_[1] / grid_;
+
+    closestUpper_.alloc(n, n);
+    closestLower_.alloc(n, n);
 }
 
 void Membrane::reset(){
