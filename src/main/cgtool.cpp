@@ -8,7 +8,7 @@ using std::vector;
 
 int main(const int argc, const char *argv[]){
     const string version_string =
-            "CGTOOL v0.3.234:d59a67674392";
+            "CGTOOL v0.3.247:e9eaf2ee95e9";
 
     const string help_header =
             "CGTOOL James Graham <J.A.Graham@soton.ac.uk> University of Southampton\n\n"

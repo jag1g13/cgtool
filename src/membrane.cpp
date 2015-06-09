@@ -17,6 +17,8 @@ using std::map;
 
 Membrane::Membrane(const vector<Residue> &residues){
     residues_ = residues;
+    residuePPL_.resize(residues_.size());
+    prepCSVAreaPerLipid();
 }
 
 void Membrane::sortBilayer(const Frame &frame, const int blocks){
@@ -75,9 +77,6 @@ void Membrane::thickness(const Frame &frame, const bool with_reset){
     box_[1] = frame.box_[1][1];
     box_[2] = frame.box_[2][2];
 
-    areaPerLipid_ = box_[0]*box_[1] / numLipids_;
-//    printf("APL %8.3f\n", areaPerLipid_);
-
     makePairs(frame, upperHeads_, lowerHeads_, upperPair_);
     makePairs(frame, lowerHeads_, upperHeads_, lowerPair_);
 
@@ -89,6 +88,8 @@ void Membrane::thickness(const Frame &frame, const bool with_reset){
 
     areaPerLipid(closestUpper_);
     areaPerLipid(closestLower_);
+    printCSVAreaPerLipid(frame.time_);
+
     numFrames_++;
 }
 
@@ -159,29 +160,44 @@ void Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
     }
 }
 
-void Membrane::areaPerLipid(const LightArray &closest) const{
-    vector<int> numPointsPerLipid(residues_.size());
+void Membrane::areaPerLipid(const LightArray &closest){
+    for(int &n : residuePPL_) n = 0;
 
     for(int i=0; i<grid_; i++){
         for(int j=0; j<grid_; j++){
             const int lipid = closest.at(i, j);
             for(int k=0; k<residues_.size(); k++){
                 if(lipid >= residues_[k].start && lipid < residues_[k].end){
-                    numPointsPerLipid[k]++;
+                    residuePPL_[k]++;
                 }
             }
         }
     }
 
-//    printf("  Num     Perc    Area    APL\n");
-//    for(int i=0; i<numPointsPerLipid.size(); i++){
-//        const int num = numPointsPerLipid[i];
-//        const double percent = 100 * num / (grid_*grid_);
-//        const double area = num * step_[0] * step_[1];
-//        const double APL = area / residues_[i].num_residues;
-//        printf("%8d%8.3f%8.3f%8.3f\n", num, percent, area, APL);
-//    }
-//    printf("\n");
+}
+
+void Membrane::prepCSVAreaPerLipid(){
+    const string file = "APL.dat";
+    // Backup using small_functions.h
+    backup_old_file(file);
+    aplFile_ = fopen(file.c_str(), "w");
+
+    if(header_){
+        fprintf(aplFile_, "@legend Area Per Lipid\n");
+        fprintf(aplFile_, "@xlabel Time (ps)\n");
+        fprintf(aplFile_, "@ylabel APL (nm^2)\n");
+    }
+}
+
+void Membrane::printCSVAreaPerLipid(const float time) const{
+    fprintf(aplFile_, "%12.3f", time);
+    for(int i=0; i<residuePPL_.size(); i++){
+        const int num = residuePPL_[i];
+        const double area = num * step_[0] * step_[1];
+        const double APL = area / residues_[i].num_residues;
+        fprintf(aplFile_, "%8.3f", APL);
+    }
+    fprintf(aplFile_, "\n");
 }
 
 double Membrane::mean() const{
@@ -210,8 +226,6 @@ void Membrane::printCSV(const std::string &filename) const{
     }
     // Print CSV - true suppresses backup - file has been opened already
     thickness_.printCSV(filename, true);
-
-//    areaPerLipid(closestUpper_);
 }
 
 void Membrane::setResolution(const int n){
