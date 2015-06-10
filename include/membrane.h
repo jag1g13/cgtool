@@ -12,24 +12,25 @@
 #include "array.h"
 #include "residue.h"
 
-class LightArray{
+template <class type> class LightArray{
 protected:
-    int *array_ = nullptr;
+    type *array_ = nullptr;
     int size_[2] = {0, 0};
 public:
     LightArray(){};
+    LightArray(const int x, const int y){alloc(x, y);};
     ~LightArray(){if(array_ != nullptr) delete[] array_;};
 
     void alloc(const int x, const int y){
         size_[0] = x; size_[1] = y;
-        array_ = new int[x*y];
+        array_ = new type[x*y];
     }
 
-    int& operator()(const int x, const int y){
+    type& operator()(const int x, const int y){
         return array_[x*size_[0] + y];
     }
 
-    int at(const int x, const int y) const{
+    const type& at(const int x, const int y) const{
         return array_[x*size_[0] + y];
     }
 
@@ -47,9 +48,9 @@ protected:
     /** Distance from ref in lower leaflet to closest in upper */
     std::map<int, double> lowerPair_;
     /** Closest lipid to grid point in upper leaflet */
-    LightArray closestUpper_;
+    LightArray<int> closestUpper_;
     /** Closest lipid to grid point in lower leaflet */
-    LightArray closestLower_;
+    LightArray<int> closestLower_;
 
     /** List of residues present in simulation */
     std::vector<Residue> residues_;
@@ -77,7 +78,7 @@ protected:
 
     /** \brief Find closest head group to each grid cell */
     void closestLipid(const Frame &frame, const std::vector<int> &ref,
-                      const std::map<int, double> &pairs, LightArray &closest);
+                      const std::map<int, double> &pairs, LightArray<int> &closest);
 
     void printCSVAreaPerLipid(const float time) const;
     void prepCSVAreaPerLipid();
@@ -104,7 +105,11 @@ public:
     void thickness(const Frame &frame, const bool with_reset=false);
 
     /** \brief Calculate surface area per lipid by residue */
-    void areaPerLipid(const LightArray &closest);
+    void areaPerLipid(const LightArray<int> &closest);
+
+    /** \brief Calculate curvature of membrane by 2nd order finite differences */
+    void curvature(const LightArray<int> &upper, const LightArray<int> &lower,
+                   const Frame &frame);
 
     /** \brief Calculate average thickness */
     double mean() const;

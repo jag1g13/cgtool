@@ -90,6 +90,7 @@ void Membrane::thickness(const Frame &frame, const bool with_reset){
     areaPerLipid(closestLower_);
     printCSVAreaPerLipid(frame.time_);
 
+    curvature(closestUpper_, closestLower_, frame);
     numFrames_++;
 }
 
@@ -126,7 +127,7 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
 }
 
 void Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
-                            const std::map<int, double> &pairs, LightArray &closest){
+                            const std::map<int, double> &pairs, LightArray<int> &closest){
     const double max_box = box_[0] > box_[1] ? box_[0] : box_[1];
 
     double grid_coords[3];
@@ -160,7 +161,7 @@ void Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
     }
 }
 
-void Membrane::areaPerLipid(const LightArray &closest){
+void Membrane::areaPerLipid(const LightArray<int> &closest){
     for(int &n : residuePPL_) n = 0;
 
     for(int i=0; i<grid_; i++){
@@ -174,6 +175,50 @@ void Membrane::areaPerLipid(const LightArray &closest){
         }
     }
 
+}
+
+void Membrane::curvature(const LightArray<int> &upper, const LightArray<int> &lower,
+                         const Frame &frame){
+    LightArray<double> avg_z(grid_, grid_);
+
+    // Calculate average z coord on grid
+    for(int i=0; i<grid_; i++){
+        for(int j=0; j<grid_; j++){
+            avg_z(i, j) = (frame.x_[upper.at(i, j)][2] + frame.x_[lower.at(i, j)][2]) / 2.;
+        }
+    }
+
+    LightArray<double> respect_to_x(grid_, grid_);
+    LightArray<double> respect_to_y(grid_, grid_);
+
+    const double inv_h2_x = 1. / (step_[0]*step_[0]);
+    const double inv_h2_y = 1. / (step_[1]*step_[1]);
+
+    double curv_x_avg = 0.;
+    double curv_y_avg = 0.;
+
+    // Do finite differences wrt x and y
+    for(int i=1; i<grid_-1; i++){
+        for(int j=1; j<grid_-1; j++){
+            respect_to_x(i, j) = inv_h2_x * (avg_z(i+1, j) + avg_z(i-1, j) - 2*avg_z(i, j));
+            respect_to_y(i, j) = inv_h2_y * (avg_z(i, j+1) + avg_z(i, j-1) - 2*avg_z(i, j));
+
+            curv_x_avg += respect_to_x(i, j);
+            curv_y_avg += respect_to_y(i, j);
+        }
+    }
+
+    curv_x_avg /= grid_*grid_;
+    curv_y_avg /= grid_*grid_;
+
+//    for(int i=0; i<grid_; i++){
+//        for(int j=0; j<grid_; j++){
+//            printf("%8.3f", respect_to_x(i, j));
+//        }
+//        printf("\n");
+//    }
+
+//    printf("%8.3f%8.3f\n", curv_x_avg, curv_y_avg);
 }
 
 void Membrane::prepCSVAreaPerLipid(){

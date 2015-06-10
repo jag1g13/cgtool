@@ -223,7 +223,7 @@ void Common::doMainLoop(){
 
     // Process each frame as we read it, frames are not retained
     while(frame_->readNext() && (untilEnd_ || currFrame_ < numFramesMax_)){
-        if(currFrame_ % updateFreq_[updateLoc_] == 0) updateProgress();
+//        if(currFrame_ % updateFreq_[updateLoc_] == 0) updateProgress();
         mainLoop();
         currFrame_++;
     }

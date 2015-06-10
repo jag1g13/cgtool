@@ -102,6 +102,7 @@ bool Parser::getKeyFromSection(const string &section, const string &key,
 
 int Parser::getIntKeyFromSection(const std::string &section, const std::string &key,
                                  const int default_value){
+    rewind();
     string tmp;
     if(getKeyFromSection(section, key, tmp)){
         return stoi(tmp);
@@ -112,6 +113,7 @@ int Parser::getIntKeyFromSection(const std::string &section, const std::string &
 
 double Parser::getDoubleKeyFromSection(const std::string &section, const std::string &key,
                                     const double default_value){
+    rewind();
     string tmp;
     if(getKeyFromSection(section, key, tmp)){
         return stof(tmp);
