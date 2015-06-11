@@ -18,7 +18,11 @@ using std::map;
 Membrane::Membrane(const vector<Residue> &residues){
     residues_ = residues;
     residuePPL_.resize(residues_.size());
+
     prepCSVAreaPerLipid();
+
+    curvMean_.alloc(grid_, grid_);
+    curvGaussian_.alloc(grid_, grid_);
 }
 
 void Membrane::sortBilayer(const Frame &frame, const int blocks){
@@ -211,14 +215,41 @@ void Membrane::curvature(const LightArray<int> &upper, const LightArray<int> &lo
     curv_x_avg /= grid_*grid_;
     curv_y_avg /= grid_*grid_;
 
-//    for(int i=0; i<grid_; i++){
-//        for(int j=0; j<grid_; j++){
-//            printf("%8.3f", respect_to_x(i, j));
-//        }
-//        printf("\n");
-//    }
+    for(int i=0; i<grid_; i++){
+        for(int j=0; j<grid_; j++){
+            curvMean_(i, j) = (respect_to_x.at(i, j) + respect_to_y.at(i, j)) / 2.;
+            curvGaussian_(i, j) = respect_to_x.at(i, j) * respect_to_y.at(i, j);
+        }
+    }
 
 //    printf("%8.3f%8.3f\n", curv_x_avg, curv_y_avg);
+}
+
+void Membrane::printCSVCurvature(const std::string &filename) const{
+    const string file = filename + ".dat";
+    // Backup using small_functions.h
+    backup_old_file(file);
+    FILE *f = fopen(file.c_str(), "w");
+    if(f == nullptr) throw std::runtime_error("Could not open output file.");
+
+    if(header_){
+        fprintf(f, "@legend Membrane mean curvature\n");
+        fprintf(f, "@xlabel X (nm)\n");
+        fprintf(f, "@ylabel Y (nm)\n");
+        fprintf(f, "@xwidth %f\n", box_[0]);
+        fprintf(f, "@ywidth %f\n", box_[1]);
+    }
+
+    for(int i=0; i<grid_; i++){
+        for(int j=0; j<grid_; j++){
+            fprintf(f, "%8.3f", curvMean_.at(i, j));
+            printf("%8.3f", curvMean_.at(i, j));
+        }
+        fprintf(f, "\n");
+        printf("\n");
+    }
+
+    fclose(f);
 }
 
 void Membrane::prepCSVAreaPerLipid(){

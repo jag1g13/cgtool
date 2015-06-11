@@ -223,7 +223,7 @@ void Common::doMainLoop(){
 
     // Process each frame as we read it, frames are not retained
     while(frame_->readNext() && (untilEnd_ || currFrame_ < numFramesMax_)){
-//        if(currFrame_ % updateFreq_[updateLoc_] == 0) updateProgress();
+        if(currFrame_ % updateFreq_[updateLoc_] == 0) updateProgress();
         mainLoop();
         currFrame_++;
     }
@@ -276,6 +276,7 @@ void Common::mainLoop(){
            currFrame_ % doFunction_["mem"].intProperty["export"] == 0){
             membrane_->normalize(0);
             membrane_->printCSV("thickness_" + std::to_string(currFrame_));
+            membrane_->printCSVCurvature("curvature_" + std::to_string(currFrame_));
             membrane_->reset();
         }
     }
@@ -341,6 +342,7 @@ void Common::postProcess(){
     if(doFunction_["mem"].intProperty["export"] < 0){
         membrane_->normalize(0);
         membrane_->printCSV("thickness_avg");
+        membrane_->printCSVCurvature("curvature_final");
     }
 
     // Final timer

@@ -60,13 +60,9 @@ Frame::Frame(const string &xtcname, const string &groname,
 
 Frame::~Frame(){
     isSetup_ = false;
-    if(x_) delete[] x_;
-    if(xtcOutput_){
-        xdrfile_close(xtcOutput_);
-    }
-    if(xtcInput_){
-        xdrfile_close(xtcInput_);
-    }
+//    if(xtcOutput_) xdrfile_close(xtcOutput_);
+//    if(xtcInput_) xdrfile_close(xtcInput_);
+//    if(x_) delete[] x_;
 }
 
 void Frame::setupOutput(string xtcname, string topname){

@@ -51,6 +51,9 @@ protected:
     LightArray<int> closestUpper_;
     /** Closest lipid to grid point in lower leaflet */
     LightArray<int> closestLower_;
+    /** Local membrane curvature */
+    LightArray<double> curvMean_;
+    LightArray<double> curvGaussian_;
 
     /** List of residues present in simulation */
     std::vector<Residue> residues_;
@@ -110,6 +113,9 @@ public:
     /** \brief Calculate curvature of membrane by 2nd order finite differences */
     void curvature(const LightArray<int> &upper, const LightArray<int> &lower,
                    const Frame &frame);
+
+    /** \brief Print curvature grid to file */
+    void printCSVCurvature(const std::string &filename) const;
 
     /** \brief Calculate average thickness */
     double mean() const;
