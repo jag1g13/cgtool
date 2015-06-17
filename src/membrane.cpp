@@ -95,6 +95,7 @@ void Membrane::thickness(const Frame &frame, const bool with_reset){
     printCSVAreaPerLipid(frame.time_);
 
     curvature(closestUpper_, closestLower_, frame);
+//    printCSVCurvature("curvature_" + std::to_string(frame.num_));
     numFrames_++;
 }
 
@@ -215,11 +216,14 @@ void Membrane::curvature(const LightArray<int> &upper, const LightArray<int> &lo
     curv_x_avg /= grid_*grid_;
     curv_y_avg /= grid_*grid_;
 
+//    printf("Calculate\n");
     for(int i=0; i<grid_; i++){
         for(int j=0; j<grid_; j++){
             curvMean_(i, j) = (respect_to_x.at(i, j) + respect_to_y.at(i, j)) / 2.;
             curvGaussian_(i, j) = respect_to_x.at(i, j) * respect_to_y.at(i, j);
+//            printf("%8.3f", curvMean_.at(i, j));
         }
+//        printf("\n");
     }
 
 //    printf("%8.3f%8.3f\n", curv_x_avg, curv_y_avg);
@@ -240,13 +244,14 @@ void Membrane::printCSVCurvature(const std::string &filename) const{
         fprintf(f, "@ywidth %f\n", box_[1]);
     }
 
+//    printf("Printing\n");
     for(int i=0; i<grid_; i++){
         for(int j=0; j<grid_; j++){
             fprintf(f, "%8.3f", curvMean_.at(i, j));
-            printf("%8.3f", curvMean_.at(i, j));
+//            printf("%8.3f", curvMean_.at(i, j));
         }
         fprintf(f, "\n");
-        printf("\n");
+//        printf("\n");
     }
 
     fclose(f);

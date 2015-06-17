@@ -24,6 +24,7 @@ public:
     void alloc(const int x, const int y){
         size_[0] = x; size_[1] = y;
         array_ = new type[x*y];
+        if(array_ == nullptr) throw std::runtime_error("Could not allocate array");
     }
 
     type& operator()(const int x, const int y){
@@ -33,8 +34,6 @@ public:
     const type& at(const int x, const int y) const{
         return array_[x*size_[0] + y];
     }
-
-
 };
 
 class Membrane{

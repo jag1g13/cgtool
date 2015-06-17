@@ -22,6 +22,9 @@ public:
     /** Map mapping atom names to numbers for each residue */
     std::map<std::string, int> name_to_num;
 
+    Residue(){};
+    ~Residue(){};
+
     Residue& operator=(const Residue other);
 
     void calc_total();

@@ -81,50 +81,50 @@ int Common::run(){
 void Common::findDoFunctions(){
     Parser cfg_parser(inputFiles_["cfg"].name);
 
-    doFunction_["map"].on =
+    settings_["map"]["on"] =
             cfg_parser.findSection("mapping");
 
-    doFunction_["bonds"].on =
+    settings_["bonds"]["on"] =
             cfg_parser.findSection("length") || cfg_parser.findSection("angle") ||
             cfg_parser.findSection("dihedral");
 
-    doFunction_["csv"].on =
+    settings_["csv"]["on"] =
             cfg_parser.findSection("csv");
-    doFunction_["csv"].intProperty["molecules"] =
+    settings_["csv"]["molecules"] =
             cfg_parser.getIntKeyFromSection("csv", "molecules", 10000);
 
-    doFunction_["rdf"].on =
+    settings_["rdf"]["on"] =
             cfg_parser.findSection("rdf");
-    doFunction_["rdf"].freq =
+    settings_["rdf"]["freq"] =
             cfg_parser.getIntKeyFromSection("rdf", "freq", 1);
-    doFunction_["rdf"].doubleProperty["cutoff"] =
-            cfg_parser.getDoubleKeyFromSection("rdf", "cutoff", 2.);
-    doFunction_["rdf"].intProperty["resolution"] =
+    settings_["rdf"]["cutoff"] =
+            cfg_parser.getIntKeyFromSection("rdf", "cutoff", 2);
+    settings_["rdf"]["resolution"] =
             cfg_parser.getIntKeyFromSection("rdf", "resolution", 100);
 
-    doFunction_["field"].on =
+    settings_["field"]["on"] =
             cfg_parser.findSection("field");
-    doFunction_["field"].freq =
+    settings_["field"]["freq"] =
             cfg_parser.getIntKeyFromSection("field", "freq", 100);
-    doFunction_["field"].intProperty["resolution"] =
+    settings_["field"]["resolution"] =
             cfg_parser.getIntKeyFromSection("field", "resolution", 100);
-    doFunction_["field"].intProperty["export"] =
+    settings_["field"]["export"] =
             cfg_parser.getIntKeyFromSection("field", "export", 100);
 
-    doFunction_["mem"].on =
+    settings_["mem"]["on"] =
             cfg_parser.findSection("membrane");
-    doFunction_["mem"].freq =
+    settings_["mem"]["freq"] =
             cfg_parser.getIntKeyFromSection("membrane", "calculate", 1);
-    doFunction_["mem"].intProperty["export"] =
+    settings_["mem"]["export"] =
             cfg_parser.getIntKeyFromSection("membrane", "export", 100);
-    doFunction_["mem"].intProperty["calculate"] =
+    settings_["mem"]["calculate"] =
             cfg_parser.getIntKeyFromSection("membrane", "calculate", 1);
-    doFunction_["mem"].intProperty["resolution"] =
+    settings_["mem"]["resolution"] =
             cfg_parser.getIntKeyFromSection("membrane", "resolution", 100);
-    doFunction_["mem"].intProperty["blocks"] =
+    settings_["mem"]["blocks"] =
             cfg_parser.getIntKeyFromSection("membrane", "blocks", 4);
-    doFunction_["mem"].boolProperty["header"] =
-            static_cast<bool>(cfg_parser.getIntKeyFromSection("membrane", "header", 1));
+    settings_["mem"]["header"] =
+            cfg_parser.getIntKeyFromSection("membrane", "header", 1);
 }
 
 void Common::getResidues(){
@@ -168,10 +168,10 @@ void Common::setupObjects(){
     if(inputFiles_["fld"].exists) frame_->initFromFLD(inputFiles_["fld"].name);
     for(Residue &res : residues_) res.print();
 
-    if(doFunction_["bonds"].on)
+    if(settings_["bonds"]["on"])
         bondSet_ = new BondSet(inputFiles_["cfg"].name, residues_);
 
-    if(doFunction_["map"].on){
+    if(settings_["map"]["on"]){
         cgFrame_ = new Frame(*frame_);
         cgMap_ = new CGMap(residues_);
         cgMap_->fromFile(inputFiles_["cfg"].name);
@@ -183,24 +183,24 @@ void Common::setupObjects(){
         cgFrame_ = frame_;
     }
 
-    if(doFunction_["rdf"].on)
-        rdf_ = new RDF(residues_, doFunction_["rdf"].doubleProperty["cutoff"],
-                       doFunction_["rdf"].intProperty["resolution"]);
+    if(settings_["rdf"]["on"])
+        rdf_ = new RDF(residues_, settings_["rdf"]["cutoff"]/100.,
+                       settings_["rdf"]["resolution"]);
 
-    if(doFunction_["field"].on){
-        if(doFunction_["map"].on){
-            field_ = new FieldMap(doFunction_["field"].intProperty["resolution"], cgMap_->numBeads_);
+    if(settings_["field"]["on"]){
+        if(settings_["map"]["on"]){
+            field_ = new FieldMap(settings_["field"]["resolution"], cgMap_->numBeads_);
         }else{
             printf("ERROR: Option 'field' requires 'mapping'\n");
             exit(EX_USAGE);
         }
     }
 
-    if(doFunction_["mem"].on){
+    if(settings_["mem"]["on"]){
         membrane_ = new Membrane(residues_);
-        membrane_->sortBilayer(*frame_, doFunction_["mem"].intProperty["blocks"]);
-        membrane_->setResolution(doFunction_["mem"].intProperty["resolution"]);
-        membrane_->header_ = doFunction_["mem"].boolProperty["header"];
+        membrane_->sortBilayer(*frame_, settings_["mem"]["blocks"]);
+        membrane_->setResolution(settings_["mem"]["resolution"]);
+        membrane_->header_ = settings_["mem"]["header"];
     }
 }
 
@@ -245,39 +245,40 @@ void Common::doMainLoop(){
 
 void Common::mainLoop(){
     // Calculate bonds and store in BondStructs
-    if(doFunction_["map"].on){
+    if(settings_["map"]["on"]){
         cgMap_->apply(*frame_, *cgFrame_);
         cgFrame_->writeToXtc();
-        if(doFunction_["bonds"].on) bondSet_->calcBondsInternal(*cgFrame_);
+        if(settings_["bonds"]["on"]) bondSet_->calcBondsInternal(*cgFrame_);
 
         // Calculate electric field/dipoles
-        if(doFunction_["field"].on){
-            if(currFrame_ % doFunction_["field"].freq == 0){
+        if(settings_["field"]["on"]){
+            if(currFrame_ % settings_["field"]["freq"] == 0){
                 field_->calculate(*frame_, *cgFrame_, *cgMap_);
             }
-            if(currFrame_ % doFunction_["field"].intProperty["export"] == 0){
+            if(currFrame_ % settings_["field"]["export"] == 0){
                 field_->printFieldsToFile();
             }
         }
     }else{
-        if(doFunction_["bonds"].on) bondSet_->calcBondsInternal(*frame_);
+        if(settings_["bonds"]["on"]) bondSet_->calcBondsInternal(*frame_);
     }
 
-    if(doFunction_["rdf"].on && currFrame_ % doFunction_["rdf"].freq == 0){
+    if(settings_["rdf"]["on"] && currFrame_ % settings_["rdf"]["freq"] == 0){
         rdf_->calculateRDF(*frame_);
     }
 
     // Membrane thickness calculations
-    if(doFunction_["mem"].on){
-        if(currFrame_ % doFunction_["mem"].freq == 0){
+    if(settings_["mem"]["on"]){
+        if(currFrame_ % settings_["mem"]["freq"] == 0){
             membrane_->thickness(*frame_);
         }
-        if(doFunction_["mem"].intProperty["export"] > 0 &&
-           currFrame_ % doFunction_["mem"].intProperty["export"] == 0){
-            membrane_->normalize(0);
-            membrane_->printCSV("thickness_" + std::to_string(currFrame_));
-            membrane_->printCSVCurvature("curvature_" + std::to_string(currFrame_));
-            membrane_->reset();
+        if(settings_["mem"]["export"] > 0){
+            if(currFrame_ % settings_["mem"]["export"] == 0){
+                membrane_->normalize(0);
+                membrane_->printCSV("thickness_" + std::to_string(currFrame_));
+                membrane_->printCSVCurvature("curvature_" + std::to_string(currFrame_));
+                membrane_->reset();
+            }
         }
     }
 }
@@ -306,8 +307,8 @@ void Common::updateProgress(){
 
 void Common::postProcess(){
     split_text_output("Post processing", sectionStart_);
-    if(doFunction_["bonds"].on){
-        if(doFunction_["map"].on){
+    if(settings_["bonds"]["on"]){
+        if(settings_["map"]["on"]){
             bondSet_->BoltzmannInversion();
 
             const FileFormat file_format = FileFormat::GROMACS;
@@ -325,8 +326,8 @@ void Common::postProcess(){
 
         // Write out all frame bond lengths/angles/dihedrals to file
         // This bit is slow - IO limited
-        if(doFunction_["csv"].on)
-            bondSet_->writeCSV(doFunction_["csv"].intProperty["molecules"]);
+        if(settings_["csv"]["on"])
+            bondSet_->writeCSV(settings_["csv"]["molecules"]);
 
         // Print something so to check results by eye
         for(int j=0; j<6 && j<bondSet_->bonds_.size(); j++){
@@ -336,10 +337,10 @@ void Common::postProcess(){
         cout << endl;
     }
 
-    if(doFunction_["map"].on) cgFrame_->printGRO();
-    if(doFunction_["rdf"].on) rdf_->normalize();
+    if(settings_["map"]["on"]) cgFrame_->printGRO();
+    if(settings_["rdf"]["on"]) rdf_->normalize();
 
-    if(doFunction_["mem"].intProperty["export"] < 0){
+    if(settings_["mem"]["export"] < 0){
         membrane_->normalize(0);
         membrane_->printCSV("thickness_avg");
         membrane_->printCSVCurvature("curvature_final");

@@ -38,6 +38,7 @@ Frame::Frame(const Frame &frame){
     step_ = frame.step_;
     residues_ = frame.residues_;
     boxType_ = frame.boxType_;
+
     isSetup_ = true;
 }
 

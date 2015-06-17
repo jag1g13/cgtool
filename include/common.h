@@ -52,7 +52,8 @@ protected:
     int numFramesMax_ = -1;
     int wholeXTCFrames_ = -1;
     bool untilEnd_ = true;
-    std::map<std::string, DoFunction> doFunction_;
+//    std::map<std::string, DoFunction> doFunction_;
+    std::map<std::string, std::map<std::string, int>> settings_;
 
     // Objects
     std::vector<std::string> requiredObjects_;

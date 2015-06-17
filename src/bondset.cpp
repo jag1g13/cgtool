@@ -133,10 +133,10 @@ void BondSet::writeCSV(const int num_molecules) const{
     FILE *f_angle = fopen(angle_file.c_str(), "w");
     FILE *f_dihedral = fopen(dihedral_file.c_str(), "w");
 
-    // Scale increment so that ~10k molecules are printed to CSV
+    // Scale increment so that ~num_molecules molecules are printed to CSV
     // Should be enough to be a good sample - but is much quicker than printing all
     int scale = 1;
-    if(numMeasures_ > num_molecules)
+    if(num_molecules > 0 && numMeasures_ > num_molecules)
         scale = static_cast<int>(numMeasures_ / static_cast<double>(num_molecules));
 
     for(int i=0; i < numMeasures_; i+=scale){

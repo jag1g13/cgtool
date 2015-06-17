@@ -164,6 +164,13 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
     cg_frame.time_ = aa_frame.time_;
     cg_frame.step_ = aa_frame.step_;
 
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            cg_frame.box_[i][j] = aa_frame.box_[i][j];
+        }
+    }
+
+
     // Which mapping are we using?
     switch(mapType_){
         case MapType::ATOM:
