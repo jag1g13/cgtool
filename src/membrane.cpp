@@ -94,7 +94,7 @@ void Membrane::thickness(const Frame &frame, const bool with_reset){
     areaPerLipid(closestLower_);
     printCSVAreaPerLipid(frame.time_);
 
-    curvature(closestUpper_, closestLower_, frame);
+//    curvature(closestUpper_, closestLower_, frame);
 //    printCSVCurvature("curvature_" + std::to_string(frame.num_));
     numFrames_++;
 }

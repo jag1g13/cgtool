@@ -24,14 +24,6 @@ struct CheckedFile{
     bool exists = false;
 };
 
-struct DoFunction{
-    bool on = false;
-    int freq = 1;
-    std::map<std::string, int> intProperty;
-    std::map<std::string, double> doubleProperty;
-    std::map<std::string, bool> boolProperty;
-};
-
 class Common{
 protected:
     // Help texts
@@ -52,11 +44,9 @@ protected:
     int numFramesMax_ = -1;
     int wholeXTCFrames_ = -1;
     bool untilEnd_ = true;
-//    std::map<std::string, DoFunction> doFunction_;
     std::map<std::string, std::map<std::string, int>> settings_;
 
     // Objects
-    std::vector<std::string> requiredObjects_;
     std::vector<Residue> residues_;
     Frame    *frame_ = nullptr;
     Frame    *cgFrame_ = nullptr;

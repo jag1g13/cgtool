@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include <assert.h>
+#include <sysexits.h>
 
 using std::string;
 using std::cout;
@@ -50,12 +51,14 @@ void Residue::set_start(const int val){
 };
 
 void Residue::set_resname(const string &val){
-    if(resname.compare("")) assert(!val.compare(resname));
-    // If already set
-//    if(resname.compare("")){
-//        cout << resname << " but found " << val << endl;
-//    }
-    resname = val;
+    if(resname.compare("") && val.compare(resname)){
+        // If already set
+        printf("Residue %5s in GRO did not match %5s in CFG\n",
+               val.c_str(), resname.c_str());
+        exit(EX_USAGE);
+    }else{
+        resname = val;
+    }
 };
 
 void Residue::set_total_atoms(const int val){

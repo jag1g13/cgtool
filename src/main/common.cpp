@@ -176,7 +176,6 @@ void Common::setupObjects(){
         cgMap_ = new CGMap(residues_);
         cgMap_->fromFile(inputFiles_["cfg"].name);
         cgMap_->initFrame(*frame_, *cgFrame_);
-//        cgMap_->correctLJ();
         cgFrame_->setupOutput();
     }else{
         // If not mapping make both frames the same thing
@@ -276,7 +275,7 @@ void Common::mainLoop(){
             if(currFrame_ % settings_["mem"]["export"] == 0){
                 membrane_->normalize(0);
                 membrane_->printCSV("thickness_" + std::to_string(currFrame_));
-                membrane_->printCSVCurvature("curvature_" + std::to_string(currFrame_));
+//                membrane_->printCSVCurvature("curvature_" + std::to_string(currFrame_));
                 membrane_->reset();
             }
         }
