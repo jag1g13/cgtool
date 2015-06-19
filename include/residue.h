@@ -41,7 +41,7 @@ public:
 
     void set_total_atoms(const int val);
 
-    void print();
+    void print() const;
 };
 
 #endif //CGTOOL_RESIDUE_H

@@ -48,6 +48,7 @@ protected:
 
     // Objects
     std::vector<Residue> residues_;
+    std::vector<Residue> cgResidues_;
     Frame    *frame_ = nullptr;
     Frame    *cgFrame_ = nullptr;
     BondSet  *bondSet_ = nullptr;

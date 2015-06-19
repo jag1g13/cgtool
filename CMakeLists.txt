@@ -137,8 +137,8 @@ set(EXTRA_LIBS ${EXTRA_LIBS} cgtoollib)
 add_executable(cgtool "src/main/cgtool.cpp" "src/main/common.cpp")
 target_link_libraries (cgtool ${EXTRA_LIBS})
 
-add_executable(thickness "src/main/thickness.cpp")
-target_link_libraries (thickness ${EXTRA_LIBS})
+#add_executable(thickness "src/main/thickness.cpp")
+#target_link_libraries (thickness ${EXTRA_LIBS})
 
 # Testing
 add_subdirectory(lib/gtest-1.7.0)

@@ -50,8 +50,8 @@ protected:
     * Default is geometric centre of component atoms. */
     MapType mapType_ = MapType::GC;
 
-    Residue aa_residue_;
-    Residue cg_residue_;
+    const std::vector<Residue> *aaResidues_;
+    std::vector<Residue> *cgResidues_;
 
     /** \brief Correct LJ parameters for CG */
     double calcLJ(const std::vector<int> &ljs);
@@ -70,7 +70,8 @@ public:
     /**
     * \brief Constructor to create an instance from the mapping file provided
     */
-    CGMap(const std::vector<Residue> &residues, const std::string &filename="");
+    CGMap(const std::vector<Residue> *aa_residues, std::vector<Residue> *cg_residues,
+          const std::string &filename="");
 
     /**
     * \brief Read in CG mapping from file

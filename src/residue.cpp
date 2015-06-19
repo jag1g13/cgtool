@@ -67,7 +67,7 @@ void Residue::set_total_atoms(const int val){
     total_atoms = val;
 };
 
-void Residue::print(){
+void Residue::print() const{
     printf("%'6d x %5s with %'3d atoms, starting at %'6d\n",
            num_residues, resname.c_str(), num_atoms, start);
 };

@@ -15,15 +15,21 @@ using std::cout;
 using std::endl;
 using std::map;
 
-Membrane::Membrane(const vector<Residue> &residues){
+Membrane::Membrane(const vector<Residue> *residues){
     residues_ = residues;
-    residuePPL_.resize(residues_.size());
+    residuePPL_.resize((*residues_).size());
 
     prepCSVAreaPerLipid();
+    prepCSVAvgThickness();
 
     curvMean_.alloc(grid_, grid_);
     curvGaussian_.alloc(grid_, grid_);
 }
+
+Membrane::~Membrane(){
+    fclose(aplFile_);
+    fclose(avgFile_);
+};
 
 void Membrane::sortBilayer(const Frame &frame, const int blocks){
     // Copy box from Frame - assume orthorhombic
@@ -36,7 +42,7 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
     Array block_avg_z(blocks, blocks);
     Array block_tot_residues(blocks, blocks);
 
-    for(const Residue &res : residues_){
+    for(const Residue &res : *residues_){
         if(res.ref_atom < 0) continue;
         printf("Residue %6s ref %6s%5i\n", res.resname.c_str(), res.ref_atom_name.c_str(), res.ref_atom);
         numLipids_ += res.num_residues;
@@ -51,7 +57,7 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
     block_avg_z.elementDivide(block_tot_residues);
 
     // Separate membrane into upper and lower
-    for(const Residue &res : residues_){
+    for(const Residue &res : *residues_){
         if(res.ref_atom < 0) continue;
         int num_in_leaflet[2] = {0, 0};
         for(int i = 0; i < res.num_residues; i++){
@@ -84,11 +90,11 @@ void Membrane::thickness(const Frame &frame, const bool with_reset){
     makePairs(frame, upperHeads_, lowerHeads_, upperPair_);
     makePairs(frame, lowerHeads_, upperHeads_, lowerPair_);
 
-#pragma omp parallel default(none) shared(frame)
-    {
-        closestLipid(frame, upperHeads_, upperPair_, closestUpper_);
-        closestLipid(frame, lowerHeads_, lowerPair_, closestLower_);
-    }
+    double avg_thickness = 0.;
+    avg_thickness += closestLipid(frame, upperHeads_, upperPair_, closestUpper_);
+    avg_thickness += closestLipid(frame, lowerHeads_, lowerPair_, closestLower_);
+    avg_thickness /= 2 * grid_ * grid_;
+    fprintf(avgFile_, "%8.3f%8.3f\n", frame.time_, avg_thickness);
 
     areaPerLipid(closestUpper_);
     areaPerLipid(closestLower_);
@@ -131,7 +137,7 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
     }
 }
 
-void Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
+double Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
                             const std::map<int, double> &pairs, LightArray<int> &closest){
     const double max_box = box_[0] > box_[1] ? box_[0] : box_[1];
 
@@ -141,6 +147,12 @@ void Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
     grid_coords[2] = 0.;
     ref_coords[2] = 0.;
 
+    double sum = 0.;
+
+#pragma omp parallel default(none) \
+ shared(frame, ref, pairs, closest) \
+ private(grid_coords, ref_coords) \
+ reduction(+: sum)
 #pragma omp for
     for(int i=0; i<grid_; i++){
         grid_coords[0] = (i + 0.5) * step_[0];
@@ -161,9 +173,13 @@ void Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
                 }
             }
 
-            thickness_(i, j) += pairs.at(closest.at(i, j));
+            const double tmp = pairs.at(closest(i, j));
+            sum += tmp;
+            thickness_(i, j) += tmp;
         }
     }
+
+    return sum;
 }
 
 void Membrane::areaPerLipid(const LightArray<int> &closest){
@@ -172,8 +188,8 @@ void Membrane::areaPerLipid(const LightArray<int> &closest){
     for(int i=0; i<grid_; i++){
         for(int j=0; j<grid_; j++){
             const int lipid = closest.at(i, j);
-            for(int k=0; k<residues_.size(); k++){
-                if(lipid >= residues_[k].start && lipid < residues_[k].end){
+            for(int k=0; k<(*residues_).size(); k++){
+                if(lipid >= (*residues_)[k].start && lipid < (*residues_)[k].end){
                     residuePPL_[k]++;
                 }
             }
@@ -262,6 +278,7 @@ void Membrane::prepCSVAreaPerLipid(){
     // Backup using small_functions.h
     backup_old_file(file);
     aplFile_ = fopen(file.c_str(), "w");
+    if(!aplFile_) throw std::runtime_error("Could not open output file");
 
     if(header_){
         fprintf(aplFile_, "@legend Area Per Lipid\n");
@@ -275,10 +292,24 @@ void Membrane::printCSVAreaPerLipid(const float time) const{
     for(int i=0; i<residuePPL_.size(); i++){
         const int num = residuePPL_[i];
         const double area = num * step_[0] * step_[1];
-        const double APL = area / residues_[i].num_residues;
+        const double APL = area / (*residues_)[i].num_residues;
         fprintf(aplFile_, "%8.3f", APL);
     }
     fprintf(aplFile_, "\n");
+}
+
+void Membrane::prepCSVAvgThickness(){
+    const string file = "avg_thickness.dat";
+    // Backup using small_functions.h
+    backup_old_file(file);
+    avgFile_ = fopen(file.c_str(), "w");
+    if(!avgFile_) throw std::runtime_error("Could not open output file");
+
+    if(header_){
+        fprintf(aplFile_, "@legend Average Thickness\n");
+        fprintf(aplFile_, "@xlabel Time (ps)\n");
+        fprintf(aplFile_, "@ylabel Thickness (nm)\n");
+    }
 }
 
 double Membrane::mean() const{

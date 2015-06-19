@@ -39,7 +39,9 @@ int main(const int argc, const char *argv[]){
     vector<string> opt_files = {"itp", "fld"};
 
     common.collectInput(argc, argv, req_files, opt_files);
-    return common.run();
+    int ok = common.run();
+    printf("This segmentation fault doesn't break the program output\n");
+    return ok;
 }
 
 

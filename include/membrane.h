@@ -55,7 +55,7 @@ protected:
     LightArray<double> curvGaussian_;
 
     /** List of residues present in simulation */
-    std::vector<Residue> residues_;
+    const std::vector<Residue> *residues_;
     /** Total number of lipids */
     int numLipids_ = 0;
     /** Size of he simulation box - assume orthorhombic */
@@ -71,6 +71,7 @@ protected:
 
     /** \brief File for printing area per lipid */
     FILE *aplFile_ = nullptr;
+    FILE *avgFile_ = nullptr;
     /** \brief Number of grid points for each residue */
     std::vector<int> residuePPL_;
 
@@ -79,11 +80,12 @@ protected:
                    const std::vector<int> &other, std::map<int, double> &pairs);
 
     /** \brief Find closest head group to each grid cell */
-    void closestLipid(const Frame &frame, const std::vector<int> &ref,
+    double closestLipid(const Frame &frame, const std::vector<int> &ref,
                       const std::map<int, double> &pairs, LightArray<int> &closest);
 
     void printCSVAreaPerLipid(const float time) const;
     void prepCSVAreaPerLipid();
+    void prepCSVAvgThickness();
 
 public:
 
@@ -94,10 +96,10 @@ public:
     Membrane(){};
 
     /** \brief Destructor */
-    ~Membrane(){fclose(aplFile_);};
+    ~Membrane();
 
     /** \brief Construct Membrane with vector of Residues present in simulation */
-    Membrane(const std::vector<Residue> &residues);
+    Membrane(const std::vector<Residue> *residues);
 
     /** \brief Sort head groups into upper and lower bilayer
      *  Divided into blocks to account for curvature. Size blocks * blocks */

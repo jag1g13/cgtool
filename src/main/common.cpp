@@ -130,6 +130,7 @@ void Common::findDoFunctions(){
 void Common::getResidues(){
     Parser cfg_parser(inputFiles_["cfg"].name);
     vector<string> tokens;
+    // May as well get this now while we have the file open - will probably move
     if(numFramesMax_ == -1 && cfg_parser.getLineFromSection("frames", tokens, -1)){
         numFramesMax_ = stoi(tokens[0]);
     }
@@ -163,32 +164,32 @@ void Common::getResidues(){
 void Common::setupObjects(){
     // Open files and do setup
     split_text_output("Frame setup", sectionStart_);
-    frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, residues_);
+    frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, &residues_);
     if(inputFiles_["itp"].exists) frame_->initFromITP(inputFiles_["itp"].name);
     if(inputFiles_["fld"].exists) frame_->initFromFLD(inputFiles_["fld"].name);
     for(Residue &res : residues_) res.print();
 
     if(settings_["bonds"]["on"])
-        bondSet_ = new BondSet(inputFiles_["cfg"].name, residues_);
+        bondSet_ = new BondSet(inputFiles_["cfg"].name, &residues_);
 
     if(settings_["map"]["on"]){
-        cgFrame_ = new Frame(*frame_);
-        cgMap_ = new CGMap(residues_);
+        cgFrame_ = new Frame(*frame_, &cgResidues_);
+        cgMap_ = new CGMap(&residues_, &cgResidues_);
         cgMap_->fromFile(inputFiles_["cfg"].name);
         cgMap_->initFrame(*frame_, *cgFrame_);
         cgFrame_->setupOutput();
     }else{
-        // If not mapping make both frames the same thing
+        // If not mapping make both frames point to the same thing
         cgFrame_ = frame_;
     }
 
     if(settings_["rdf"]["on"])
-        rdf_ = new RDF(residues_, settings_["rdf"]["cutoff"]/100.,
+        rdf_ = new RDF(&residues_, settings_["rdf"]["cutoff"]/100.,
                        settings_["rdf"]["resolution"]);
 
     if(settings_["field"]["on"]){
         if(settings_["map"]["on"]){
-            field_ = new FieldMap(settings_["field"]["resolution"], cgMap_->numBeads_);
+            field_ = new FieldMap(settings_["field"]["resolution"], &residues_, &cgResidues_);
         }else{
             printf("ERROR: Option 'field' requires 'mapping'\n");
             exit(EX_USAGE);
@@ -196,10 +197,10 @@ void Common::setupObjects(){
     }
 
     if(settings_["mem"]["on"]){
-        membrane_ = new Membrane(residues_);
+        membrane_ = new Membrane(&residues_);
         membrane_->sortBilayer(*frame_, settings_["mem"]["blocks"]);
         membrane_->setResolution(settings_["mem"]["resolution"]);
-        membrane_->header_ = settings_["mem"]["header"];
+        membrane_->header_ = static_cast<bool>(settings_["mem"]["header"]);
     }
 }
 
@@ -315,7 +316,7 @@ void Common::postProcess(){
 
             cout << "Printing results to ITP" << endl;
             //TODO put format choice in config file or command line option
-            ITPWriter itp(residues_, file_format, field_format);
+            ITPWriter itp(&residues_, file_format, field_format);
             if(cgFrame_->atomHas_.lj) itp.printAtomTypes(*cgMap_);
             itp.printAtoms(*cgMap_);
             itp.printBonds(*bondSet_);

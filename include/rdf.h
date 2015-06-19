@@ -14,7 +14,7 @@
 
 class RDF{
 protected:
-    std::vector<Residue> residues_;
+    const std::vector<Residue> *residues_;
     Histogram histogram_;
     Array rdf_;
     int resolution_ = 100;
@@ -25,10 +25,9 @@ protected:
 
 public:
     RDF(){};
-    RDF(const std::vector<Residue> &residues);
-    RDF(const std::vector<Residue> &residues, const double cutoff, const int resolution);
+    RDF(const std::vector<Residue> *residues, const double cutoff, const int resolution);
 
-    void init(const std::vector<Residue> &residues,
+    void init(const std::vector<Residue> *residues,
               const double cutoff, const int resolution);
 
     void calculateRDF(const Frame &frame);

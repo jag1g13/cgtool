@@ -13,11 +13,11 @@ using std::cout;
 using std::endl;
 using std::vector;
 
-ITPWriter::ITPWriter(const vector<Residue> &residues, const FileFormat file_format,
+ITPWriter::ITPWriter(const vector<Residue> *residues, const FileFormat file_format,
                      const FieldFormat field_format, string itpname){
     format_ = file_format;
     fieldFormat_ = field_format;
-    resName_ = residues[0].resname;
+    resName_ = (*residues)[0].resname;
 
     switch(format_){
         case FileFormat::GROMACS:

@@ -94,6 +94,8 @@ struct Atom{
     double c12 = 0.;
     /** Create a blank Atom instance */
     Atom(){};
+
+    Atom(const Atom &other){};
 };
 
 enum class BoxType{CUBIC, TRICLINIC};
@@ -128,7 +130,7 @@ protected:
     * This function uses this data to create a Frame object to process this data.
     */
     bool initFromXTC(const std::string &xtcname);
-    bool initFromGRO(const std::string &groname, std::vector<Residue> &residues);
+    bool initFromGRO(const std::string &groname);
     void copyCoordsIntoAtoms(int natoms=-1);
 
 
@@ -152,11 +154,11 @@ public:
     int step_ = 0;
     /** Size of the simulation box */
     float box_[3][3];
-    std::vector<Residue> residues_;
     /** Holds atomic coordinates for GROMACS */
     rvec *x_ = nullptr;
     /** Which data have been loaded into atoms? */
     AtomsHave atomHas_;
+    std::vector<Residue> *residues_;
 
 
     /** \brief Create Frame passing frame number, number of atoms to store and the frame name
@@ -167,11 +169,11 @@ public:
     /** \brief Create Frame passing config files.
     * Replaces calls to the function Frame::setupFrame() */
     Frame(const std::string &xtcname, const std::string &groname,
-          std::vector<Residue> &residues);
+          std::vector<Residue> *residues);
 
     /** \brief Create Frame by copying data from another Frame
     * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied. */
-    Frame(const Frame &frame);
+    Frame(const Frame &frame, std::vector<Residue> *residues=nullptr);
 
     /** \brief Destructor to free memory allocated by XDR functions */
     ~Frame();

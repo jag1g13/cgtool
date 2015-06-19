@@ -22,8 +22,8 @@ protected:
     double temp_ = 310.;
     /** Map of bead names to number */
     std::map<std::string, int> beadNums_;
-    /** The residue that's present - to be made plural soon */
-    std::vector<Residue> residues_;
+    /** The residues */
+    const std::vector<Residue> *residues_;
 
 public:
     /** Vector of bond length pairs; Contains all bond lengths that must be calculated */
@@ -37,7 +37,7 @@ public:
     BondSet(){};
 
     /** \brief Constructor to read from file */
-    BondSet(const std::string &cfgname, const std::vector<Residue> &residues);
+    BondSet(const std::string &cfgname, const std::vector<Residue> *residues);
 
     /**
     * \brief Reads in from file all bond properties to be calculated

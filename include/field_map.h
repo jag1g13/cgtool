@@ -49,6 +49,9 @@ private:
     int aaNumAtoms_ = 0;
     /** Number of atoms in a single cg residue */
     int cgNumAtoms_ = 0;
+    /** Residues in both representations */
+    const std::vector<Residue> *aaResidues_;
+    const std::vector<Residue> *cgResidues_;
 
     /** Determine grid bounds from a Frame object and do setup each time */
     void setupGrid(const Frame &frame);
@@ -85,7 +88,9 @@ public:
 
     /** Constructor for FieldMap to perform setup - uses init() */
     FieldMap(const int a, const int b, const int c, const int natoms=0);
-    FieldMap(const int res, const int natoms=0);
+//    FieldMap(const int res, const int natoms=0);
+    FieldMap(const int res, const std::vector<Residue> *aa_residues,
+             const std::vector<Residue> *cg_residues);
 
     /** Init FieldMap */
     void init(const int a, const int b, const int c, const int ndipoles);

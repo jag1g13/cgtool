@@ -44,7 +44,7 @@ protected:
 
 public:
     /** Create an ITP file and prepare to write */
-    ITPWriter(const std::vector<Residue> &residues,
+    ITPWriter(const std::vector<Residue> *residues,
               const FileFormat format=FileFormat::GROMACS,
               const FieldFormat field_format=FieldFormat::MARTINI,
               string itpname="");
