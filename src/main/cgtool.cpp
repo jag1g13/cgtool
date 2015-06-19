@@ -8,7 +8,7 @@ using std::vector;
 
 int main(const int argc, const char *argv[]){
     const string version_string =
-            "CGTOOL v0.3.247:e9eaf2ee95e9";
+            "CGTOOL v0.3.254:0446c2a51604";
 
     const string help_header =
             "CGTOOL James Graham <J.A.Graham@soton.ac.uk> University of Southampton\n\n"
@@ -19,7 +19,7 @@ int main(const int argc, const char *argv[]){
             "configuration file as input.  The config file provides the mapping and\n"
             "bond parameters to be calculated as well as serveral other options.\n\n"
             "Usage:\n"
-            "cgtool -c <cfg file> -x <xtc file> -i <itp file>\n";
+            "cgtool -c <cfg file> -x <xtc file> -g <itp file>\n";
     // Option syntax is <long flag> \t <comment> \t <flag type> [ \t <default value>]
     // Flag types are 0 - path, 1 - string, 2 - int, 3 - float, 4 - bool
     const string help_options =

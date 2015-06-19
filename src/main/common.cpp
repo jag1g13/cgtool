@@ -68,10 +68,6 @@ void Common::collectInput(const int argc, const char *argv[],
         }
     }
 
-    for(const auto &item : inputFiles_){
-        cout << item.first << ": " << item.second.name << endl;
-    }
-
     if(cmd_parser.getIntArg("frames") != 0) numFramesMax_ = cmd_parser.getIntArg("frames");
 }
 
@@ -136,27 +132,17 @@ void Common::findDoFunctions(){
 void Common::getResidues(){
     Parser cfg_parser(inputFiles_["cfg"].name);
     vector<string> tokens;
-    // May as well get this now while we have the file open - will probably move
-    if(numFramesMax_ == -1 && cfg_parser.getLineFromSection("frames", tokens, -1)){
-        numFramesMax_ = stoi(tokens[0]);
-    }
 
     while(cfg_parser.getLineFromSection("residues", tokens, 1)){
         residues_.emplace_back(Residue());
         Residue *res = &residues_.back();
         res->resname = tokens[0];
 
-        if(tokens.size() > 1) res->num_residues = stoi(tokens[1]);
-        if(tokens.size() > 2){
-            res->num_atoms = stoi(tokens[2]);
-            res->calc_total();
-            res->populated = true;
-        }
-        if(tokens.size() > 3) res->ref_atom_name = tokens[3];
-        if(tokens.size() > 4) throw std::runtime_error("Old input file");
+        if(tokens.size() > 1) res->ref_atom_name = tokens[2];
+        if(tokens.size() > 2) throw std::runtime_error("Old input file");
     }
 
-    const int num_residues = residues_.size();
+    const int num_residues = static_cast<int>(residues_.size());
     bool pop_so_far = residues_[0].populated;
     residues_[0].start = 0;
     for(int i=1; i<num_residues; i++){
@@ -170,6 +156,7 @@ void Common::getResidues(){
 void Common::setupObjects(){
     // Open files and do setup
     split_text_output("Frame setup", sectionStart_);
+
     frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, &residues_);
     if(inputFiles_["itp"].exists) frame_->initFromITP(inputFiles_["itp"].name);
     if(inputFiles_["fld"].exists) frame_->initFromFLD(inputFiles_["fld"].name);
@@ -320,7 +307,7 @@ void Common::postProcess(){
             const FileFormat file_format = FileFormat::GROMACS;
             const FieldFormat field_format = FieldFormat::MARTINI;
 
-            cout << "Printing results to ITP" << endl;
+            printf("Printing results to ITP");
             //TODO put format choice in config file or command line option
             ITPWriter itp(&residues_, file_format, field_format);
             if(cgFrame_->atomHas_.lj) itp.printAtomTypes(*cgMap_);
