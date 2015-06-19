@@ -96,6 +96,8 @@ void Membrane::thickness(const Frame &frame, const bool with_reset){
     avg_thickness /= 2 * grid_ * grid_;
     fprintf(avgFile_, "%8.3f%8.3f\n", frame.time_, avg_thickness);
 
+    for(int &n : residuePPL_) n = 0;
+
     areaPerLipid(closestUpper_);
     areaPerLipid(closestLower_);
     printCSVAreaPerLipid(frame.time_);
@@ -183,8 +185,6 @@ double Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
 }
 
 void Membrane::areaPerLipid(const LightArray<int> &closest){
-    for(int &n : residuePPL_) n = 0;
-
     for(int i=0; i<grid_; i++){
         for(int j=0; j<grid_; j++){
             const int lipid = closest.at(i, j);

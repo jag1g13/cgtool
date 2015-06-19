@@ -21,15 +21,6 @@ using std::stof;
 using std::printf;
 using std::map;
 
-
-Frame::Frame(const int num, const int natoms, const string name){
-    assert(natoms >= 0);
-    name_ = name;
-    step_ = num;
-    numAtoms_ = natoms;
-    atoms_.reserve(natoms);
-}
-
 Frame::Frame(const Frame &frame, vector<Residue> *residues){
     num_ = frame.num_;
     name_ = frame.name_;
@@ -244,7 +235,6 @@ void Frame::copyCoordsIntoAtoms(int natoms){
 void Frame::createAtoms(int natoms){
     if(natoms < 0) natoms = numAtoms_;
     atoms_.resize(natoms);
-//    for(int i=0; i<natoms; i++) atoms_[i] = Atom();
     atomHas_.created = true;
 }
 
@@ -330,27 +320,6 @@ bool Frame::readNext(){
     copyCoordsIntoAtoms(numAtoms_);
     return true;
 }
-
-void Frame::recentreBox(const int atom_num){
-    throw std::logic_error("Function not implemented");
-    assert(isSetup_);
-    assert(atom_num < numAtoms_);
-    assert(boxType_ == BoxType::CUBIC);
-
-    double res_centre[3];
-
-    res_centre[0] = x_[atom_num][0];
-    res_centre[1] = x_[atom_num][1];
-    res_centre[2] = x_[atom_num][2];
-    printf("res_centre: %8.4f%8.4f%8.4f\n", res_centre[0], res_centre[1], res_centre[2]);
-//    for(int i=0; i<numAtoms_; i++){
-//        for(int j=0; j<3; j++){
-//            x_[i][j] -= res_centre[j];
-//            if(x_[i][j] < -box_[j][j]) x_[i][j] += box_[j][j];
-//        }
-//    }
-}
-
 
 void Frame::printAtoms(int natoms) const{
     assert(isSetup_);

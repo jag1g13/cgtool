@@ -27,8 +27,14 @@ Common::Common(){
 }
 
 Common::~Common(){
-    if(frame_) delete frame_;
-    if(cgFrame_) delete cgFrame_;
+    // Check if frame_ and cgFrame_ point to the same thing
+    if(frame_){
+        if(cgFrame_ && cgFrame_ != frame_){
+            delete cgFrame_;
+        }
+        delete frame_;
+    }
+
     if(bondSet_) delete bondSet_;
     if(cgMap_) delete cgMap_;
     if(rdf_) delete rdf_;

@@ -133,12 +133,6 @@ protected:
     bool initFromGRO(const std::string &groname);
     void copyCoordsIntoAtoms(int natoms=-1);
 
-
-    /** \brief Recentre simulation box on an atom
-    * Avoids problems where a residue is split by the periodic boundary,
-    * causing bond lengths to be calculated incorrectly */
-    void recentreBox(const int atom_num);
-
 public:
     /** Has the Frame been properly setup yet? */
     bool isSetup_ = false;
@@ -159,12 +153,6 @@ public:
     /** Which data have been loaded into atoms? */
     AtomsHave atomHas_;
     std::vector<Residue> *residues_;
-
-
-    /** \brief Create Frame passing frame number, number of atoms to store and the frame name
-    * If we don't know the number of atoms at creation
-    * this can be set later using Frame::allocateAtoms() */
-    Frame(const int num, const int natoms, const std::string name);
 
     /** \brief Create Frame passing config files.
     * Replaces calls to the function Frame::setupFrame() */
