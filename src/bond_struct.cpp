@@ -22,9 +22,9 @@ BondStruct::BondStruct(const int size){
 }
 
 BondStruct::BondStruct(const BondStruct &other){
-    unsigned long size = other.atomNums_.size();
+    size_t size = other.atomNums_.size();
     atomNums_.resize(size);
-    for(unsigned long i = 0; i < size; i++){
+    for(size_t i = 0; i < size; i++){
         atomNums_[i] = other.atomNums_[i];
     }
     type_ = other.type_;
@@ -69,6 +69,7 @@ double BondStruct::bondAngle(const Frame &frame, const int offset){
     vec2[1] = frame.atoms_[d].coords[1] - frame.atoms_[c].coords[1];
     vec2[2] = frame.atoms_[d].coords[2] - frame.atoms_[c].coords[2];
 
-    const double angle = acos(dot(vec1, vec2) / (abs(vec1) * abs(vec2)));
-    return (180. - (angle * 180. / M_PI));
+    // Ensures angles between 0 and 360
+    const double angle = M_PI - (acos(dot(vec1, vec2) / (abs(vec1) * abs(vec2))));
+    return ((angle > 0 ? angle : (2*M_PI + angle)) * 180. / (M_PI));
 }

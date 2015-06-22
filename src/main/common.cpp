@@ -138,8 +138,13 @@ void Common::getResidues(){
         Residue *res = &residues_.back();
         res->resname = tokens[0];
 
-        if(tokens.size() > 1) res->ref_atom_name = tokens[2];
-        if(tokens.size() > 2) throw std::runtime_error("Old input file");
+        const int size = static_cast<int>(tokens.size());
+
+        if(size == 2) res->ref_atom_name = tokens[2];
+        if(size > 2){
+            printf("Reading residue from old style config file\n");
+            if(size == 4) res->ref_atom_name = tokens[4];
+        }
     }
 
     const int num_residues = static_cast<int>(residues_.size());

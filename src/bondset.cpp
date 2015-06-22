@@ -94,6 +94,8 @@ void BondSet::calcBondsInternal(Frame &frame){
     }
 }
 
+// Angles can't just be averaged like this - they wrap around
+// Fine as approximation though, we won't deal much with angles close to 0
 void BondSet::BoltzmannInversion(){
     if(numMeasures_ > 0){
         printf("Measured %'d molecules\n", numMeasures_);

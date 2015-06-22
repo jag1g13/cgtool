@@ -87,12 +87,6 @@ double BoltzmannInverter::invertGaussian(){
 }
 
 void BoltzmannInverter::binHistogram(const vector<double> &vec){
-    // This throws away values more than 25% away from the mean
-    // By inspection of density plots, nothing should be further away than this
-//    if(type_ == BondType::LENGTH){
-//        min_ = mean_ * 0.75;
-//        max_ = mean_ * 1.25;
-//    }
     step_ = (max_ - min_) / (bins_-1);
     meanBin_ = static_cast<int>((mean_ - min_) / step_);
 
