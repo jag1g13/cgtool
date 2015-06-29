@@ -69,7 +69,7 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
             if(z < block_avg_z(x, y)){
                 lowerHeads_.push_back(num);
                 num_in_leaflet[0]++;
-            } else{
+            }else{
                 upperHeads_.push_back(num);
                 num_in_leaflet[1]++;
             }
@@ -185,10 +185,12 @@ double Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
 }
 
 void Membrane::areaPerLipid(const LightArray<int> &closest){
-    for(int i=0; i<grid_; i++){
-        for(int j=0; j<grid_; j++){
+#pragma omp parallel default(none) shared(closest)
+#pragma omp for
+    for(int k=0; k<(*residues_).size(); k++){
+        for(int i=0; i<grid_; i++){
+            for(int j=0; j<grid_; j++){
             const int lipid = closest.at(i, j);
-            for(int k=0; k<(*residues_).size(); k++){
                 if(lipid >= (*residues_)[k].start && lipid < (*residues_)[k].end){
                     residuePPL_[k]++;
                 }
@@ -202,30 +204,37 @@ void Membrane::curvature(const LightArray<int> &upper, const LightArray<int> &lo
                          const Frame &frame){
     LightArray<double> avg_z(grid_, grid_);
 
-    // Calculate average z coord on grid
-    for(int i=0; i<grid_; i++){
-        for(int j=0; j<grid_; j++){
-            avg_z(i, j) = (frame.x_[upper.at(i, j)][2] + frame.x_[lower.at(i, j)][2]) / 2.;
-        }
-    }
-
     LightArray<double> respect_to_x(grid_, grid_);
     LightArray<double> respect_to_y(grid_, grid_);
 
-    const double inv_h2_x = 1. / (step_[0]*step_[0]);
-    const double inv_h2_y = 1. / (step_[1]*step_[1]);
+    const double inv_h2_x = 1. / (step_[0] * step_[0]);
+    const double inv_h2_y = 1. / (step_[1] * step_[1]);
 
     double curv_x_avg = 0.;
     double curv_y_avg = 0.;
 
-    // Do finite differences wrt x and y
-    for(int i=1; i<grid_-1; i++){
-        for(int j=1; j<grid_-1; j++){
-            respect_to_x(i, j) = inv_h2_x * (avg_z(i+1, j) + avg_z(i-1, j) - 2*avg_z(i, j));
-            respect_to_y(i, j) = inv_h2_y * (avg_z(i, j+1) + avg_z(i, j-1) - 2*avg_z(i, j));
+    // Calculate average z coord on grid
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for (int i = 0; i < grid_; i++) {
+            for (int j = 0; j < grid_; j++) {
+                avg_z(i, j) = (frame.x_[upper.at(i, j)][2] + frame.x_[lower.at(i, j)][2]) / 2.;
+            }
+        }
 
-            curv_x_avg += respect_to_x(i, j);
-            curv_y_avg += respect_to_y(i, j);
+        #pragma omp barrier
+
+        // Do finite differences wrt x and y
+        #pragma omp for reduction(+: curv_x_avg, curv_y_avg)
+        for (int i = 1; i < grid_ - 1; i++) {
+            for (int j = 1; j < grid_ - 1; j++) {
+                respect_to_x(i, j) = inv_h2_x * (avg_z(i + 1, j) + avg_z(i - 1, j) - 2 * avg_z(i, j));
+                respect_to_y(i, j) = inv_h2_y * (avg_z(i, j + 1) + avg_z(i, j - 1) - 2 * avg_z(i, j));
+
+                curv_x_avg += respect_to_x(i, j);
+                curv_y_avg += respect_to_y(i, j);
+            }
         }
     }
 
@@ -233,6 +242,7 @@ void Membrane::curvature(const LightArray<int> &upper, const LightArray<int> &lo
     curv_y_avg /= grid_*grid_;
 
 //    printf("Calculate\n");
+    #pragma omp parallel for
     for(int i=0; i<grid_; i++){
         for(int j=0; j<grid_; j++){
             curvMean_(i, j) = (respect_to_x.at(i, j) + respect_to_y.at(i, j)) / 2.;

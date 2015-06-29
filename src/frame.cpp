@@ -43,14 +43,14 @@ Frame::Frame(const string &xtcname, const string &groname,
     residues_ = residues;
 
     if(!initFromXTC(xtcname)){
-        printf("Something went wrong with reading XTC file\n");
+        printf("ERROR: Something went wrong with reading XTC file\n");
         exit(EX_UNAVAILABLE);
     };
     createAtoms(numAtoms_);
 
     // Populate atoms_
     if(!initFromGRO(groname)){
-        printf("Something went wrong with reading GRO file\n");
+        printf("ERROR: Something went wrong with reading GRO file\n");
         exit(EX_UNAVAILABLE);
     };
 
@@ -156,8 +156,9 @@ bool Frame::initFromGRO(const string &groname){
     gro.close();
 
     if(residues_->size() < num_residues){
-        printf("Found %'d residue(s) not listed in CFG\n", num_residues - static_cast<int>(residues_->size()));
-        exit(EX_NOINPUT);
+        printf("ERROR: Found %'d residue(s) not listed in CFG\n",
+               num_residues - static_cast<int>(residues_->size()));
+        exit(EX_CONFIG);
     }
 
     int resnum = 0, atomnum = 0;
@@ -213,8 +214,15 @@ bool Frame::initFromGRO(const string &groname){
             const int atom = res.start + i;
             res.name_to_num.insert(std::pair<string, int>(atoms_[atom].atom_name, i));
         }
+
         if(res.ref_atom_name != ""){
-            res.ref_atom = res.name_to_num.at(res.ref_atom_name);
+            if(res.name_to_num.find(res.ref_atom_name) == res.name_to_num.end()){
+                printf("ERROR: Residue %6s does not contain reference atom %6s\n",
+                       res.resname.c_str(), res.ref_atom_name.c_str());
+                exit(EX_CONFIG);
+            }else {
+                res.ref_atom = res.name_to_num.at(res.ref_atom_name);
+            }
         }
     }
 
@@ -341,7 +349,7 @@ void Frame::printGRO(string filename, int natoms) const{
 
     FILE *gro = std::fopen(filename.c_str(), "w");
     if(gro == nullptr){
-        cout << "Could not open gro file for writing" << endl;
+        printf("ERROR: Could not open gro file for writing\n");
         exit(EX_CANTCREAT);
     }
 

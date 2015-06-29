@@ -57,7 +57,7 @@ void Common::collectInput(const int argc, const char *argv[],
 
     for(const string &f : req_files){
         if(!inputFiles_[f].exists){
-            cout << "File " << inputFiles_[f].name << " does not exist" << endl;
+            printf("ERROR: File %s does not exist\n", inputFiles_[f].name.c_str());
             exit(EX_NOINPUT);
         }
     }
@@ -107,7 +107,7 @@ void Common::getResidues(){
 
         if(size == 2) res->ref_atom_name = tokens[1];
         if(size > 2){
-            printf("Reading residue from old style config file\n");
+            printf("NOTE: Reading residue from old style config file\n");
             if(size == 4) res->ref_atom_name = tokens[4];
         }
     }
@@ -168,10 +168,12 @@ void Common::doMainLoop(){
     lastUpdate_ = start_timer();
 
     // Process each frame as we read it, frames are not retained
-    while(frame_->readNext() && (untilEnd_ || currFrame_ < numFramesMax_)){
-        if(currFrame_ % updateFreq_[updateLoc_] == 0) updateProgress();
-        mainLoop();
+    bool end = !(frame_->readNext() && (untilEnd_ || currFrame_ < numFramesMax_));
+    while(!end){
+        end = !(frame_->readNext() && (untilEnd_ || currFrame_ < numFramesMax_));
+        if (currFrame_ % updateFreq_[updateLoc_] == 0) updateProgress();
         currFrame_++;
+        mainLoop();
     }
 
     // Print some data at the end
