@@ -70,6 +70,7 @@ void BondSet::calcBondsInternal(Frame &frame){
         for(BondStruct &bond : bonds_){
             double dist = bond.bondLength(frame, offset);
             // If any distances > 1nm, molecule is on PBC
+            // Also check for errors
             if(dist > 1. || std::isinf(dist) || std::isnan(dist)){
                 res_okay = false;
                 break;

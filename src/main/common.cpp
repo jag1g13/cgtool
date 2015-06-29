@@ -167,8 +167,6 @@ void Common::setupObjects(){
     if(inputFiles_["fld"].exists) frame_->initFromFLD(inputFiles_["fld"].name);
     for(Residue &res : residues_) res.print();
 
-    if(settings_["bonds"]["on"])
-        bondSet_ = new BondSet(inputFiles_["cfg"].name, &residues_);
 
     if(settings_["map"]["on"]){
         cgFrame_ = new Frame(*frame_, &cgResidues_);
@@ -176,9 +174,13 @@ void Common::setupObjects(){
         cgMap_->fromFile(inputFiles_["cfg"].name);
         cgMap_->initFrame(*frame_, *cgFrame_);
         cgFrame_->setupOutput();
+        if(settings_["bonds"]["on"])
+            bondSet_ = new BondSet(inputFiles_["cfg"].name, &cgResidues_);
     }else{
         // If not mapping make both frames point to the same thing
         cgFrame_ = frame_;
+        if(settings_["bonds"]["on"])
+            bondSet_ = new BondSet(inputFiles_["cfg"].name, &residues_);
     }
 
     if(settings_["rdf"]["on"])

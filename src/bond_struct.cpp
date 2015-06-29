@@ -39,7 +39,8 @@ double BondStruct::bondLength(const Frame &frame, const int offset) {
     vec[1] = frame.atoms_[a].coords[1] - frame.atoms_[b].coords[1];
     vec[2] = frame.atoms_[a].coords[2] - frame.atoms_[b].coords[2];
 
-    return abs(vec);
+    const double val = abs(vec);
+    return val;
 }
 
 double BondStruct::bondAngle(const Frame &frame, const int offset){
