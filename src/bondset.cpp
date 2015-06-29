@@ -70,7 +70,7 @@ void BondSet::calcBondsInternal(Frame &frame){
         for(BondStruct &bond : bonds_){
             double dist = bond.bondLength(frame, offset);
             // If any distances > 1nm, molecule is on PBC
-            if(dist > 1. || dist < 0.01){
+            if(dist > 1. || std::isinf(dist) || std::isnan(dist)){
                 res_okay = false;
                 break;
             }
@@ -80,15 +80,15 @@ void BondSet::calcBondsInternal(Frame &frame){
 
         for(BondStruct &bond : bonds_){
             const double val = bond.bondLength(frame, offset);
-            if(!std::isinf(val)) bond.values_.push_back(val);
+            if(!std::isinf(val) && !std::isnan(val)) bond.values_.push_back(val);
         }
         for(BondStruct &bond : angles_){
             const double val = bond.bondAngle(frame, offset);
-            if(!std::isinf(val)) bond.values_.push_back(val);
+            if(!std::isinf(val) && !std::isnan(val)) bond.values_.push_back(val);
         }
         for(BondStruct &bond : dihedrals_){
             const double val = bond.bondAngle(frame, offset);
-            if(!std::isinf(val)) bond.values_.push_back(val);
+            if(!std::isinf(val) && !std::isnan(val)) bond.values_.push_back(val);
         }
         numMeasures_++;
     }
