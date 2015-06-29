@@ -43,10 +43,6 @@ option(INGORE_SOME_WARNINGS "Don't ignore any warnings" ON)
 set(IGNORED_WARNINGS " -Wno-sign-compare -Wno-unused-variable -Wno-comment -Wno-unused-but-set-variable")
 set(IGNORED_WARNINGS_ALWAYS " -Wno-sign-compare -Wno-comment")
 
-# Handle conditional compilation of features
-option(UPDATE_PROGRESS "Print progress update every few frames" ON)
-option(NO_CMD_PARSER "Disable the default command line parser if not using Boost program_options" OFF)
-
 # Platform specifics
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     # Apple OSX - don't use OPENMP
@@ -115,14 +111,6 @@ if(DOXYGEN_FOUND)
         COMMENT "Generating API documentation with Doxygen" VERBATIM
     )
 endif(DOXYGEN_FOUND)
-
-# Check flags
-if(UPDATE_PROGRESS)
-    add_definitions(-DUPDATE_PROGRESS)
-endif()
-if(NO_CMD_PARSER)
-    add_definitions(-DNO_CMD_PARSER OR NOT Boost_PROGRAM_OPTIONS_FOUND)
-endif()
 
 # Find source files
 FILE(GLOB SOURCE_FILES src/*.cpp)

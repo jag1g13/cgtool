@@ -140,7 +140,7 @@ void Common::getResidues(){
 
         const int size = static_cast<int>(tokens.size());
 
-        if(size == 2) res->ref_atom_name = tokens[2];
+        if(size == 2) res->ref_atom_name = tokens[1];
         if(size > 2){
             printf("Reading residue from old style config file\n");
             if(size == 4) res->ref_atom_name = tokens[4];
@@ -288,7 +288,7 @@ void Common::updateProgress(){
     const double time_since_update = end_timer(lastUpdate_);
     if(time_since_update > 0.5f && updateLoc_ > 0){
         updateLoc_--;
-    }else if(time_since_update < 0.01f && updateLoc_ < 10){
+    }else if(time_since_update < 0.1f && updateLoc_ < 9){
         updateLoc_++;
     }
 
