@@ -27,12 +27,14 @@ protected:
 
     /** \brief Perform a Boltzmann Inversion on a single bond parameter */
     double invertGaussian();
+    double invertGaussianSimple();
 
     /** \brief Sort bond time series into histogram bins */
     void binHistogram(const std::vector<double> &vec);
 
     /** \brief Calculate R^2 value for calculated gaussian relative to histogram */
     double gaussianRSquared();
+
 
 public:
     BoltzmannInverter(const double temp=310, const int bins=-1);

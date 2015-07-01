@@ -308,21 +308,23 @@ void Common::updateProgress(){
 void Common::postProcess(){
     split_text_output("Post processing", sectionStart_);
     if(settings_["bonds"]["on"]){
+        bondSet_->BoltzmannInversion();
+
+        const FileFormat file_format = FileFormat::GROMACS;
+        const FieldFormat field_format = FieldFormat::MARTINI;
+
+        printf("Printing results to ITP");
+        //TODO put format choice in config file or command line option
+        ITPWriter itp(&residues_, file_format, field_format);
+        if(cgFrame_->atomHas_.lj) itp.printAtomTypes(*cgMap_);
+
         if(settings_["map"]["on"]){
-            bondSet_->BoltzmannInversion();
-
-            const FileFormat file_format = FileFormat::GROMACS;
-            const FieldFormat field_format = FieldFormat::MARTINI;
-
-            printf("Printing results to ITP");
-            //TODO put format choice in config file or command line option
-            ITPWriter itp(&residues_, file_format, field_format);
-            if(cgFrame_->atomHas_.lj) itp.printAtomTypes(*cgMap_);
             itp.printAtoms(*cgMap_);
-            itp.printBonds(*bondSet_);
         } else{
             bondSet_->calcAvgs();
         }
+
+        itp.printBonds(*bondSet_);
 
         // Write out all frame bond lengths/angles/dihedrals to file
         // This bit is slow - IO limited

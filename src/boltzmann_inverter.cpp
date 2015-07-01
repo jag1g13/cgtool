@@ -27,7 +27,7 @@ void BoltzmannInverter::calculate(BondStruct &bond){
     binHistogram(bond.values_);
     bond.rsqr_ = gaussianRSquared();
     type_ = bond.type_;
-    bond.forceConstant_ = invertGaussian();
+    bond.forceConstant_ = invertGaussianSimple();
 }
 
 double BoltzmannInverter::invertGaussian(){
@@ -76,14 +76,20 @@ double BoltzmannInverter::invertGaussian(){
     flens::lapack::ls(flens::NoTrans, A, b);
     //TODO investigate where negative force constants come from - is it ok to just abs() them
     return fabs(b(3));
+}
 
-//    switch(type_){
-//        case BondType::LENGTH:
-//        case BondType::ANGLE:
-//            return b(3);
-//        case BondType::DIHEDRAL:
-//            return b(2);
-//    };
+double BoltzmannInverter::invertGaussianSimple(){
+    const double R = 8.314 / 1000.;
+
+    switch(type_){
+        case BondType::LENGTH:
+            // ~1% difference from force const calculated by least squares
+            return R*temp_ / (2 * sdev_*sdev_);
+        case BondType::DIHEDRAL:
+        case BondType::ANGLE:
+            //TODO currently just pass this back to the old least squares - replace this
+            return invertGaussian();
+    }
 }
 
 void BoltzmannInverter::binHistogram(const vector<double> &vec){
