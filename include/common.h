@@ -46,6 +46,10 @@ protected:
     bool untilEnd_ = true;
     std::map<std::string, std::map<std::string, int>> settings_;
 
+    // Output file formats
+    FileFormat outProgram_;
+    FieldFormat outField_;
+
     // Objects
     std::vector<Residue> residues_;
     std::vector<Residue> cgResidues_;
@@ -63,7 +67,7 @@ protected:
 
     // Protected functions
     /** \brief Read config file and determine which functions should be performed */
-    void findDoFunctions();
+    void parseConfig();
 
     /** \brief Read residues from config file - will be modified by frame later */
     void getResidues();

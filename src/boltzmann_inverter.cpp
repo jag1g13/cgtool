@@ -53,6 +53,7 @@ double BoltzmannInverter::invertGaussian(){
             case BondType::DIHEDRAL:
             case BondType::ANGLE:
                 // Angles in GROMACS are a cos^2 term
+                // Should this be cos(x - mean_)?
                 const double cosx = cos(x);
                 A(i, 1) = 1.;
                 A(i, 2) = cosx;

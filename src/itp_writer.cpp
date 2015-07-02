@@ -36,7 +36,7 @@ ITPWriter::ITPWriter(const vector<Residue> *residues, const FileFormat file_form
 
     itp_ = std::fopen(name_.c_str(), "w");
     if(itp_ == NULL){
-        cout << "Could not open itp file for writing" << endl;
+        printf("Could not open itp file for writing\n");
         exit(EX_CANTCREAT);
     }
 
@@ -57,6 +57,11 @@ ITPWriter::ITPWriter(const vector<Residue> *residues, const FileFormat file_form
             fprintf(itp_, "%s %12i\n", resName_.c_str(), 1);
             break;
         case FileFormat::LAMMPS:
+            fprintf(itp_, "pair_style lj/sf/dipole/sf 12.0\n");
+            fprintf(itp_, "special_bonds lj/coul 0.0 1.0 1.0\n");
+            fprintf(itp_, "bond_style harmonic\n");
+            fprintf(itp_, "angle_style hybrid cosine/squared dipole\n\n");
+
             fprintf(itp_, "\n#molecule name %s\n", resName_.c_str());
             break;
     }
@@ -171,7 +176,13 @@ void ITPWriter::printBonds(const BondSet &bond_set, const bool round) const{
                 i++;
             }
 
-//            printBondSection(bond_set.dihedrals_);
+            fprintf(itp_, "\n#dihedrals     bond                    equil  f_const  unimodality\n");
+            i = 1;
+            for(const BondStruct &bond : bond_set.dihedrals_){
+                fprintf(itp_, "angle_coeff %4i  cosine/squared %8.3f %8.3f  #  %8.3f\n",
+                        i, bond.avg_, bond.forceConstant_, bond.rsqr_);
+                i++;
+            }
 
             break;
     }

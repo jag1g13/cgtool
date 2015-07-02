@@ -10,6 +10,8 @@
 #include <sysexits.h>
 #include <locale.h>
 
+#include <boost/algorithm/string.hpp>
+
 #include "small_functions.h"
 #include "file_io.h"
 
@@ -43,7 +45,7 @@ Common::~Common(){
 }
 
 void Common::setHelpStrings(const std::string &version, const std::string &header,
-                    const std::string &options){
+                            const std::string &options){
     versionString_ = version;
     helpHeader_ = header;
     helpOptions_ = options;
@@ -72,7 +74,7 @@ void Common::collectInput(const int argc, const char *argv[],
 }
 
 int Common::run(){
-    findDoFunctions();
+    parseConfig();
     getResidues();
     setupObjects();
     doMainLoop();
@@ -80,7 +82,7 @@ int Common::run(){
     return EX_OK;
 }
 
-void Common::findDoFunctions(){
+void Common::parseConfig(){
     Parser cfg_parser(inputFiles_["cfg"].name);
 
     settings_["map"]["on"] =
@@ -127,6 +129,13 @@ void Common::findDoFunctions(){
             cfg_parser.getIntKeyFromSection("membrane", "blocks", 4);
     settings_["mem"]["header"] =
             cfg_parser.getIntKeyFromSection("membrane", "header", 1);
+
+    string file_format = cfg_parser.getStringKeyFromSection("output", "program", "GROMACS");
+    boost::to_upper(file_format);
+    outProgram_ = getFileFormat.at(file_format);
+    string field_format = cfg_parser.getStringKeyFromSection("output", "field", "MARTINI");
+    boost::to_upper(field_format);
+    outField_ = getFieldFormat.at(field_format);
 }
 
 void Common::getResidues(){
@@ -310,12 +319,9 @@ void Common::postProcess(){
     if(settings_["bonds"]["on"]){
         bondSet_->BoltzmannInversion();
 
-        const FileFormat file_format = FileFormat::GROMACS;
-        const FieldFormat field_format = FieldFormat::MARTINI;
-
-        printf("Printing results to ITP");
+        printf("Printing results to ITP\n");
         //TODO put format choice in config file or command line option
-        ITPWriter itp(&residues_, file_format, field_format);
+        ITPWriter itp(&residues_, outProgram_, outField_);
         if(cgFrame_->atomHas_.lj) itp.printAtomTypes(*cgMap_);
 
         if(settings_["map"]["on"]){

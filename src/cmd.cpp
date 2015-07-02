@@ -31,14 +31,11 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
             case ArgType::PATH:
             case ArgType::STRING:
                 // Is there a default value given?
-                if(parts[2] == ""){
-                    throw std::logic_error("String argument without default value no implemented");
-                }else{
-                    desc_.add_options()((arg + "," + arg[0]).c_str(),
-//                                        po::value<string>()->default_value(parts[2].c_str()),
-                                        po::value<string>(),
-                                        parts[1].c_str());
-                }
+//                desc_.add_options()((arg + "," + arg[0]).c_str(),
+                desc_.add_options()((arg + "," + arg[0]).c_str(),
+//                                    po::value<string>()->default_value(parts[3].c_str()),
+                                    po::value<string>(),
+                                    parts[1].c_str());
                 break;
             case ArgType::INT:
                 desc_.add_options()((arg+","+arg[0]).c_str(),
@@ -48,7 +45,7 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
             case ArgType::FLOAT:
                 break;
             case ArgType::BOOL:
-                // Boolean arguments don't get a short form - too many overlapping
+                // Boolean arguments don't get a short form
                 desc_.add_options()((arg).c_str(),
                                     po::value<bool>()->default_value(stoi(parts[3])),
                                     parts[1].c_str());
@@ -78,7 +75,7 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
 const std::string CMD::getFileArg(const string &arg){
     // Was the argument passed in from the command line?
     if(options_.count(arg)){
-        // All strings are file paths - append <dir> if user gave it
+        // File paths - append <dir> if user gave it
         if(options_.count("dir")){
             return options_["dir"].as<string>() + "/" + options_[arg].as<string>();
         }else{
@@ -87,8 +84,6 @@ const std::string CMD::getFileArg(const string &arg){
     }
 
     // Error no default value - assume empty
-//    cout << "NON-FATAL ERROR: No default value for parameter "
-//    << arg << " assuming empty" << endl;
     return "";
 }
 
@@ -97,8 +92,6 @@ const bool CMD::getBoolArg(const string &arg){
     if(options_.count(arg)) return options_[arg].as<bool>();
 
     // Error no default value - assume false
-//    cout << "NON-FATAL ERROR: No default value for parameter "
-//         << arg << " assuming false" << endl;
     return false;
 }
 
@@ -107,7 +100,5 @@ const int CMD::getIntArg(const string &arg){
     if(options_.count(arg)) return options_[arg].as<int>();
 
     // Error no default value - assume -1
-//    cout << "NON-FATAL ERROR: No default value for parameter "
-//         << arg  << " assuming -1" << endl;
     return -1;
 }
