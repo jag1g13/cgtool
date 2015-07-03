@@ -124,9 +124,9 @@ void BondSet::calcAvgs(){
 }
 
 void BondSet::writeCSV(const int num_molecules) const{
-    const string bond_file = (*residues_)[0].resname + "_bonds.csv";
-    const string angle_file = (*residues_)[0].resname + "_angles.csv";
-    const string dihedral_file = (*residues_)[0].resname + "_dihedrals.csv";
+    const string bond_file = (*residues_)[0].resname + "_bonds.dat";
+    const string angle_file = (*residues_)[0].resname + "_angles.dat";
+    const string dihedral_file = (*residues_)[0].resname + "_dihedrals.dat";
 
     backup_old_file(bond_file);
     backup_old_file(angle_file);

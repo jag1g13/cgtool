@@ -41,7 +41,6 @@ Common::~Common(){
     if(cgMap_) delete cgMap_;
     if(rdf_) delete rdf_;
     if(field_) delete field_;
-    if(membrane_) delete membrane_;
 }
 
 void Common::setHelpStrings(const std::string &version, const std::string &header,
@@ -115,27 +114,17 @@ void Common::parseConfig(){
     settings_["field"]["export"] =
             cfg_parser.getIntKeyFromSection("field", "export", 100);
 
-    settings_["mem"]["on"] =
-            cfg_parser.findSection("membrane");
-    settings_["mem"]["freq"] =
-            cfg_parser.getIntKeyFromSection("membrane", "calculate", 1);
-    settings_["mem"]["export"] =
-            cfg_parser.getIntKeyFromSection("membrane", "export", 100);
-    settings_["mem"]["calculate"] =
-            cfg_parser.getIntKeyFromSection("membrane", "calculate", 1);
-    settings_["mem"]["resolution"] =
-            cfg_parser.getIntKeyFromSection("membrane", "resolution", 100);
-    settings_["mem"]["blocks"] =
-            cfg_parser.getIntKeyFromSection("membrane", "blocks", 4);
-    settings_["mem"]["header"] =
-            cfg_parser.getIntKeyFromSection("membrane", "header", 1);
-
     string file_format = cfg_parser.getStringKeyFromSection("output", "program", "GROMACS");
     boost::to_upper(file_format);
     outProgram_ = getFileFormat.at(file_format);
     string field_format = cfg_parser.getStringKeyFromSection("output", "field", "MARTINI");
     boost::to_upper(field_format);
     outField_ = getFieldFormat.at(field_format);
+
+    if(cfg_parser.findSection("membrane")){
+        printf("CGTOOL no longer performs membrane analysis - use RAMSi\n");
+        exit(EX_USAGE);
+    }
 }
 
 void Common::getResidues(){
@@ -204,13 +193,6 @@ void Common::setupObjects(){
             exit(EX_USAGE);
         }
     }
-
-    if(settings_["mem"]["on"]){
-        membrane_ = new Membrane(&residues_);
-        membrane_->sortBilayer(*frame_, settings_["mem"]["blocks"]);
-        membrane_->setResolution(settings_["mem"]["resolution"]);
-        membrane_->header_ = static_cast<bool>(settings_["mem"]["header"]);
-    }
 }
 
 void Common::doMainLoop(){
@@ -275,21 +257,6 @@ void Common::mainLoop(){
     if(settings_["rdf"]["on"] && currFrame_ % settings_["rdf"]["freq"] == 0){
         rdf_->calculateRDF(*frame_);
     }
-
-    // Membrane thickness calculations
-    if(settings_["mem"]["on"]){
-        if(currFrame_ % settings_["mem"]["freq"] == 0){
-            membrane_->thickness(*frame_);
-        }
-        if(settings_["mem"]["export"] > 0){
-            if(currFrame_ % settings_["mem"]["export"] == 0){
-                membrane_->normalize(0);
-                membrane_->printCSV("thickness_" + std::to_string(currFrame_));
-//                membrane_->printCSVCurvature("curvature_" + std::to_string(currFrame_));
-                membrane_->reset();
-            }
-        }
-    }
 }
 
 void Common::updateProgress(){
@@ -347,12 +314,6 @@ void Common::postProcess(){
 
     if(settings_["map"]["on"]) cgFrame_->printGRO();
     if(settings_["rdf"]["on"]) rdf_->normalize();
-
-    if(settings_["mem"]["export"] < 0){
-        membrane_->normalize(0);
-        membrane_->printCSV("thickness_avg");
-        membrane_->printCSVCurvature("curvature_final");
-    }
 
     // Final timer
     split_text_output("Finished", veryStart_);

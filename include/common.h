@@ -17,7 +17,6 @@
 #include "field_map.h"
 #include "cmd.h"
 #include "rdf.h"
-#include "membrane.h"
 
 struct CheckedFile{
     std::string name = "";
@@ -59,7 +58,6 @@ protected:
     CGMap    *cgMap_ = nullptr;
     RDF      *rdf_ = nullptr;
     FieldMap *field_ = nullptr;
-    Membrane *membrane_ = nullptr;
 
     // Progress updates
     const int updateFreq_[10] = {1, 2, 5, 10, 20, 50, 100, 200, 500, 1000};
