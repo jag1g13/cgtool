@@ -17,16 +17,16 @@ Required to compile:
 
 To compile the program:
 
-* Create a new directory 'build' within the main distribution directory
-* From the build directory 'cmake ..'
+* Create a new directory `build` within the main distribution directory
+* From the build directory `cmake ..`
 * 'make' to build the main executable
 * 'make check' to compile and run tests
 * 'make doc' for developer documentation - requires Doxygen
 
 To use the program:
 
-* Help text is available with 'ramsi `--`help'
-* The program should be called using 'ramsi  `-`c &lt;CFG file&gt; `-`x &lt;XTC file&gt; `-`g &lt;GRO file&gt;'
+* Help text is available with `ramsi --help`
+* The program should be called using `ramsi  -c &lt;CFG file&gt; -x &lt;XTC file&gt; -g &lt;GRO file&gt;`
 * A config file is required which specifies the analysis options, in the format seen in the examples directory
 
 ### Testing ###

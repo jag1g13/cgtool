@@ -121,8 +121,9 @@ target_link_libraries (gtest_array gtest gtest_main ${EXTRA_LIBS})
 add_test(GTestArrayAll gtest_array)
 
 # Integration test - does it run
-add_test(IntegrationRUN ramsi -c cg.cfg -x md.xtc -g md.gro)
+add_test(IntegrationRUN ramsi -c ../test_data/staph/mem.cfg -x ../test_data/staph/md.xtc -g ../test_data/staph/md.gro)
 
 enable_testing()
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
                   DEPENDS gtest_parser gtest_array ramsi)
+

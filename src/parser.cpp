@@ -10,7 +10,6 @@ using std::cout;
 using std::endl;
 
 Parser::Parser(const string filename, const FileFormat format) {
-    //TODO preprocess file to include ITPs
     format_ = format;
     filename_ = filename;
     file_.open(filename);

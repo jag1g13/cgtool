@@ -20,9 +20,6 @@ Membrane::Membrane(const vector<Residue> *residues){
 
     prepCSVAreaPerLipid();
     prepCSVAvgThickness();
-
-    curvMean_.alloc(grid_, grid_);
-    curvGaussian_.alloc(grid_, grid_);
 }
 
 Membrane::~Membrane(){
@@ -137,6 +134,7 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
     }
 }
 
+//TODO optimise this - it takes >90% of runtime
 double Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
                             const std::map<int, double> &pairs, LightArray<int> &closest){
     const double max_box = box_[0] > box_[1] ? box_[0] : box_[1];
@@ -198,8 +196,7 @@ void Membrane::areaPerLipid(const LightArray<int> &closest){
 
 }
 
-void Membrane::curvature(const LightArray<int> &upper, const LightArray<int> &lower,
-                         const Frame &frame){
+void Membrane::curvature(const Frame &frame){
     LightArray<double> avg_z(grid_, grid_);
 
     LightArray<double> respect_to_x(grid_, grid_);
@@ -212,45 +209,36 @@ void Membrane::curvature(const LightArray<int> &upper, const LightArray<int> &lo
     double curv_y_avg = 0.;
 
     // Calculate average z coord on grid
-    #pragma omp parallel
-    {
-        #pragma omp for
-        for (int i = 0; i < grid_; i++) {
-            for (int j = 0; j < grid_; j++) {
-                avg_z(i, j) = (frame.x_[upper.at(i, j)][2] + frame.x_[lower.at(i, j)][2]) / 2.;
-            }
+    for (int i = 0; i < grid_; i++) {
+        for (int j = 0; j < grid_; j++) {
+            avg_z(i, j) = (frame.x_[closestUpper_.at(i, j)][2] +
+                           frame.x_[closestLower_.at(i, j)][2]) / 2.;
         }
+    }
 
-        #pragma omp barrier
+    // Do finite differences wrt x and y
+    for (int i = 1; i < grid_ - 1; i++) {
+        for (int j = 1; j < grid_ - 1; j++) {
+            respect_to_x(i, j) = inv_h2_x * (avg_z(i + 1, j) + avg_z(i - 1, j) - 2 * avg_z(i, j));
+            respect_to_y(i, j) = inv_h2_y * (avg_z(i, j + 1) + avg_z(i, j - 1) - 2 * avg_z(i, j));
 
-        // Do finite differences wrt x and y
-        #pragma omp for reduction(+: curv_x_avg, curv_y_avg)
-        for (int i = 1; i < grid_ - 1; i++) {
-            for (int j = 1; j < grid_ - 1; j++) {
-                respect_to_x(i, j) = inv_h2_x * (avg_z(i + 1, j) + avg_z(i - 1, j) - 2 * avg_z(i, j));
-                respect_to_y(i, j) = inv_h2_y * (avg_z(i, j + 1) + avg_z(i, j - 1) - 2 * avg_z(i, j));
-
-                curv_x_avg += respect_to_x(i, j);
-                curv_y_avg += respect_to_y(i, j);
-            }
+            curv_x_avg += respect_to_x(i, j);
+            curv_y_avg += respect_to_y(i, j);
         }
     }
 
     curv_x_avg /= grid_*grid_;
     curv_y_avg /= grid_*grid_;
 
-//    printf("Calculate\n");
-    #pragma omp parallel for
     for(int i=0; i<grid_; i++){
         for(int j=0; j<grid_; j++){
             curvMean_(i, j) = (respect_to_x.at(i, j) + respect_to_y.at(i, j)) / 2.;
             curvGaussian_(i, j) = respect_to_x.at(i, j) * respect_to_y.at(i, j);
-//            printf("%8.3f", curvMean_.at(i, j));
         }
-//        printf("\n");
     }
 
-//    printf("%8.3f%8.3f\n", curv_x_avg, curv_y_avg);
+    curvMean_.smooth(5);
+    curvGaussian_.smooth(5);
 }
 
 void Membrane::printCSVCurvature(const std::string &filename) const{
@@ -356,6 +344,8 @@ void Membrane::setResolution(const int n){
 
     closestUpper_.alloc(n, n);
     closestLower_.alloc(n, n);
+    curvMean_.alloc(grid_, grid_);
+    curvGaussian_.alloc(grid_, grid_);
 }
 
 void Membrane::reset(){

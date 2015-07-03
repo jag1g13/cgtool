@@ -12,7 +12,6 @@ using std::cout;
 using std::endl;
 using std::string;
 
-//TODO turn this into a copy constructor
 Array::Array(const int a, const int b, const int c, const bool fast){
     init(a, b, c, fast);
 }

@@ -78,8 +78,6 @@ void Common::findDoFunctions(){
     settings_["map"]["on"] =
             cfg_parser.findSection("mapping");
 
-    settings_["mem"]["on"] =
-            cfg_parser.findSection("membrane");
     settings_["mem"]["freq"] =
             cfg_parser.getIntKeyFromSection("membrane", "calculate", 1);
     settings_["mem"]["export"] =
@@ -92,6 +90,8 @@ void Common::findDoFunctions(){
             cfg_parser.getIntKeyFromSection("membrane", "blocks", 4);
     settings_["mem"]["header"] =
             cfg_parser.getIntKeyFromSection("membrane", "header", 1);
+
+    numFramesMax_ = cfg_parser.getIntKeyFromSection("general", "frames", -1);
 }
 
 void Common::getResidues(){
@@ -142,12 +142,10 @@ void Common::setupObjects(){
         cgFrame_ = frame_;
     }
 
-    if(settings_["mem"]["on"]){
-        membrane_ = new Membrane(&residues_);
-        membrane_->sortBilayer(*frame_, settings_["mem"]["blocks"]);
-        membrane_->setResolution(settings_["mem"]["resolution"]);
-        membrane_->header_ = static_cast<bool>(settings_["mem"]["header"]);
-    }
+    membrane_ = new Membrane(&residues_);
+    membrane_->sortBilayer(*frame_, settings_["mem"]["blocks"]);
+    membrane_->setResolution(settings_["mem"]["resolution"]);
+    membrane_->header_ = static_cast<bool>(settings_["mem"]["header"]);
 }
 
 void Common::doMainLoop(){
@@ -162,13 +160,14 @@ void Common::doMainLoop(){
     if(untilEnd_){
         printf("Reading all frames from XTC\n");
     }else{
-        printf("Reading %'8d frames from XTC\n", numFramesMax_);
+        printf("Reading %'7d frames from XTC\r", numFramesMax_);
     }
 
     lastUpdate_ = start_timer();
 
     // Process each frame as we read it, frames are not retained
-    bool end = !(frame_->readNext() && (untilEnd_ || currFrame_ < numFramesMax_));
+//    bool end = !(frame_->readNext() && (untilEnd_ || currFrame_ < numFramesMax_));
+    bool end = false;
     while(!end){
         end = !(frame_->readNext() && (untilEnd_ || currFrame_ < numFramesMax_));
         if (currFrame_ % updateFreq_[updateLoc_] == 0) updateProgress();
@@ -198,17 +197,17 @@ void Common::mainLoop(){
     }
 
     // Membrane calculations
-    if(settings_["mem"]["on"]){
-        if(currFrame_ % settings_["mem"]["freq"] == 0){
-            membrane_->thickness(*cgFrame_);
-        }
-        if(settings_["mem"]["export"] > 0){
-            if(currFrame_ % settings_["mem"]["export"] == 0){
-                membrane_->normalize(0);
-                membrane_->printCSV("thickness_" + std::to_string(currFrame_));
-//                membrane_->printCSVCurvature("curvature_" + std::to_string(currFrame_));
-                membrane_->reset();
-            }
+    if(currFrame_ % settings_["mem"]["freq"] == 0){
+        membrane_->thickness(*cgFrame_);
+        membrane_->curvature(*cgFrame_);
+    }
+
+    if(settings_["mem"]["export"] > 0){
+        if(currFrame_ % settings_["mem"]["export"] == 0){
+            membrane_->normalize(0);
+            membrane_->printCSV("thickness_" + std::to_string(currFrame_));
+            membrane_->printCSVCurvature("curvature_" + std::to_string(currFrame_));
+            membrane_->reset();
         }
     }
 }
@@ -227,7 +226,7 @@ void Common::updateProgress(){
     double t_remain = (numFramesMax_ - currFrame_) / fps;
     if(numFramesMax_ < 0) t_remain = (wholeXTCFrames_ - currFrame_) / fps;
 
-    printf("Read %'9d frames @ %'d FPS %6.1fs remaining\r",
+    printf("Read %'10d frames @ %'d FPS %6.1fs remaining\r",
            currFrame_, static_cast<int>(fps), t_remain);
     std::flush(cout);
 
