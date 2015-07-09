@@ -67,7 +67,7 @@ public:
                                    const double default_value);
     std::string getStringKeyFromSection(const std::string &section,
                                         const std::string &key,
-                                        const std::string default_value);
+                                        const std::string &default_value);
 };
 
 #endif

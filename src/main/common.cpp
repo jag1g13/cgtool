@@ -121,6 +121,13 @@ void Common::parseConfig(){
     boost::to_upper(field_format);
     outField_ = getFieldFormat.at(field_format);
 
+    string potential = cfg_parser.getStringKeyFromSection("output", "bond", "HARMONIC");
+    potentialTypes_[0] = getPotential.at(potential);
+    potential = cfg_parser.getStringKeyFromSection("output", "angle", "COSSQUARED");
+    potentialTypes_[1] = getPotential.at(potential);
+    potential = cfg_parser.getStringKeyFromSection("output", "dihedral", "HARMONIC");
+    potentialTypes_[2] = getPotential.at(potential);
+
     if(cfg_parser.findSection("membrane")){
         printf("CGTOOL no longer performs membrane analysis - use RAMSi\n");
         exit(EX_USAGE);
@@ -173,12 +180,12 @@ void Common::setupObjects(){
         cgMap_->initFrame(*frame_, *cgFrame_);
         cgFrame_->setupOutput();
         if(settings_["bonds"]["on"])
-            bondSet_ = new BondSet(inputFiles_["cfg"].name, &cgResidues_);
+            bondSet_ = new BondSet(inputFiles_["cfg"].name, &cgResidues_, potentialTypes_);
     }else{
         // If not mapping make both frames point to the same thing
         cgFrame_ = frame_;
         if(settings_["bonds"]["on"])
-            bondSet_ = new BondSet(inputFiles_["cfg"].name, &residues_);
+            bondSet_ = new BondSet(inputFiles_["cfg"].name, &residues_, potentialTypes_);
     }
 
     if(settings_["rdf"]["on"])

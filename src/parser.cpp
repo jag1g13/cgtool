@@ -117,9 +117,12 @@ double Parser::getDoubleKeyFromSection(const string &section, const string &key,
 }
 
 string Parser::getStringKeyFromSection(const string &section, const string &key,
-                                       const string default_value){
+                                       const string &default_value){
     rewind();
     string tmp;
-    if(getKeyFromSection(section, key, tmp)) return tmp;
+    if(getKeyFromSection(section, key, tmp)){
+        boost::to_upper(tmp);
+        return tmp;
+    }
     return default_value;
 }

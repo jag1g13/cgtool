@@ -43,18 +43,21 @@ double BoltzmannInverter::invertGaussian(){
     // Setup matrices
     double x = min_ + 0.5*step_;
     for(int i=1; i<=bins_; i++){
+        double cosx;
         switch(type_){
             case BondType::LENGTH:
+//            case BondType::DIHEDRAL:
                 A(i, 1) = 1.;
                 A(i, 2) = x;
                 A(i, 3) = x*x;
                 b(i) = -R * temp_ * log(gaussian_(i - 1) / (x * x));
                 break;
-            case BondType::DIHEDRAL:
             case BondType::ANGLE:
+            case BondType::DIHEDRAL:
                 // Angles in GROMACS are a cos^2 term
                 // Should this be cos(x - mean_)?
-                const double cosx = cos(x);
+//                cosx = cos(x * M_PI/180.);
+                cosx = cos(x);
                 A(i, 1) = 1.;
                 A(i, 2) = cosx;
                 A(i, 3) = cosx*cosx;
@@ -62,11 +65,11 @@ double BoltzmannInverter::invertGaussian(){
                 break;
 //            case BondType::DIHEDRAL:
                 // Dihedrals in GROMACS are k * (1 + cos(n * x - x_min))
-//                cosx = 1 + cos(x);
+//                cosx = cos(x);
 //                A(i, 1) = 1.;
 //                A(i, 2) = cosx;
 //                A(i, 3) = 0;
-//                b(i) = -R * T * log(gaussian_(i - 1) / (cosx));
+//                b(i) = -R * temp_ * log(gaussian_(i - 1) / (cosx));
 //                break;
         };
         harmonic_(i-1) = b(i);

@@ -48,6 +48,8 @@ protected:
     // Output file formats
     FileFormat outProgram_;
     FieldFormat outField_;
+    /** \brief Types of the three bonded potentials */
+    PotentialType potentialTypes_[3];
 
     // Objects
     std::vector<Residue> residues_;

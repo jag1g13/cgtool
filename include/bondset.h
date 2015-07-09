@@ -7,6 +7,7 @@
 
 #include "bond_struct.h"
 #include "frame.h"
+#include "file_io.h"
 
 using std::vector;
 using std::string;
@@ -37,7 +38,8 @@ public:
     BondSet(){};
 
     /** \brief Constructor to read from file */
-    BondSet(const std::string &cfgname, const std::vector<Residue> *residues);
+    BondSet(const std::string &cfgname, const std::vector<Residue> *residues,
+            const PotentialType potentials[3]);
 
     /**
     * \brief Reads in from file all bond properties to be calculated

@@ -18,7 +18,8 @@ using std::cout;
 using std::endl;
 using std::fprintf;
 
-BondSet::BondSet(const string &cfgname, const vector<Residue> *residues){
+BondSet::BondSet(const string &cfgname, const vector<Residue> *residues,
+                 const PotentialType potentials[3]){
     residues_ = residues;
     fromFile(cfgname);
 }
