@@ -1,4 +1,6 @@
 build/
+bin/
+lib/
 html/
 latex/
 test_data_large/
@@ -10,3 +12,5 @@ dist/
 versions/
 test_data/
 vagrant/
+Manual.*
+include/compile_info.inc

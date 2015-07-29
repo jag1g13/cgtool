@@ -1,74 +1,186 @@
 #include "boltzmann_inverter.h"
 
 #include <iostream>
+#include <cmath>
 
-#include <math.h>
+#include <flens/flens.cxx>
 
 using std::cout;
 using std::endl;
+using std::vector;
 
-void BoltzmannInverter::invertGaussian(){
-    /* line from Python version
-    y_inv = -R * T * np.log(y_fit / (x_fit*x_fit))
-     */
+BoltzmannInverter::BoltzmannInverter(const double temp, const int bins){
+    if(bins != -1) bins_ = bins;
+    temp_ = temp;
+    histogram_.init(bins_);
+    gaussian_.init(bins_);
+    harmonic_.init(bins_);
 }
 
-void BoltzmannInverter::binHistogram(const BondStruct &bond, const int bins){
-    double max = bond.avg_, min = bond.avg_;
-    histogram_.init(bins);
+void BoltzmannInverter::calculate(BondStruct &bond){
+    histogram_.zero();
+    gaussian_.zero();
+    harmonic_.zero();
+    n_ = bond.values_.size();
+    statisticalMoments(bond.values_);
+    bond.avg_ = mean_;
+    binHistogram(bond.values_);
+    bond.rsqr_ = gaussianRSquared();
+    type_ = bond.type_;
+    bond.forceConstant_ = invertGaussianSimple();
+}
 
-    for(const double val : bond.values_){
-        if(val < min) min = val;
-        if(val > max) max = val;
+double BoltzmannInverter::invertGaussian(){
+    // R in kJ.K-1.mol-1
+    const double R = 8.314 / 1000.;
+
+    typedef flens::GeMatrix<flens::FullStorage<double>> GeMatrix;
+    typedef flens::DenseVector<flens::Array<double>> DenseVector;
+
+    GeMatrix A(bins_, 3);
+    DenseVector b(bins_);
+
+    // Setup matrices
+    double x = min_ + 0.5*step_;
+    for(int i=1; i<=bins_; i++){
+        double cosx;
+        switch(type_){
+            case BondType::LENGTH:
+//            case BondType::DIHEDRAL:
+                A(i, 1) = 1.;
+                A(i, 2) = x;
+                A(i, 3) = x*x;
+                b(i) = -R * temp_ * log(gaussian_(i - 1) / (x * x));
+                break;
+            case BondType::ANGLE:
+            case BondType::DIHEDRAL:
+                // Angles in GROMACS are a cos^2 term
+                // Should this be cos(x - mean_)?
+//                cosx = cos(x * M_PI/180.);
+                cosx = cos(x);
+                A(i, 1) = 1.;
+                A(i, 2) = cosx;
+                A(i, 3) = cosx*cosx;
+                b(i) = -R * temp_ * log(gaussian_(i - 1) / (cosx * cosx));
+                break;
+//            case BondType::DIHEDRAL:
+                // Dihedrals in GROMACS are k * (1 + cos(n * x - x_min))
+//                cosx = cos(x);
+//                A(i, 1) = 1.;
+//                A(i, 2) = cosx;
+//                A(i, 3) = 0;
+//                b(i) = -R * temp_ * log(gaussian_(i - 1) / (cosx));
+//                break;
+        };
+        harmonic_(i-1) = b(i);
+        x += step_;
     }
 
-    double step = (max - min) / (bins-1);
+    // Solve least squares using LAPACK
+    flens::lapack::ls(flens::NoTrans, A, b);
+    //TODO investigate where negative force constants come from - is it ok to just abs() them
+    return fabs(b(3));
+}
 
-    for(const float val : bond.values_){
-        int loc = int((val - min) / step);
-        if(loc < 0 || loc > bins-1) cout << loc << endl;
-        histogram_(loc)++;
+double BoltzmannInverter::invertGaussianSimple(){
+    const double R = 8.314 / 1000.;
+
+    switch(type_){
+        case BondType::LENGTH:
+            // ~1% difference from force const calculated by least squares
+            return R*temp_ / (2 * sdev_*sdev_);
+        case BondType::DIHEDRAL:
+        case BondType::ANGLE:
+            //TODO currently just pass this back to the old least squares - replace this
+            return invertGaussian();
     }
 }
 
-// use these properties to form the gaussian and check R2 value
-// if it's small, go on and calculate the force constant, otherwise... use guess??
-// I don't need to calculate skew or kurtosis unless they're useful for uni/multi-modal check
-void BoltzmannInverter::statisticalMoments(const vector<float> &vec){
-//    if(array.getDimensions() != 1) throw std::logic_error("Can't get moments of n-dimensional array");
-    double sum = 0.0;
-//    int n = array.getElems();
-    const unsigned long n = vec.size();
+void BoltzmannInverter::binHistogram(const vector<double> &vec){
+    step_ = (max_ - min_) / (bins_-1);
+    meanBin_ = static_cast<int>((mean_ - min_) / step_);
 
-    // calculate mean with first pass
-//    for(int i = 0; i < n; i++) sum += array(i);
-    for(int i = 0; i < n; i++) sum += vec[i];
-    const double avg = sum / n;
+    int loc = 0;
+    for(const double val : vec){
+        loc = static_cast<int>((val - min_) / step_);
+        histogram_.increment(loc);
+    }
+}
 
-    // calculate other stats with second pass
-    double adev = 0.0, var = 0.0, skew = 0.0, kurt = 0.0, ep = 0.0;
-    for(int i = 0; i < n; i++){
-//        sum = array(i) - avg;
-        sum = vec[i] - avg;
-        ep += sum;
-        adev += fabs(sum);
+double BoltzmannInverter::gaussianRSquared(){
+    const double prefactor = 1. / (sdev_ * sqrt(2. * M_PI));
+    const double postfactor = 1. / (2. * var_);
 
-        double p = sum * sum;
-        var += p;
-
-        p *= sum;
-        skew += p;
-
-        p *= sum;
-        kurt += p;
+    double y_bar = 0.;
+    // First pass to calculate mean and gaussian integral
+    for(int i=0; i<bins_; i++){
+        double x = min_ + (i + 0.5) * step_;
+        double gau = prefactor * exp(-(x-mean_) * (x-mean_) * postfactor);
+        gaussian_(i) = gau;
+        y_bar += histogram_.at(i);
     }
 
-    adev /= n;
-    var = (var - ep*ep/n) / (n - 1);
-    const double sdev = sqrt(var);
+    y_bar /= bins_;
+    integral_ = n_ / gaussian_.sum();
 
-    if(var > 0.01){
-        skew /= n * sdev*sdev*sdev;
-        kurt /= (n * var*var) - 3;
+    double ss_res = 0., ss_reg = 0., ss_tot = 0.;
+    double sse = 0.;
+    // Second pass to calculate R^2
+    for(int i=0; i<bins_; i++){
+        int actual = histogram_.at(i);
+        gaussian_(i) *= integral_;
+        const double gau = gaussian_(i);
+        ss_reg += (gau - y_bar) * (gau - y_bar);
+        ss_res += (gau - actual) * (gau - actual);
+        ss_tot += (actual - y_bar) * (actual - y_bar);
+        sse += (actual - gau) * (actual - gau);
+    }
+    const double r_sqr = 1 - ss_res / ss_tot;
+    return r_sqr;
+}
+
+double BoltzmannInverter::statisticalMoments(const vector<double> &vec){
+    double sum = 0.;
+    if(n_ == 0) n_ = vec.size();
+    // Calculate mean with first pass
+    for(const double val : vec) sum += val;
+    mean_ = sum / n_;
+    max_ = mean_; min_ = mean_;
+
+    double ep = 0.;
+    var_ = 0.; adev_ = 0.;
+    // Calculate deviations with second pass
+    for(const double val : vec){
+        const double dev = val - mean_;
+        ep += dev;
+        adev_ += fabs(dev);
+        var_ += dev * dev;
+        if(val < min_) min_ = val;
+        if(val > max_) max_ = val;
+    }
+
+    adev_ /= n_;
+    var_ = var_ / (n_ - 1);
+    sdev_ = sqrt(var_);
+    return mean_;
+}
+
+void BoltzmannInverter::printGraph(Array &arr, const int scale){
+    int max_num = 0;
+    for(int i=0; i<bins_; i++){
+        if(static_cast<int>(arr(i)) > max_num) max_num = static_cast<int>(arr(i));
+    }
+
+    // Go down rows in terminal and print marker if h_ is greater
+    for(int i=scale; i>0; i--){
+        printf("%5.3f|", min_);
+        for(int j=0; j<bins_; j++){
+            if(arr(j)*scale/max_num >= i){
+                printf("#");
+            }else{
+                printf(" ");
+            }
+        }
+        printf("|%5.3f\n", max_);
     }
 }

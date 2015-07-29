@@ -1,133 +1,112 @@
 #include "cmd.h"
 
 #include <iostream>
-#include <sstream>
+#include <vector>
+
+#include <sysexits.h>
 
 #include <boost/algorithm/string.hpp>
 
 using std::string;
 using std::cout;
 using std::endl;
+using std::vector;
 using boost::algorithm::trim;
+using std::stoi;
 
 namespace po = boost::program_options;
 
-/*
-* Naval Fate.
-*
-* Usage:
-*   naval_fate ship new <name>...
-*   naval_fate ship <name> move <x> <y> [--speed=<kn>]
-*   naval_fate ship shoot <x> <y>
-*   naval_fate mine (set|remove) <x> <y> [--moored|--drifting]
-*   naval_fate -h | --help
-*   naval_fate --version
-*
-* Options:
-*   -h --help     Show this screen.
-*   --version     Show version.
-*   --speed=<kn>  Speed in knots [default: 10].
-*   --moored      Moored (anchored) mine.
-*   --drifting    Drifting mine.
- */
+CMD::CMD(const string &help_header, const string &help_string,
+         const string &compile_info, const int argc, const char *argv[]){
+    helpString_ = help_string;
+    vector<string> lines;
+    vector<string> parts(3);
 
-CMD::CMD(string help_string){
-    // Declare the supported options.
-//    po::options_description desc_("Allowed options");
-//    desc_.add_options()
-//        ("help", "produce help message")
-//        ("compression", po::value<int>(), "set compression level")
-//    ;
+    // Split help string and parse it into options and default values
+    desc_.add_options()("help,h", "Show this help text");
+    desc_.add_options()("version,v", "Show version information");
 
-}
-
-CMD::CMD(){
-
-}
-
-bool CMD::boostParse(const int argc, const char *argv[]){
-    po::options_description desc("Allowed options");
-    desc.add_options()
-            ("help", "show this help text")
-            ("compression", po::value<string>(), "set compression level")
-            ;
-    po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
-
-    // if key is in map
-    if (vm.count("help")) {
-        cout << desc << "\n";
-        return 1;
-    }
-
-    if (vm.count("compression")) {
-        cout << "Compression level was set to "
-                << vm["compression"].as<int>() << ".\n";
-    } else {
-        cout << "Compression level was not set.\n";
-    }
-    // stop - just for testing
-    exit(0);
-}
-
-bool CMD::parseArguments(const int argc, const char *argv[]){
-//    throw std::runtime_error("Not implemented");
-    string current_arg;
-    for(int i=1; i<argc; i++){
-        if(argv[i][0] == '-'){
-            // new argument
-            if(argv[i][1] == '-'){
-                current_arg = argv[i][2];
-            }else{
-            current_arg = argv[i][1];
-            }
-            if(current_arg == "h" || current_arg == "help") help();
-            if(argTypes_[current_arg] == ArgType::BOOL) boolArgs_[current_arg] = true;
-            cout << current_arg << endl;
-
-        }else{
-            // if not new arg - must be value
-            switch(argTypes_[current_arg]){
-                case ArgType::STRING:
-                    stringArgs_[current_arg] = argv[i];
-                    break;
-                case ArgType::INT:
-                    intArgs_[current_arg] = std::stoi(argv[i]);
-                    break;
-                case ArgType::FLOAT:
-                    floatArgs_[current_arg] = std::stof(argv[i]);
-                    break;
-                case ArgType::BOOL:
-                    // do nothing, already dealt with
-                    break;
-            }
+    boost::split(lines, helpString_, boost::is_any_of("\n"));
+    for(const string &line : lines){
+        boost::split(parts, line, boost::is_any_of("\t"));
+        const string arg = boost::trim_left_copy_if(parts[0], boost::is_any_of("-"));
+        switch(static_cast<ArgType>(stoi(parts[2]))){
+            case ArgType::PATH:
+            case ArgType::STRING:
+                // Is there a default value given?
+                desc_.add_options()((arg + "," + arg[0]).c_str(),
+//                                    po::value<string>()->default_value(parts[3].c_str()),
+                                    po::value<string>(),
+                                    parts[1].c_str());
+                break;
+            case ArgType::INT:
+                desc_.add_options()((arg+","+arg[0]).c_str(),
+                                    po::value<int>()->default_value(stoi(parts[3])),
+                                    parts[1].c_str());
+                break;
+            case ArgType::FLOAT:
+                break;
+            case ArgType::BOOL:
+                // Boolean arguments don't get a short form
+                desc_.add_options()((arg).c_str(),
+                                    po::value<bool>()->default_value(stoi(parts[3])),
+                                    parts[1].c_str());
+                break;
         }
     }
-    return true;
+
+    try{
+        po::store(po::parse_command_line(argc, argv, desc_), options_);
+    }catch(po::error e){
+        cout << "Unrecognised command line argument\n" << endl;
+        cout << "Arguments:" << endl;
+        cout << desc_ << endl;
+        exit(EX_USAGE);
+    }
+
+    po::notify(options_);
+    if (options_.count("help")) {
+        cout << help_header << endl;
+        cout << "Arguments:" << endl;
+        cout << desc_ << endl;
+        exit(EX_OK);
+    }
+
+    if (options_.count("version")) {
+        cout << compile_info << endl;
+        exit(EX_OK);
+    }
+
+    if(options_.count("dir")) cout << "Files in: " << options_["dir"].as<string>() << endl;
 }
 
-void CMD::help(){
-    cout << helpString_ << endl;
-    exit(0);
+const std::string CMD::getFileArg(const string &arg){
+    // Was the argument passed in from the command line?
+    if(options_.count(arg)){
+        // File paths - append <dir> if user gave it
+        if(options_.count("dir")){
+            return options_["dir"].as<string>() + "/" + options_[arg].as<string>();
+        }else{
+            return options_[arg].as<string>();
+        }
+    }
+
+    // Error no default value - assume empty
+    return "";
 }
 
-const std::string CMD::getStringArg(const std::string arg){
-    throw std::runtime_error("Not implemented");
+const bool CMD::getBoolArg(const string &arg){
+    // If it was set true by the user return it
+    if(options_.count(arg)) return options_[arg].as<bool>();
 
+    // Error no default value - assume false
+    return false;
 }
 
-const int CMD::getIntArg(const std::string arg){
-    throw std::runtime_error("Not implemented");
+const int CMD::getIntArg(const string &arg){
+    // If it was set by the user return it
+    if(options_.count(arg)) return options_[arg].as<int>();
 
-}
-
-const float CMD::getFloatArg(const std::string arg){
-    throw std::runtime_error("Not implemented");
-
-}
-
-const bool CMD::getBoolArg(const std::string arg){
-    throw std::runtime_error("Not implemented");
-
+    // Error no default value - assume -1
+    return -1;
 }

@@ -2,63 +2,57 @@
 
 #include "gtest/gtest.h"
 
-TEST(ParserTest, OpenFile){
-    Parser parser;
-    ASSERT_TRUE(parser.openFile("../test_data/ALLA/tp.config"));
-}
-
-TEST(ParserTest, GetLine){
-    Parser parser("../test_data/ALLA/tp.config");
-    std::vector<std::string> tokens;
-    std::string section;
-    ASSERT_TRUE(parser.getLine(section, tokens));
-    ASSERT_EQ(section, "residues");
-    ASSERT_EQ(tokens[0], "1");
-}
-
-TEST(ParserTest, FindNextSection){
-    Parser parser("../test_data/ALLA/tp.config");
-    // there are 6 sections in this file
-    for(int i=0; i<6; i++) ASSERT_TRUE(parser.findNextSection());
-    ASSERT_FALSE(parser.findNextSection());
-}
-
 TEST(ParserTest, FindSectionTrue){
-    Parser parser("../test_data/ALLA/tp.config");
-    ASSERT_TRUE(parser.findSection("mapping"));
+    Parser parser("../test_data/modules/parser.cfg");
+    ASSERT_TRUE(parser.findSection("yes"));
 }
 
 TEST(ParserTest, FindSectionFalse){
-    Parser parser("../test_data/ALLA/tp.config");
-    ASSERT_FALSE(parser.findSection("nope"));
+    Parser parser("../test_data/modules/parser.cfg");
+    ASSERT_FALSE(parser.findSection("no"));
 }
 
 TEST(ParserTest, GetLineFromSectionTrue){
-    Parser parser("../test_data/ALLA/tp.config");
+    // Indirectly tests Parser::getLine() by checking tokens
+    Parser parser("../test_data/modules/parser.cfg");
     std::vector<std::string> tokens;
-    // can we find the section and does it read the right data?
-    ASSERT_TRUE(parser.getLineFromSection("mapping", tokens));
-    ASSERT_EQ(tokens.size(), 5);
-    ASSERT_EQ(tokens[0], "C1");
-    ASSERT_EQ(tokens[1], "P4");
-    ASSERT_EQ(tokens[2], "1C1");
-    ASSERT_EQ(tokens[3], "1O1");
-    ASSERT_EQ(tokens[4], "1HO1");
+    // Can we find the section and does it read the right data?
+    ASSERT_TRUE(parser.getLineFromSection("test", tokens));
+    ASSERT_EQ(tokens.size(), 4);
+    ASSERT_EQ(tokens[0], "This");
+    ASSERT_EQ(tokens[1], "is");
+    ASSERT_EQ(tokens[2], "a");
+    ASSERT_EQ(tokens[3], "test");
 }
 
 TEST(ParserTest, GetLineFromSectionFalse){
-    Parser parser("../test_data/ALLA/tp.config");
+    Parser parser("../test_data/modules/parser.cfg");
     std::vector<std::string> tokens;
-    ASSERT_FALSE(parser.getLineFromSection("nope", tokens));
+    ASSERT_FALSE(parser.getLineFromSection("stillno", tokens));
 }
 
 TEST(ParserTest, Rewind){
-    Parser parser("../test_data/ALLA/tp.config");
+    Parser parser("../test_data/modules/parser.cfg");
     std::vector<std::string> tokens;
-    // look for something that isn't there, rewind needs to work to find "maptype"
-    ASSERT_FALSE(parser.getLineFromSection("nope", tokens));
-    ASSERT_TRUE(parser.getLineFromSection("maptype", tokens));
-    ASSERT_EQ(tokens[0], "ATOM");
+    // Look for something that isn't there, rewind needs to work to find "test"
+    ASSERT_FALSE(parser.getLineFromSection("no", tokens));
+    ASSERT_TRUE(parser.getLineFromSection("test", tokens));
+    ASSERT_EQ(tokens[0], "This");
+}
+
+TEST(ParserTest, GetKeyTrue){
+    Parser parser("../test_data/modules/parser.cfg");
+    std::vector<std::string> tokens;
+    std::string value;
+    ASSERT_TRUE(parser.getKeyFromSection("here", "key", value));
+    ASSERT_EQ(value, "value");
+}
+
+TEST(ParserTest, GetKeyFalse){
+    Parser parser("../test_data/modules/parser.cfg");
+    std::vector<std::string> tokens;
+    std::string value;
+    ASSERT_FALSE(parser.getKeyFromSection("here", "nokey", value));
 }
 
 int main(int argc, char **argv){
