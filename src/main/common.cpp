@@ -44,17 +44,18 @@ Common::~Common(){
 }
 
 void Common::setHelpStrings(const std::string &version, const std::string &header,
-                            const std::string &options){
+                            const std::string &options, const string &compile){
     versionString_ = version;
     helpHeader_ = header;
     helpOptions_ = options;
+    compileInfo_ = compile;
 }
 
 void Common::collectInput(const int argc, const char *argv[],
                           const std::vector<std::string> &req_files,
                           const std::vector<std::string> &opt_files){
     split_text_output(versionString_, sectionStart_);
-    CMD cmd_parser(helpHeader_, helpOptions_, argc, argv);
+    CMD cmd_parser(helpHeader_, helpOptions_, compileInfo_, argc, argv);
 
     // Read in files
     for(const string &f : req_files) inputFiles_[f].name = cmd_parser.getFileArg(f);

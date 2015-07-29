@@ -79,7 +79,8 @@ find_package(PythonInterp 2.6 REQUIRED)
 message("-- Generating compilation info...")
 execute_process(COMMAND python
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/compile_info.py
-                ${CMAKE_CURRENT_SOURCE_DIR}/include/compile_info.inc)
+                ${CMAKE_CURRENT_SOURCE_DIR}/include/compile_info.inc
+                ${CMAKE_CURRENT_SOURCE_DIR}/include/revision_number.inc)
 
 # Add target for documentation if we have Doxygen
 find_package(Doxygen)
