@@ -8,7 +8,7 @@ using std::vector;
 
 int main(const int argc, const char *argv[]){
     const string version_string =
-            "CGTOOL v0.3.254:0446c2a51604";
+            "CGTOOL v0.3.264:a36f375b162c";
 
     const string help_header =
             "CGTOOL James Graham <J.A.Graham@soton.ac.uk> University of Southampton\n\n"
@@ -31,6 +31,10 @@ int main(const int argc, const char *argv[]){
             "--dir\tDirectory containing all of the above\t0\n"
             "--frames\tNumber of frames to read\t2\t-1\n"
             "--csv\tOutput bond measurements to CSV\t4\t0";
+
+    const string compile_info =
+            #include "compile_info.inc"
+    ;
 
     Common common;
     common.setHelpStrings(version_string, help_header, help_options);

@@ -3,9 +3,7 @@
 #include <iostream>
 #include <cmath>
 
-#include "light_array.h"
-
-//#include <flens/flens.cxx>
+#include <flens/flens.cxx>
 
 using std::cout;
 using std::endl;
@@ -16,11 +14,13 @@ BoltzmannInverter::BoltzmannInverter(const double temp, const int bins){
     temp_ = temp;
     histogram_.init(bins_);
     gaussian_.init(bins_);
+    harmonic_.init(bins_);
 }
 
 void BoltzmannInverter::calculate(BondStruct &bond){
     histogram_.zero();
     gaussian_.zero();
+    harmonic_.zero();
     n_ = bond.values_.size();
     statisticalMoments(bond.values_);
     bond.avg_ = mean_;
@@ -34,14 +34,11 @@ double BoltzmannInverter::invertGaussian(){
     // R in kJ.K-1.mol-1
     const double R = 8.314 / 1000.;
 
-//    typedef flens::GeMatrix<flens::FullStorage<double>> GeMatrix;
-//    typedef flens::DenseVector<flens::Array<double>> DenseVector;
+    typedef flens::GeMatrix<flens::FullStorage<double>> GeMatrix;
+    typedef flens::DenseVector<flens::Array<double>> DenseVector;
 
-//    GeMatrix A(bins_, 3);
-//    DenseVector b(bins_);
-
-    LightArray<double> A(bins_, 3);
-    LightArray<double> b(bins_);
+    GeMatrix A(bins_, 3);
+    DenseVector b(bins_);
 
     // Setup matrices
     double x = min_ + 0.5*step_;
@@ -49,18 +46,18 @@ double BoltzmannInverter::invertGaussian(){
         double cosx;
         switch(type_){
             case BondType::LENGTH:
-            case BondType::DIHEDRAL:
+//            case BondType::DIHEDRAL:
                 A(i, 1) = 1.;
                 A(i, 2) = x;
                 A(i, 3) = x*x;
                 b(i) = -R * temp_ * log(gaussian_(i - 1) / (x * x));
                 break;
             case BondType::ANGLE:
-//            case BondType::DIHEDRAL:
+            case BondType::DIHEDRAL:
                 // Angles in GROMACS are a cos^2 term
                 // Should this be cos(x - mean_)?
-                cosx = cos(x * M_PI/180.);
-//                cosx = cos(x);
+//                cosx = cos(x * M_PI/180.);
+                cosx = cos(x);
                 A(i, 1) = 1.;
                 A(i, 2) = cosx;
                 A(i, 3) = cosx*cosx;
@@ -75,14 +72,14 @@ double BoltzmannInverter::invertGaussian(){
 //                b(i) = -R * temp_ * log(gaussian_(i - 1) / (cosx));
 //                break;
         };
+        harmonic_(i-1) = b(i);
         x += step_;
     }
 
-
     // Solve least squares using LAPACK
-//    flens::lapack::ls(flens::NoTrans, A, b);
+    flens::lapack::ls(flens::NoTrans, A, b);
     //TODO investigate where negative force constants come from - is it ok to just abs() them
-//    return fabs(b(3));
+    return fabs(b(3));
 }
 
 double BoltzmannInverter::invertGaussianSimple(){

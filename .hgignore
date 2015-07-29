@@ -12,3 +12,5 @@ dist/
 versions/
 test_data/
 vagrant/
+Manual.*
+include/compile_info.inc

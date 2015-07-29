@@ -19,13 +19,13 @@ public:
     };
 
     LightArray<T>(const LightArray &other);
-    LightArray<T>& operator=(const LightArray &other);
+    LightArray<T>& operator=(const LightArray<T> &other);
 
     void alloc(const int x, const int y=1);
 
     T& operator()(const int x, const int y=0);
 
-    const T& at(const int x, const int y=0);
+    const T& at(const int x, const int y=0) const;
 
     void smooth(const int n_iter=1);
 

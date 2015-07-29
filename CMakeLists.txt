@@ -74,6 +74,13 @@ find_package(Boost COMPONENTS REQUIRED program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES})
 
+# Find Python to create compilation info
+find_package(PythonInterp 2.6 REQUIRED)
+message("-- Generating compilation info...")
+execute_process(COMMAND python
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/compile_info.py
+                ${CMAKE_CURRENT_SOURCE_DIR}/include/compile_info.inc)
+
 # Add target for documentation if we have Doxygen
 find_package(Doxygen)
 if(DOXYGEN_FOUND)

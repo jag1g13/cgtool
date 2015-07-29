@@ -5,6 +5,7 @@
 #include "light_array.h"
 
 #include <stdio.h>
+#include <stdexcept>
 
 /** \brief Copy constructor */
 template <typename T> LightArray<T>::LightArray(const LightArray &other){
@@ -15,7 +16,7 @@ template <typename T> LightArray<T>::LightArray(const LightArray &other){
 }
 
 /** \brief Assignment operator */
-template <typename T> LightArray<T>::LightArray& operator=(const LightArray &other){
+template <typename T> LightArray<T>& LightArray<T>::operator=(const LightArray<T> &other){
    if(size_[0]==other.size_[0] && size_[1]==other.size_[1]){
        for(int i=0; i<length_; i++){
            array_[i] = other.array_[i];
