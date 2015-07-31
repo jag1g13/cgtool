@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 2.8.4)
+
 project(CGTOOL)
+set(CGTOOL_VERSION_MAJOR 0)
+set(CGTOOL_VERSION_MINOR 3)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
@@ -12,6 +15,24 @@ MESSAGE("MOD   ${CMAKE_MODULE_PATH}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -ffast-math -march=native -msse2")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -march=native -msse2")
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING
+        "Defaults to Release build" FORCE)
+endif()
+
+if(NOT CMAKE_FLAGS_Release)
+    set(CMAKE_FLAGS_Release "-O3")
+endif()
+if(NOT CMAKE_FLAGS_Debug)
+    set(CMAKE_FLAGS_Release "-g")
+endif()
+
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_Release}")
+elseif(CMAKE_BUILD_TYPE MATCHES "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_Release}")
+endif()
+
 # Should we ignore warnings - default ignore a few - only on gcc
 option(INGORE_SOME_WARNINGS "Don't ignore any warnings" ON)
 set(IGNORED_WARNINGS " -Wno-sign-compare -Wno-unused-variable -Wno-comment -Wno-unused-but-set-variable")
@@ -20,11 +41,13 @@ set(IGNORED_WARNINGS_ALWAYS " -Wno-sign-compare -Wno-comment")
 # Platform specifics
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     # Apple OSX - don't use OPENMP
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-else()
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
     # GCC and CLANG use different OPENMP flags
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -openmp -pthread")
+
     elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
         if(IGNORE_SOME_WARNINGS)
@@ -34,8 +57,12 @@ else()
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${IGNORED_WARNINGS_ALWAYS}")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNORED_WARNINGS_ALWAYS}")
         endif()
+
+    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -openmp")
+
     else()
-        MESSAGE("Not using GNU or Clang")
+        MESSAGE("Unrecognised compiler - will attempt to compile")
     endif()
 endif()
 
