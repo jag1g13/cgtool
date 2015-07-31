@@ -16,13 +16,16 @@ using std::stoi;
 
 namespace po = boost::program_options;
 
-CMD::CMD(const string &help_header, const string &help_string, const int argc, const char *argv[]){
+CMD::CMD(const string &help_header, const string &help_string,
+         const string &compile_info, const int argc, const char *argv[]){
     helpString_ = help_string;
     vector<string> lines;
     vector<string> parts(3);
 
     // Split help string and parse it into options and default values
     desc_.add_options()("help,h", "Show this help text");
+    desc_.add_options()("version,v", "Show version information");
+
     boost::split(lines, helpString_, boost::is_any_of("\n"));
     for(const string &line : lines){
         boost::split(parts, line, boost::is_any_of("\t"));
@@ -31,14 +34,10 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
             case ArgType::PATH:
             case ArgType::STRING:
                 // Is there a default value given?
-                if(parts[2] == ""){
-                    throw std::logic_error("String argument without default value no implemented");
-                }else{
-                    desc_.add_options()((arg + "," + arg[0]).c_str(),
-//                                        po::value<string>()->default_value(parts[2].c_str()),
-                                        po::value<string>(),
-                                        parts[1].c_str());
-                }
+                desc_.add_options()((arg + "," + arg[0]).c_str(),
+//                                    po::value<string>()->default_value(parts[2].c_str()),
+                                    po::value<string>(),
+                                    parts[1].c_str());
                 break;
             case ArgType::INT:
                 desc_.add_options()((arg+","+arg[0]).c_str(),
@@ -72,6 +71,12 @@ CMD::CMD(const string &help_header, const string &help_string, const int argc, c
         cout << desc_ << endl;
         exit(EX_OK);
     }
+
+    if (options_.count("version")) {
+        cout << compile_info << endl;
+        exit(EX_OK);
+    }
+
     if(options_.count("dir")) cout << "Files in: " << options_["dir"].as<string>() << endl;
 }
 

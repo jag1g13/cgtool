@@ -27,7 +27,8 @@ protected:
 
 public:
     /** \brief Constructor to parse the program help text */
-    CMD(const std::string &help_header, const std::string &help_string, const int argc, const char *argv[]);
+    CMD(const std::string &help_header, const std::string &help_string,
+        const std::string &compile_info, const int argc, const char *argv[]);
 
     /** \brief Empty constructor, does nothing */
     CMD(){};

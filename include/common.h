@@ -27,6 +27,7 @@ protected:
     std::string versionString_;
     std::string helpHeader_;
     std::string helpOptions_;
+    std::string compileInfo_;
 
     // Timing
     double veryStart_;
@@ -83,7 +84,7 @@ public:
 
     /** \brief Set help information */
     void setHelpStrings(const std::string &version, const std::string &header,
-                        const std::string &options);
+                        const std::string &options, const std::string &compile);
 
     /** \brief Verify existence of required input files */
     void collectInput(const int argc, const char *argv[],

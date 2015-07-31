@@ -2,3 +2,5 @@ build/
 .idea/
 test-data/
 doc/
+include/compile_info.inc
+include/revision_number.inc

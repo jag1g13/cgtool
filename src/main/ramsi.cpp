@@ -8,7 +8,9 @@ using std::vector;
 
 int main(const int argc, const char *argv[]){
     const string version_string =
-            "RAMSi v0.3.254:0446c2a51604";
+            "RAMSi v0.3"
+            #include "revision_number.inc"
+    ;
 
     const string help_header =
             "James Graham <J.A.Graham@soton.ac.uk> University of Southampton\n\n"
@@ -25,8 +27,12 @@ int main(const int argc, const char *argv[]){
             "--xtc\tGROMACS XTC file\t0\n"
             "--gro\tGROMACS GRO file\t0";
 
+    const string compile_info =
+            #include "compile_info.inc"
+    ;
+
     Common common;
-    common.setHelpStrings(version_string, help_header, help_options);
+    common.setHelpStrings(version_string, help_header, help_options, compile_info);
 
     vector<string> req_files = {"cfg", "xtc", "gro"};
 
