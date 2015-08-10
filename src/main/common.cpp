@@ -36,7 +36,6 @@ Common::~Common(){
     }
 
     if(cgMap_) delete cgMap_;
-    if(membrane_) delete membrane_;
 }
 
 void Common::setHelpStrings(const std::string &version, const std::string &header,
@@ -65,34 +64,21 @@ void Common::collectInput(const int argc, const char *argv[],
 }
 
 int Common::run(){
-    findDoFunctions();
+    readConfig();
     getResidues();
+
+    // Open files and do setup
+    split_text_output("Frame setup", sectionStart_);
     setupObjects();
+
     doMainLoop();
+
+    split_text_output("Post processing", sectionStart_);
     postProcess();
+
+    // Final timer
+    split_text_output("Finished", veryStart_);
     return EX_OK;
-}
-
-void Common::findDoFunctions(){
-    Parser cfg_parser(inputFiles_["cfg"].name);
-
-    settings_["map"]["on"] =
-            cfg_parser.findSection("mapping");
-
-    settings_["mem"]["freq"] =
-            cfg_parser.getIntKeyFromSection("membrane", "calculate", 1);
-    settings_["mem"]["export"] =
-            cfg_parser.getIntKeyFromSection("membrane", "export", 100);
-    settings_["mem"]["calculate"] =
-            cfg_parser.getIntKeyFromSection("membrane", "calculate", 1);
-    settings_["mem"]["resolution"] =
-            cfg_parser.getIntKeyFromSection("membrane", "resolution", 100);
-    settings_["mem"]["blocks"] =
-            cfg_parser.getIntKeyFromSection("membrane", "blocks", 4);
-    settings_["mem"]["header"] =
-            cfg_parser.getIntKeyFromSection("membrane", "header", 1);
-
-    numFramesMax_ = cfg_parser.getIntKeyFromSection("general", "frames", -1);
 }
 
 void Common::getResidues(){
@@ -124,30 +110,6 @@ void Common::getResidues(){
     }
 }
 
-void Common::setupObjects(){
-    // Open files and do setup
-    split_text_output("Frame setup", sectionStart_);
-
-    frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, &residues_);
-    for(Residue &res : residues_) res.print();
-
-    if(settings_["map"]["on"]){
-        cgFrame_ = new Frame(*frame_, &cgResidues_);
-        cgMap_ = new CGMap(&residues_, &cgResidues_);
-        cgMap_->fromFile(inputFiles_["cfg"].name);
-        cgMap_->initFrame(*frame_, *cgFrame_);
-        cgFrame_->setupOutput();
-        cgFrame_->printGRO();
-    }else{
-        // If not mapping make both frames point to the same thing
-        cgFrame_ = frame_;
-    }
-
-    membrane_ = new Membrane(&residues_);
-    membrane_->sortBilayer(*frame_, settings_["mem"]["blocks"]);
-    membrane_->setResolution(settings_["mem"]["resolution"]);
-    membrane_->header_ = static_cast<bool>(settings_["mem"]["header"]);
-}
 
 void Common::doMainLoop(){
     // Read and process simulation frames
@@ -167,7 +129,6 @@ void Common::doMainLoop(){
     lastUpdate_ = start_timer();
 
     // Process each frame as we read it, frames are not retained
-//    bool end = !(frame_->readNext() && (untilEnd_ || currFrame_ < numFramesMax_));
     bool end = false;
     while(!end){
         end = !(frame_->readNext() && (untilEnd_ || currFrame_ < numFramesMax_));
@@ -191,28 +152,6 @@ void Common::doMainLoop(){
 
 }
 
-void Common::mainLoop(){
-    if(settings_["map"]["on"]){
-        cgMap_->apply(*frame_, *cgFrame_);
-        cgFrame_->writeToXtc();
-    }
-
-    // Membrane calculations
-    if(currFrame_ % settings_["mem"]["freq"] == 0){
-        membrane_->thickness(*cgFrame_);
-        membrane_->curvature(*cgFrame_);
-    }
-
-    if(settings_["mem"]["export"] > 0){
-        if(currFrame_ % settings_["mem"]["export"] == 0){
-            membrane_->normalize(0);
-            membrane_->printCSV("thickness_" + std::to_string(currFrame_));
-            membrane_->printCSVCurvature("curvature_" + std::to_string(currFrame_));
-            membrane_->reset();
-        }
-    }
-}
-
 void Common::updateProgress(){
     // Set time between progress updates to nice number
     const double time_since_update = end_timer(lastUpdate_);
@@ -233,18 +172,3 @@ void Common::updateProgress(){
 
     lastUpdate_ = start_timer();
 }
-
-
-void Common::postProcess(){
-    split_text_output("Post processing", sectionStart_);
-
-    if(settings_["mem"]["export"] < 0){
-        membrane_->normalize(0);
-        membrane_->printCSV("thickness_avg");
-        membrane_->printCSVCurvature("curvature_final");
-    }
-
-    // Final timer
-    split_text_output("Finished", veryStart_);
-}
-

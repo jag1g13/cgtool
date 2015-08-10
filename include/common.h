@@ -50,7 +50,6 @@ protected:
     Frame    *frame_ = nullptr;
     Frame    *cgFrame_ = nullptr;
     CGMap    *cgMap_ = nullptr;
-    Membrane *membrane_ = nullptr;
 
     // Progress updates
     const int updateFreq_[10] = {1, 2, 5, 10, 20, 50, 100, 200, 500, 1000};
@@ -58,13 +57,13 @@ protected:
 
     // Protected functions
     /** \brief Read config file and determine which functions should be performed */
-    void findDoFunctions();
+    virtual void readConfig() = 0;
 
     /** \brief Read residues from config file - will be modified by frame later */
     void getResidues();
 
     /** \brief Construct objects which are required to perform requested functions */
-    void setupObjects();
+    virtual void setupObjects() = 0;
 
     /** \brief Prepare for and run the main calculation loop */
     void doMainLoop();
@@ -73,14 +72,14 @@ protected:
     void updateProgress();
 
     /** \brief Function executed within the main loop - performs most significant work*/
-    void mainLoop();
+    virtual void mainLoop() = 0;
 
     /** \brief Perform final calculations and end program */
-    void postProcess();
+    virtual void postProcess() = 0;
 
 public:
     Common();
-    ~Common();
+    virtual ~Common();
 
     /** \brief Set help information */
     void setHelpStrings(const std::string &version, const std::string &header,
