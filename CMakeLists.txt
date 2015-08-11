@@ -109,11 +109,22 @@ if(DOXYGEN_FOUND)
 endif(DOXYGEN_FOUND)
 
 # Find source files
-FILE(GLOB SOURCE_FILES src/*.cpp)
+set(CGTOOLCORE_FILES
+    "src/main/common.cpp"
+    "src/frame.cpp"
+    "src/cg_map.cpp"
+    "src/cmd.cpp"
+    "src/parser.cpp"
+    "src/residue.cpp"
+    "src/small_functions.cpp")
+
+# Add TOOL_CORE library
+add_library(cgtoolcore ${CGTOOLCORE_FILES})
+target_link_libraries(cgtoolcore ${EXTRA_LIBS})
 
 # Add main target
-add_executable(ramsi "src/main/ramsi.cpp" "src/main/common.cpp" ${SOURCE_FILES})
-target_link_libraries(ramsi ${EXTRA_LIBS})
+add_executable(ramsi "src/main/ramsi.cpp" "src/membrane.cpp" "src/array.cpp" ${SOURCE_FILES})
+target_link_libraries(ramsi cgtoolcore)
 
 # Testing
 add_subdirectory(lib/gtest-1.7.0)

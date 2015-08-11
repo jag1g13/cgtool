@@ -1,13 +1,10 @@
 #include <string>
 #include <vector>
-#include <iostream>
 
 #include "ramsi.h"
-#include "small_functions.h"
 
 using std::string;
 using std::vector;
-using std::cout;
 
 int main(const int argc, const char *argv[]){
     const string version_string =
@@ -43,23 +40,6 @@ int main(const int argc, const char *argv[]){
     return ramsi.run();
 }
 
-
-//#include "common.h"
-
-//#include <iostream>
-//#include <vector>
-
-//#include <sysexits.h>
-//#include <locale.h>
-
-//#include "small_functions.h"
-//#include "file_io.h"
-
-//using std::string;
-//using std::cout;
-//using std::cin;
-//using std::endl;
-//using std::vector;
 
 void Ramsi::readConfig(){
     Parser cfg_parser(inputFiles_["cfg"].name);

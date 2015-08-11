@@ -5,18 +5,9 @@
 #ifndef RAMSI_RAMSI_H
 #define RAMSI_RAMSI_H
 
-//#include <string>
-//#include <vector>
-//#include <map>
-
-//#include "residue.h"
-//#include "frame.h"
-//#include "cg_map.h"
-//#include "parser.h"
-//#include "cmd.h"
-//#include "membrane.h"
-
 #include "common.h"
+
+#include "membrane.h"
 
 class Ramsi : public Common{
 protected:
