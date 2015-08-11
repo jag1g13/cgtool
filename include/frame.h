@@ -133,6 +133,10 @@ protected:
     bool initFromGRO(const std::string &groname);
     void copyCoordsIntoAtoms(int natoms=-1);
 
+    /** \brief Perform wraparound to put all atoms in box.
+     * Equivalent to GROMACS trjconv -pbc atom */
+    void pbcAtom(int natoms=-1);
+
 public:
     /** Has the Frame been properly setup yet? */
     bool isSetup_ = false;
