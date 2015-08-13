@@ -62,6 +62,7 @@ bool Parser::getLine(vector <string> &tokens){
 }
 
 bool Parser::findSection(const string find){
+    rewind();
     vector<string> token_buffer;
     while(section_ != find){
         if(!getLine(token_buffer)) return false;

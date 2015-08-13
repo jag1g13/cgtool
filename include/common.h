@@ -12,11 +12,8 @@
 #include "residue.h"
 #include "frame.h"
 #include "cg_map.h"
-#include "itp_writer.h"
 #include "parser.h"
-#include "field_map.h"
 #include "cmd.h"
-#include "rdf.h"
 
 struct CheckedFile{
     std::string name = "";
@@ -46,21 +43,12 @@ protected:
     bool untilEnd_ = true;
     std::map<std::string, std::map<std::string, int>> settings_;
 
-    // Output file formats
-    FileFormat outProgram_;
-    FieldFormat outField_;
-    /** \brief Types of the three bonded potentials */
-    PotentialType potentialTypes_[3];
-
     // Objects
     std::vector<Residue> residues_;
     std::vector<Residue> cgResidues_;
     Frame    *frame_ = nullptr;
     Frame    *cgFrame_ = nullptr;
-    BondSet  *bondSet_ = nullptr;
     CGMap    *cgMap_ = nullptr;
-    RDF      *rdf_ = nullptr;
-    FieldMap *field_ = nullptr;
 
     // Progress updates
     const int updateFreq_[10] = {1, 2, 5, 10, 20, 50, 100, 200, 500, 1000};
@@ -68,13 +56,13 @@ protected:
 
     // Protected functions
     /** \brief Read config file and determine which functions should be performed */
-    void parseConfig();
+    virtual void readConfig() = 0;
 
     /** \brief Read residues from config file - will be modified by frame later */
     void getResidues();
 
     /** \brief Construct objects which are required to perform requested functions */
-    void setupObjects();
+    virtual void setupObjects() = 0;
 
     /** \brief Prepare for and run the main calculation loop */
     void doMainLoop();
@@ -83,20 +71,20 @@ protected:
     void updateProgress();
 
     /** \brief Function executed within the main loop - performs most significant work*/
-    void mainLoop();
+    virtual void mainLoop() = 0;
 
     /** \brief Perform final calculations and end program */
-    void postProcess();
+    virtual void postProcess() = 0;
 
 public:
     Common();
-    ~Common();
+    virtual ~Common();
 
     /** \brief Set help information */
     void setHelpStrings(const std::string &version, const std::string &header,
                         const std::string &options, const std::string &compile);
 
-    /** \brief Verify existance of required input files */
+    /** \brief Verify existence of required input files */
     void collectInput(const int argc, const char *argv[],
                       const std::vector<std::string> &req_files,
                       const std::vector<std::string> &opt_files);

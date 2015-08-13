@@ -4,7 +4,7 @@ project(CGTOOL)
 set(CGTOOL_VERSION_MAJOR 0)
 set(CGTOOL_VERSION_MINOR 3)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 MESSAGE("CMAKE ${CMAKE_VERSION}")
 MESSAGE("CXX   ${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
@@ -12,8 +12,8 @@ MESSAGE("C     ${CMAKE_SYSTEM_NAME} ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VE
 MESSAGE("MOD   ${CMAKE_MODULE_PATH}")
 
 # TODO add C++11 checks
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -ffast-math -march=native -msse2")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -march=native -msse2")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -ffast-math -march=native")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -march=native")
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING
@@ -44,7 +44,7 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
-    # GCC and CLANG use different OPENMP flags
+    # GCC and Clang use different OPENMP flags
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -openmp -pthread")
 
@@ -117,22 +117,39 @@ if(DOXYGEN_FOUND)
     add_custom_target(doc
         ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doc
-        COMMENT "Generating API documentation with Doxygen" VERBATIM
-    )
+        COMMENT "Generating API documentation with Doxygen" VERBATIM)
 endif(DOXYGEN_FOUND)
 
 # Find source files
-FILE(GLOB SOURCE_FILES src/*.cpp)
+set(CGTOOLCORE_FILES
+    "src/main/common.cpp"
+    "src/frame.cpp"
+    "src/cg_map.cpp"
+    "src/cmd.cpp"
+    "src/parser.cpp"
+    "src/residue.cpp"
+    "src/small_functions.cpp")
 
-# Create a library
-add_library(cgtoollib ${SOURCE_FILES})
-target_link_libraries (cgtoollib ${EXTRA_LIBS})
-add_dependencies(cgtoollib flens)
-set(EXTRA_LIBS ${EXTRA_LIBS} cgtoollib)
+set(CGTOOL_FILES
+    "src/array.cpp"
+    "src/boltzmann_inverter.cpp"
+    "src/bond_struct.cpp"
+    "src/bondset.cpp"
+    "src/field_map.cpp"
+    "src/histogram.cpp"
+    "src/itp_writer.cpp"
+    "src/light_array.cpp"
+    "src/non_bondset.cpp"
+    "src/rdf.cpp")
+
+# Add CGTOOLCORE library
+add_library(cgtoolcore ${CGTOOLCORE_FILES})
+target_link_libraries(cgtoolcore ${EXTRA_LIBS})
 
 # Add main target
-add_executable(cgtool "src/main/cgtool.cpp" "src/main/common.cpp")
-target_link_libraries (cgtool ${EXTRA_LIBS})
+add_executable(cgtool "src/main/cgtool.cpp" ${CGTOOL_FILES})
+add_dependencies(cgtool flens)
+target_link_libraries (cgtool cgtoolcore)
 
 # Testing
 add_subdirectory(lib/gtest-1.7.0)
@@ -140,19 +157,20 @@ include_directories(lib/gtest-1.7.0/include lib/gtest-1.7.0/include)
 
 # Test parser
 add_executable(gtest_parser src/tests/parser_test.cpp)
-target_link_libraries (gtest_parser gtest gtest_main ${EXTRA_LIBS})
+target_link_libraries (gtest_parser gtest gtest_main cgtoolcore)
 add_test(GTestParserAll gtest_parser)
 # Test bondset
-add_executable(gtest_bondset src/tests/bondset_test.cpp)
-target_link_libraries (gtest_bondset gtest gtest_main ${EXTRA_LIBS})
+add_executable(gtest_bondset src/tests/bondset_test.cpp
+    src/bondset.cpp src/boltzmann_inverter.cpp src/array.cpp src/histogram.cpp src/bond_struct.cpp)
+target_link_libraries (gtest_bondset gtest gtest_main cgtoolcore)
 add_test(GTestBondSetAll gtest_bondset)
 # Test array
-add_executable(gtest_array src/tests/array_test.cpp)
-target_link_libraries (gtest_array gtest gtest_main ${EXTRA_LIBS})
+add_executable(gtest_array src/tests/array_test.cpp src/array.cpp)
+target_link_libraries (gtest_array gtest gtest_main cgtoolcore)
 add_test(GTestArrayAll gtest_array)
 
 # Integration test - does it run
-add_test(IntegrationRUN cgtool --dir ../test_data/ALLA --cfg cg.cfg --xtc md.xtc --gro md.gro --itp topol.top)
+add_test(IntegrationRUN cgtool --dir ../test_data/ALLA -c cg.cfg -x md.xtc -g md.gro -i topol.top)
 # Integration test - check output files
 add_test(IntegrationITP ${CMAKE_COMMAND} -E compare_files
    ${CMAKE_SOURCE_DIR}/build/ALLA.itp ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.itp)
