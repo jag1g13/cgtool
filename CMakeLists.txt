@@ -118,7 +118,7 @@ set(CGTOOLCORE_FILES
     "src/residue.cpp"
     "src/small_functions.cpp")
 
-# Add TOOL_CORE library
+# Add CGTOOLCORE library
 add_library(cgtoolcore ${CGTOOLCORE_FILES})
 target_link_libraries(cgtoolcore ${EXTRA_LIBS})
 
@@ -131,12 +131,12 @@ add_subdirectory(lib/gtest-1.7.0)
 include_directories(lib/gtest-1.7.0/include lib/gtest-1.7.0/include)
 
 # Test parser
-add_executable(gtest_parser src/tests/parser_test.cpp src/parser.cpp)
-target_link_libraries (gtest_parser gtest gtest_main ${EXTRA_LIBS})
+add_executable(gtest_parser src/tests/parser_test.cpp)
+target_link_libraries (gtest_parser gtest gtest_main cgtoolcore)
 add_test(GTestParserAll gtest_parser)
 # Test array
-add_executable(gtest_array src/tests/array_test.cpp src/array.cpp src/small_functions.cpp)
-target_link_libraries (gtest_array gtest gtest_main ${EXTRA_LIBS})
+add_executable(gtest_array src/tests/array_test.cpp src/array.cpp)
+target_link_libraries (gtest_array gtest gtest_main cgtoolcore)
 add_test(GTestArrayAll gtest_array)
 
 # Integration test - does it run

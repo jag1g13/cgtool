@@ -14,7 +14,6 @@
 #include "cg_map.h"
 #include "parser.h"
 #include "cmd.h"
-#include "membrane.h"
 
 struct CheckedFile{
     std::string name = "";
@@ -87,7 +86,8 @@ public:
 
     /** \brief Verify existence of required input files */
     void collectInput(const int argc, const char *argv[],
-                      const std::vector<std::string> &req_files);
+                      const std::vector<std::string> &req_files,
+                      const std::vector<std::string> &opt_files);
 
     /** \brief Perform all calculations */
     int run();

@@ -35,8 +35,9 @@ int main(const int argc, const char *argv[]){
     ramsi.setHelpStrings(version_string, help_header, help_options, compile_info);
 
     vector<string> req_files = {"cfg", "xtc", "gro"};
+    vector<string> opt_files = {};
 
-    ramsi.collectInput(argc, argv, req_files);
+    ramsi.collectInput(argc, argv, req_files, opt_files);
     return ramsi.run();
 }
 

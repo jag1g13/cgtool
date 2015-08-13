@@ -11,7 +11,6 @@
 #include <locale.h>
 
 #include "small_functions.h"
-#include "file_io.h"
 
 using std::string;
 using std::cout;
@@ -47,12 +46,15 @@ void Common::setHelpStrings(const std::string &version, const std::string &heade
 }
 
 void Common::collectInput(const int argc, const char *argv[],
-                          const std::vector<std::string> &req_files){
+                          const std::vector<std::string> &req_files,
+                          const std::vector<std::string> &opt_files){
     split_text_output(versionString_, sectionStart_);
     CMD cmd_parser(helpHeader_, helpOptions_, compileInfo_, argc, argv);
 
     // Read in files
     for(const string &f : req_files) inputFiles_[f].name = cmd_parser.getFileArg(f);
+    for(const string &f : opt_files) inputFiles_[f].name = cmd_parser.getFileArg(f);
+
     for(auto &item : inputFiles_) item.second.exists = file_exists(item.second.name);
 
     for(const string &f : req_files){
@@ -61,6 +63,8 @@ void Common::collectInput(const int argc, const char *argv[],
             exit(EX_NOINPUT);
         }
     }
+
+    if(cmd_parser.getIntArg("frames") != 0) numFramesMax_ = cmd_parser.getIntArg("frames");
 }
 
 int Common::run(){
@@ -123,7 +127,7 @@ void Common::doMainLoop(){
     if(untilEnd_){
         printf("Reading all frames from XTC\n");
     }else{
-        printf("Reading %'7d frames from XTC\r", numFramesMax_);
+        printf("Reading %'7d frames from XTC\n", numFramesMax_);
     }
 
     lastUpdate_ = start_timer();
@@ -132,7 +136,7 @@ void Common::doMainLoop(){
     bool end = false;
     while(!end){
         end = !(frame_->readNext() && (untilEnd_ || currFrame_ < numFramesMax_));
-        if (currFrame_ % updateFreq_[updateLoc_] == 0) updateProgress();
+        if(currFrame_ % updateFreq_[updateLoc_] == 0) updateProgress();
         currFrame_++;
         mainLoop();
     }
