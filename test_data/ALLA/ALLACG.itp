@@ -1,0 +1,46 @@
+;
+; Topology prepared automatically using CGTOOL
+; James Graham <J.A.Graham@soton.ac.uk> 2015
+; University of Southampton
+; https://bitbucket.org/jag1g13/cgtool
+;
+
+[ moleculetype ]
+;molecule name  nrexcl
+ALLA            1
+
+[ atoms ]
+;  num   beadtype  resnr   resnm  bead  chrg#     charge    mass
+     1         P4      1   ALLA     C1      1     0.0000;
+     2         P4      1   ALLA     C2      2     0.0000;
+     3         P4      1   ALLA     C3      3     0.0000;
+     4         P4      1   ALLA     C4      4     0.0000;
+     5         P4      1   ALLA     C5      5     0.0000;
+     6         P4      1   ALLA     O5      6     0.0000;
+
+[ bonds ]
+;atm1  atm2  type  equilibrium  force const  unimodality
+    1     2     1      0.15213 1087592.09514; 0.877
+    2     3     1      0.15210 1150668.20277; 0.883
+    3     4     1      0.15213 1157337.98287; 0.828
+    4     5     1      0.15210 1216954.33005; 0.887
+    5     6     1      0.14360 1245130.87988; 0.883
+    6     1     1      0.14358 1295873.46270; 0.879
+
+[ angles ]
+;atm1  atm2  atm3  type  equilibrium  force const  unimodality
+    6     1     2     2    111.51809      9.24282; 0.930
+    1     2     3     2    110.08557     10.12927; 0.939
+    2     3     4     2    110.42864     10.29606; 0.934
+    3     4     5     2    108.03452      9.78938; 0.932
+    4     5     6     2    111.32491     11.56280; 0.949
+    5     6     1     2    114.09320      9.11231; 0.942
+
+[ dihedrals ]
+;atm1  atm2  atm3  atm4  type  equilibrium  force const  mult  unimodality
+    5     6     1     2     1     70.33606      8.37392     1; 0.936
+    6     1     2     3     1     66.35300     12.37013     1; 0.897
+    1     2     3     4     1     67.64511      9.50712     1; 0.948
+    2     3     4     5     1     67.96125     11.76062     1; 0.954
+    3     4     5     6     1     68.79337      9.66626     1; 0.904
+    4     5     6     1     1     72.39761     11.01255     1; 0.953

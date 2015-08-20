@@ -72,7 +72,7 @@ double& Array::operator()(int x){
 
     assert(allocated_);
     assert(dimensions_ >= 1);
-    if(x < 0) x = size_[0] + x;
+    while(x < 0) x += size_[0];
     assert(x < size_[0] && x >= 0);
     /* if 2d array return ref to a row */
     if(dimensions_ == 2) return array_[x * size_[1]];
@@ -86,8 +86,8 @@ double& Array::operator()(int x, int y){
 
     assert(allocated_);
     if(x != 0) assert(dimensions_ >= 2);
-    if(x < 0) x = size_[0] + x;
-    if(y < 0) y = size_[1] + y;
+    while(x < 0) x += size_[0];
+    while(y < 0) y += size_[1];
     assert(x < size_[0] && x >= 0);
     assert(y < size_[1] && y >= 0);
     /* if 3d array return ref to a row */
@@ -343,3 +343,17 @@ void Array::interpolateZeros(){
         }
     }
 }
+
+void Array::elementMultiply(const Histogram &other){
+    assert(dimensions_ == 1);
+    assert(elems_ == other.size_);
+    for(int i=0; i<elems_; i++) array_[i] *= other.array_[i];
+}
+
+void Array::elementDivide(const Histogram &other){
+    assert(dimensions_ == 1);
+    assert(elems_ == other.size_);
+
+    for(int i=0; i<elems_; i++) array_[i] /= other.array_[i];
+}
+

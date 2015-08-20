@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.4)
 
-project(RAMSi)
-set(RAMSi_VERSION_MAJOR 0)
-set(RAMSi_VERSION_MINOR 3)
+project(CGTOOL)
+set(CGTOOL_VERSION_MAJOR 0)
+set(CGTOOL_VERSION_MINOR 3)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
@@ -82,6 +82,18 @@ else()
     set (EXTRA_LIBS ${EXTRA_LIBS} xdrfile)
 endif()
 
+# Find FLENS - required
+INCLUDE(ExternalProject)
+ExternalProject_Add(flens
+                    GIT_REPOSITORY https://github.com/michael-lehn/FLENS.git
+                    GIT_TAG v1.1.0
+                    PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/lib/flens
+                    UPDATE_COMMAND ""
+                    CONFIGURE_COMMAND ""
+                    BUILD_COMMAND ""
+                    INSTALL_COMMAND "")
+                include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/flens/src/flens)
+
 # Find Boost library - required
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED)
@@ -118,11 +130,28 @@ set(CGTOOLCORE_FILES
     "src/residue.cpp"
     "src/small_functions.cpp")
 
+set(CGTOOL_FILES
+    "src/array.cpp"
+    "src/boltzmann_inverter.cpp"
+    "src/bond_struct.cpp"
+    "src/bondset.cpp"
+    "src/field_map.cpp"
+    "src/histogram.cpp"
+    "src/itp_writer.cpp"
+    "src/light_array.cpp"
+    "src/non_bondset.cpp"
+    "src/rdf.cpp")
+
 # Add CGTOOLCORE library
 add_library(cgtoolcore ${CGTOOLCORE_FILES})
 target_link_libraries(cgtoolcore ${EXTRA_LIBS})
 
-# Add main target
+# Add CGTOOL target
+add_executable(cgtool "src/main/cgtool.cpp" ${CGTOOL_FILES})
+add_dependencies(cgtool flens)
+target_link_libraries (cgtool cgtoolcore)
+
+# Add RAMSi target
 add_executable(ramsi "src/main/ramsi.cpp" "src/membrane.cpp" "src/array.cpp" ${SOURCE_FILES})
 target_link_libraries(ramsi cgtoolcore)
 
@@ -134,15 +163,28 @@ include_directories(lib/gtest-1.7.0/include lib/gtest-1.7.0/include)
 add_executable(gtest_parser src/tests/parser_test.cpp)
 target_link_libraries (gtest_parser gtest gtest_main cgtoolcore)
 add_test(GTestParserAll gtest_parser)
+# Test bondset
+add_executable(gtest_bondset src/tests/bondset_test.cpp
+    src/bondset.cpp src/boltzmann_inverter.cpp src/array.cpp src/histogram.cpp src/bond_struct.cpp)
+target_link_libraries (gtest_bondset gtest gtest_main cgtoolcore)
+add_test(GTestBondSetAll gtest_bondset)
 # Test array
 add_executable(gtest_array src/tests/array_test.cpp src/array.cpp)
 target_link_libraries (gtest_array gtest gtest_main cgtoolcore)
 add_test(GTestArrayAll gtest_array)
 
 # Integration test - does it run
-add_test(IntegrationRUN ramsi -c ../test_data/staph/mem.cfg -x ../test_data/staph/md.xtc -g ../test_data/staph/md.gro)
+add_test(IntegrationRUNCGTOOL cgtool --dir ../test_data/ALLA -c cg.cfg -x md.xtc -g md.gro -i topol.top)
+# Integration test - check output files
+add_test(IntegrationITP ${CMAKE_COMMAND} -E compare_files
+   ${CMAKE_SOURCE_DIR}/build/ALLA.itp ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.itp)
+add_test(IntegrationGRO ${CMAKE_COMMAND} -E compare_files
+    ${CMAKE_SOURCE_DIR}/build/ALLA.gro ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.gro)
+add_test(IntegrationTOP ${CMAKE_COMMAND} -E compare_files
+    ${CMAKE_SOURCE_DIR}/build/ALLA.top ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.top)
+
+add_test(IntegrationRUNRAMSi ramsi -c ../test_data/staph/mem.cfg -x ../test_data/staph/md.xtc -g ../test_data/staph/md.gro)
 
 enable_testing()
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-                  DEPENDS gtest_parser gtest_array ramsi)
-
+                  DEPENDS gtest_parser gtest_bondset gtest_array cgtool ramsi)
