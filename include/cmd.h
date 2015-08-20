@@ -18,10 +18,10 @@ enum class ArgType{PATH, STRING, INT, FLOAT, BOOL};
 */
 class CMD{
 protected:
-    /** Program help string.  Should be parsed to generate arguments */
+    /** \brief Program help string.  Should be parsed to generate arguments */
     std::string helpString_;
 
-    /** Store options from Boost program_options */
+    /** \brief Store options from Boost program_options */
     boost::program_options::variables_map options_;
     boost::program_options::options_description desc_;
 

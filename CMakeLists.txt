@@ -1,10 +1,7 @@
 cmake_minimum_required(VERSION 2.8.4)
+project(CGTOOL)
 
-project(RAMSi)
-set(RAMSi_VERSION_MAJOR 0)
-set(RAMSi_VERSION_MINOR 3)
-
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/Modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 MESSAGE("CMAKE ${CMAKE_VERSION}")
 MESSAGE("CXX   ${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
@@ -12,26 +9,8 @@ MESSAGE("C     ${CMAKE_SYSTEM_NAME} ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VE
 MESSAGE("MOD   ${CMAKE_MODULE_PATH}")
 
 # TODO add C++11 checks
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -ffast-math -march=native")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -march=native")
-
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING
-        "Defaults to Release build" FORCE)
-endif()
-
-if(NOT CMAKE_FLAGS_Release)
-    set(CMAKE_FLAGS_Release "-O3")
-endif()
-if(NOT CMAKE_FLAGS_Debug)
-    set(CMAKE_FLAGS_Release "-g")
-endif()
-
-if(CMAKE_BUILD_TYPE MATCHES "Release")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_Release}")
-elseif(CMAKE_BUILD_TYPE MATCHES "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_Release}")
-endif()
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -ffast-math -march=native -msse2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -march=native -msse2")
 
 # Should we ignore warnings - default ignore a few - only on gcc
 option(INGORE_SOME_WARNINGS "Don't ignore any warnings" ON)
@@ -41,13 +20,11 @@ set(IGNORED_WARNINGS_ALWAYS " -Wno-sign-compare -Wno-comment")
 # Platform specifics
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     # Apple OSX - don't use OPENMP
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
-elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
-    # GCC and Clang use different OPENMP flags
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+else()
+    # GCC and CLANG use different OPENMP flags
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -openmp -pthread")
-
     elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
         if(IGNORE_SOME_WARNINGS)
@@ -57,12 +34,8 @@ elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${IGNORED_WARNINGS_ALWAYS}")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNORED_WARNINGS_ALWAYS}")
         endif()
-
-    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -openmp")
-
     else()
-        MESSAGE("Unrecognised compiler - will attempt to compile")
+        MESSAGE("Not using GNU or Clang")
     endif()
 endif()
 
@@ -81,6 +54,18 @@ else()
     add_library(xdrfile STATIC lib/xdrfile/xdrfile.c lib/xdrfile/xdrfile_xtc.c)
     set (EXTRA_LIBS ${EXTRA_LIBS} xdrfile)
 endif()
+
+# Find FLENS - required
+INCLUDE(ExternalProject)
+ExternalProject_Add(flens
+                    GIT_REPOSITORY https://github.com/michael-lehn/FLENS.git
+                    GIT_TAG v1.1.0
+                    PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/lib/flens
+                    UPDATE_COMMAND ""
+                    CONFIGURE_COMMAND ""
+                    BUILD_COMMAND ""
+                    INSTALL_COMMAND "")
+                include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/flens/src/flens)
 
 # Find Boost library - required
 set(Boost_USE_STATIC_LIBS ON)
@@ -105,26 +90,22 @@ if(DOXYGEN_FOUND)
     add_custom_target(doc
         ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doc
-        COMMENT "Generating API documentation with Doxygen" VERBATIM)
+        COMMENT "Generating API documentation with Doxygen" VERBATIM
+    )
 endif(DOXYGEN_FOUND)
 
 # Find source files
-set(CGTOOLCORE_FILES
-    "src/main/common.cpp"
-    "src/frame.cpp"
-    "src/cg_map.cpp"
-    "src/cmd.cpp"
-    "src/parser.cpp"
-    "src/residue.cpp"
-    "src/small_functions.cpp")
+FILE(GLOB SOURCE_FILES src/*.cpp)
 
-# Add CGTOOLCORE library
-add_library(cgtoolcore ${CGTOOLCORE_FILES})
-target_link_libraries(cgtoolcore ${EXTRA_LIBS})
+# Create a library
+add_library(cgtoollib ${SOURCE_FILES})
+target_link_libraries (cgtoollib ${EXTRA_LIBS})
+add_dependencies(cgtoollib flens)
+set(EXTRA_LIBS ${EXTRA_LIBS} cgtoollib)
 
 # Add main target
-add_executable(ramsi "src/main/ramsi.cpp" "src/membrane.cpp" "src/array.cpp" ${SOURCE_FILES})
-target_link_libraries(ramsi cgtoolcore)
+add_executable(cgtool "src/main/cgtool.cpp" "src/main/common.cpp")
+target_link_libraries (cgtool ${EXTRA_LIBS})
 
 # Testing
 add_subdirectory(lib/gtest-1.7.0)
@@ -132,17 +113,27 @@ include_directories(lib/gtest-1.7.0/include lib/gtest-1.7.0/include)
 
 # Test parser
 add_executable(gtest_parser src/tests/parser_test.cpp)
-target_link_libraries (gtest_parser gtest gtest_main cgtoolcore)
+target_link_libraries (gtest_parser gtest gtest_main ${EXTRA_LIBS})
 add_test(GTestParserAll gtest_parser)
+# Test bondset
+add_executable(gtest_bondset src/tests/bondset_test.cpp)
+target_link_libraries (gtest_bondset gtest gtest_main ${EXTRA_LIBS})
+add_test(GTestBondSetAll gtest_bondset)
 # Test array
-add_executable(gtest_array src/tests/array_test.cpp src/array.cpp)
-target_link_libraries (gtest_array gtest gtest_main cgtoolcore)
+add_executable(gtest_array src/tests/array_test.cpp)
+target_link_libraries (gtest_array gtest gtest_main ${EXTRA_LIBS})
 add_test(GTestArrayAll gtest_array)
 
 # Integration test - does it run
-add_test(IntegrationRUN ramsi -c ../test_data/staph/mem.cfg -x ../test_data/staph/md.xtc -g ../test_data/staph/md.gro)
+add_test(IntegrationRUN cgtool --dir ../test_data/ALLA --cfg cg.cfg --xtc md.xtc --gro md.gro --itp topol.top)
+# Integration test - check output files
+add_test(IntegrationITP ${CMAKE_COMMAND} -E compare_files
+   ${CMAKE_SOURCE_DIR}/build/ALLA.itp ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.itp)
+add_test(IntegrationGRO ${CMAKE_COMMAND} -E compare_files
+    ${CMAKE_SOURCE_DIR}/build/ALLA.gro ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.gro)
+add_test(IntegrationTOP ${CMAKE_COMMAND} -E compare_files
+    ${CMAKE_SOURCE_DIR}/build/ALLA.top ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.top)
 
 enable_testing()
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-                  DEPENDS gtest_parser gtest_array ramsi)
-
+                  DEPENDS gtest_parser gtest_bondset gtest_array cgtool)

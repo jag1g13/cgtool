@@ -38,6 +38,13 @@ inline double dot(const double A[3], const double B[3]){
     return A[0]*B[0] + A[1]*B[1] + A[2]*B[2];
 }
 
+inline void cross(const double A[3], const double B[3],
+                    double C[3]){
+    C[0] = A[1]*B[2] - A[2]*B[1];
+    C[1] = A[0]*B[2] - A[2]*B[0];
+    C[2] = A[0]*B[1] - A[1]*B[0];
+}
+
 /** \brief Magnitude of 3d vector as double[3] */
 inline double abs(const double vec[3]){
     return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
@@ -56,6 +63,7 @@ inline double distSqrPlane(const double c1[3], const double c2[3]){
     return (c1[0] - c2[0]) * (c1[0] - c2[0]) +
            (c1[1] - c2[1]) * (c1[1] - c2[1]);
 }
+
 
 /** \brief Convert 3d vector as double[3] to polar coordinates */
 void polar(const double cart[3], double polar[3]);
