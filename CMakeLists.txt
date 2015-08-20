@@ -128,7 +128,8 @@ set(CGTOOLCORE_FILES
     "src/cmd.cpp"
     "src/parser.cpp"
     "src/residue.cpp"
-    "src/small_functions.cpp")
+    "src/small_functions.cpp"
+    "src/XTCOutput.cpp")
 
 set(CGTOOL_FILES
     "src/array.cpp"

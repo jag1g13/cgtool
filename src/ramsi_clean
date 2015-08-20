@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-rm *APL*
-rm *thickness*
-rm *curvature*
