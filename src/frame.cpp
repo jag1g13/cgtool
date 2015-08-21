@@ -59,7 +59,7 @@ Frame::Frame(const string &xtcname, const string &groname,
 Frame::~Frame(){
     isSetup_ = false;
     if(xtcInput_) xdrfile_close(xtcInput_);
-    delete trjOut_;
+    if(trjOut_) delete trjOut_;
     if(x_) delete[] x_;
 }
 
@@ -88,7 +88,7 @@ void Frame::setupOutput(string xtcname, string topname){
 bool Frame::writeToXtc(){
     if(!outputSetup_) throw std::logic_error("Output has not been setup");
 
-    trjOut_->writeFrame(*this);
+    return trjOut_->writeFrame(*this) == 0;
 }
 
 bool Frame::initFromXTC(const string &xtcname){

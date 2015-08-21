@@ -121,7 +121,7 @@ protected:
     BoxType boxType_ = BoxType::CUBIC;
 
     /** \brief Output writer */
-    TrjOutput *trjOut_;
+    TrjOutput *trjOut_ = nullptr;
 
     void createAtoms(int natoms=-1);
 
