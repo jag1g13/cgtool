@@ -9,6 +9,7 @@
 #include <stdexcept>
 
 #include "frame.h"
+//class Frame;
 
 class TrjOutput{
 protected:
@@ -18,6 +19,7 @@ protected:
 
 public:
     virtual int writeFrame(const Frame &frame) = 0;
+    virtual ~TrjOutput(){};
 
     friend class Frame;
 };

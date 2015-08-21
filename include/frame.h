@@ -9,6 +9,8 @@
 #include <boost/algorithm/string.hpp>
 
 #include "residue.h"
+//#include "trj_output.h"
+class TrjOutput;
 
 /** \brief Contains data from a line of a GRO file */
 struct GROLine{
@@ -117,6 +119,9 @@ protected:
     std::string name_ = "";
     /** What box shape do we have?  Currently must be cubic */
     BoxType boxType_ = BoxType::CUBIC;
+
+    /** \brief Output writer */
+    TrjOutput *trjOut_;
 
     void createAtoms(int natoms=-1);
 

@@ -6,6 +6,7 @@
 #define CGTOOL_XTCOUTPUT_H
 
 #include "trj_output.h"
+#include "xdrfile.h"
 
 class XTCOutput : public TrjOutput{
 protected:
@@ -15,7 +16,7 @@ protected:
     int openFile(const std::string &filename);
     int closeFile();
 public:
-    XTCOutput(const int natoms);
+    XTCOutput(const int natoms, const std::string &filename);
     ~XTCOutput();
     int writeFrame(const Frame &frame);
 

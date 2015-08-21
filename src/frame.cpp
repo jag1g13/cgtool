@@ -11,6 +11,7 @@
 
 #include "parser.h"
 #include "small_functions.h"
+#include "XTCOutput.h"
 
 using std::string;
 using std::vector;
@@ -57,19 +58,17 @@ Frame::Frame(const string &xtcname, const string &groname,
 
 Frame::~Frame(){
     isSetup_ = false;
-    if(xtcOutput_) xdrfile_close(xtcOutput_);
     if(xtcInput_) xdrfile_close(xtcInput_);
+    delete trjOut_;
     if(x_) delete[] x_;
 }
 
 void Frame::setupOutput(string xtcname, string topname){
-    char mode[2] = {'r', 'w'};
     if(xtcname == "") xtcname = (*residues_)[0].resname + ".xtc";
     if(topname == "") topname = (*residues_)[0].resname + ".top";
-    backup_old_file(xtcname);
     backup_old_file(topname);
-    if(!xtcOutput_) xtcOutput_ = xdrfile_open(xtcname.c_str(), &mode[1]);
-    if(!xtcOutput_) throw std::runtime_error("Could not open XTC output");
+
+    trjOut_ = new XTCOutput(numAtoms_, xtcname);
 
     if(!x_) x_ = new rvec[numAtoms_];
     if(!x_) throw std::runtime_error("Couldn't allocate memory for XTC output");
@@ -88,14 +87,8 @@ void Frame::setupOutput(string xtcname, string topname){
 
 bool Frame::writeToXtc(){
     if(!outputSetup_) throw std::logic_error("Output has not been setup");
-    // need to put atomic coordinates back into x_
-    // either it's a CG frame and x_ is empty, or it's atomistic but may have been recentred
-    for(int i=0; i<(*residues_)[0].total_atoms; i++){
-        x_[i][0] = float(atoms_[i].coords[0]);
-        x_[i][1] = float(atoms_[i].coords[1]);
-        x_[i][2] = float(atoms_[i].coords[2]);
-    }
-    return exdrOK == write_xtc(xtcOutput_, (*residues_)[0].total_atoms, step_, time_, box_, x_, prec_);
+
+    trjOut_->writeFrame(*this);
 }
 
 bool Frame::initFromXTC(const string &xtcname){

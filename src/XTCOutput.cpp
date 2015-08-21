@@ -10,12 +10,14 @@
 
 using std::string;
 
-XTCOutput::XTCOutput(const int natoms){
+XTCOutput::XTCOutput(const int natoms, const string &filename){
     natoms_ = natoms;
     x_ = new rvec[natoms_];
+    openFile(filename);
 }
 
 XTCOutput::~XTCOutput(){
+    closeFile();
     delete[] x_;
 }
 
