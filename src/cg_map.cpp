@@ -34,7 +34,7 @@ void CGMap::fromFile(const string &filename){
             cout << "Using ATOM mapping" << endl;
         }
     }else{
-        cout << "Could not find requested mapping type - assuming GC" << endl;
+        printf("WARNING: Could not find requested mapping type - assuming GC\n");
         mapType_ = MapType::GC;
     }
 
@@ -59,7 +59,6 @@ void CGMap::fromFile(const string &filename){
 }
 
 void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
-    (*aaResidues_)[0].print();
 
     // Create Frame and copy copyable data
     (*cgResidues_).resize(1);
@@ -69,14 +68,15 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
     (*cgResidues_)[0].num_residues = (*aaResidues_)[0].num_residues;
     (*cgResidues_)[0].calc_total();
     (*cgResidues_)[0].populated = true;
+    (*cgResidues_)[0].print();
 
     cg_frame.numAtoms_ = (*cgResidues_)[0].total_atoms;
     cg_frame.atoms_.resize(cg_frame.numAtoms_);
 
     // Check if we have masses if CM mapping was requested
     if(mapType_ == MapType::CM && !aa_frame.atomHas_.mass){
-        cout << "Centre of Mass mapping requires atom masses from ITP" << endl;
-        cout << "Defaulting to Geometric Centre instead" << endl;
+        printf("WARNING: Centre of Mass mapping requires atom masses from ITP\n");
+        printf("WARNING: Defaulting to Geometric Centre instead\n");
         mapType_ = MapType::GC;
     }
 
@@ -93,8 +93,10 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
 
         // Calculate bead properties from atomistic frame
         for(const string &atomname : bead.atoms){
+            bool atom_found = false;
             for(int j=(*aaResidues_)[0].start; j<(*aaResidues_)[0].start+(*aaResidues_)[0].num_atoms; j++){
                 if(aa_frame.atoms_[j].atom_name == atomname){
+                    atom_found = true;
                     bead.mass += aa_frame.atoms_[j].mass;
                     bead.charge += aa_frame.atoms_[j].charge;
                     bead.atom_nums.push_back(j);
@@ -105,6 +107,9 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
                     }
                 }
             }
+
+            if(!atom_found) printf("WARNING: Atom %s in bead %s not found\n",
+                                   atomname.c_str(), bead.name.c_str());
         }
 
         if(aa_frame.atomHas_.lj){
@@ -126,7 +131,7 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
         }
         i++;
 
-        // Check if
+        // Check if charge and mass are set for any atom
         if(bead.charge != 0.) cg_frame.atomHas_.charge = true;
         if(bead.mass == 0.) cg_frame.atomHas_.mass = false;
     }
@@ -140,8 +145,6 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
     cg_frame.atomHas_.atom_name = true;
     cg_frame.atomHas_.resnum = true;
     cg_frame.atomHas_.coords = true;
-
-    cout << "Done init cg_frame" << endl;
 }
 
 double CGMap::calcLJ(const vector<int> &ljs){
@@ -210,9 +213,6 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
             break;
 
         case MapType::CM:
-            // Require that masses have been input
-            assert(aa_frame.atomHas_.mass);
-
             // Put bead at centre of mass of atoms
             for(int i = 0; i < mapping_.size(); i++){
                 for(int j = 0; j < (*aaResidues_)[0].num_residues; j++){
