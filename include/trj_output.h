@@ -6,10 +6,8 @@
 #define CGTOOL_TRJOUTPUT_H
 
 #include <string>
-#include <stdexcept>
 
 #include "frame.h"
-//class Frame;
 
 class TrjOutput{
 protected:
