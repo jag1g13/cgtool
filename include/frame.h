@@ -120,7 +120,7 @@ protected:
     /** What box shape do we have?  Currently must be cubic */
     BoxType boxType_ = BoxType::CUBIC;
 
-    /** \brief Output writer */
+    /** \brief Output writers */
     TrjOutput *trjOut_ = nullptr;
 
     void createAtoms(int natoms=-1);
@@ -195,14 +195,14 @@ public:
     */
     void setupOutput(std::string xtcnameout="", std::string top="");
 
-    /** \brief Write Frame to XTC output file */
-    bool writeToXtc();
+    /** \brief Output frame to trajectory file. */
+    bool outputTrajectoryFrame();
 
     /** \brief Print info for all atoms up to n.  Default print all. */
     void printAtoms(int natoms=-1) const;
 
-    /** \brief Print all atoms up to n to GRO file.  Default print all. */
-    void printGRO(std::string filename="", int natoms=-1) const;
+    /** \brief Output single frame to file. */
+    void outputSingleFrame(std::string filename = "") const;
 
     /** \brief Print box vectors */
     void printBox() const;

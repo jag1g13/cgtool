@@ -94,6 +94,9 @@ double BoltzmannInverter::invertGaussianSimple(){
             //TODO currently just pass this back to the old least squares - replace this
             return invertGaussian();
     }
+
+    // This code can never be reached but GCC still complains without it
+    return -1.;
 }
 
 void BoltzmannInverter::binHistogram(const vector<double> &vec){

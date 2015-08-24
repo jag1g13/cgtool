@@ -74,7 +74,7 @@ void Ramsi::setupObjects(){
         cgMap_->fromFile(inputFiles_["cfg"].name);
         cgMap_->initFrame(*frame_, *cgFrame_);
 //        cgFrame_->setupOutput();
-//        cgFrame_->printGRO();
+//        cgFrame_->outputSingleFrame();
     }else{
         // If not mapping make both frames point to the same thing
         cgFrame_ = frame_;
@@ -89,7 +89,7 @@ void Ramsi::setupObjects(){
 void Ramsi::mainLoop(){
     if(settings_["map"]["on"]){
         cgMap_->apply(*frame_, *cgFrame_);
-//        cgFrame_->writeToXtc();
+//        cgFrame_->outputTrajectoryFrame();
     }
 
     // Membrane calculations

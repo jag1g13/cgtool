@@ -147,7 +147,7 @@ void Cgtool::mainLoop(){
     // Calculate bonds and store in BondStructs
     if(settings_["map"]["on"]){
         cgMap_->apply(*frame_, *cgFrame_);
-        cgFrame_->writeToXtc();
+        cgFrame_->outputTrajectoryFrame();
         if(settings_["bonds"]["on"]) bondSet_->calcBondsInternal(*cgFrame_);
 
         // Calculate electric field/dipoles
@@ -197,7 +197,7 @@ void Cgtool::postProcess(){
         printf("\n");
     }
 
-    if(settings_["map"]["on"]) cgFrame_->printGRO();
+    if(settings_["map"]["on"]) cgFrame_->outputSingleFrame();
     if(settings_["rdf"]["on"]) rdf_->normalize();
 }
 
