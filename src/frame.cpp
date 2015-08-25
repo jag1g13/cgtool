@@ -110,6 +110,7 @@ bool Frame::initFromGRO(const string &groname){
         grolines[i].populate(tmp);
         if(grolines[i].resname.compare(grolines[i-1].resname)) num_residues++;
     }
+    gro >> box_[0][0] >> box_[1][1] >> box_[2][2];
     gro.close();
 
     if(residues_->size() < num_residues){
