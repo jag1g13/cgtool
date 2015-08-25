@@ -14,6 +14,7 @@
 #include "XTCOutput.h"
 #include "GROOutput.h"
 #include "XTCInput.h"
+#include "GROInput.h"
 
 using std::string;
 using std::vector;
@@ -49,11 +50,7 @@ Frame::Frame(const string &xtcname, const string &groname,
         exit(EX_UNAVAILABLE);
     };
 
-    trjIn_ = new XTCInput(numAtoms_, xtcname);
-//    createAtoms(numAtoms_);
-
-    // Populate atoms_
-
+    trjIn_ = new XTCInput(xtcname);
 }
 
 Frame::~Frame(){
@@ -65,20 +62,26 @@ Frame::~Frame(){
 void Frame::setupOutput(string xtcname, string topname){
     if(xtcname == "") xtcname = (*residues_)[0].resname + ".xtc";
     if(topname == "") topname = (*residues_)[0].resname + ".top";
-    backup_old_file(topname);
 
     trjOut_ = new XTCOutput(numAtoms_, xtcname);
+    writeTOP(topname);
+    outputSetup_ = true;
+}
 
-    std::ofstream top(topname);
+void Frame::writeTOP(const string &filename){
+    backup_old_file(filename);
+
+    std::ofstream top(filename);
     if(!top.is_open()) throw std::runtime_error("Could not open output TOP file");
+
     top << "; Include forcefield parameters" << endl;
     top << "#include \"" << (*residues_)[0].resname << ".itp\"" << endl << endl;
     top << "[ system ]" << endl;
     top << (*residues_)[0].resname << endl << endl;
     top << "[ molecules ]" << endl;
     top << (*residues_)[0].resname << "\t\t" << (*residues_)[0].num_residues << endl;
+
     top.close();
-    outputSetup_ = true;
 }
 
 bool Frame::outputTrajectoryFrame(){
@@ -88,6 +91,11 @@ bool Frame::outputTrajectoryFrame(){
 }
 
 bool Frame::initFromGRO(const string &groname){
+    GROInput in(groname);
+    numAtoms_ = in.getNumAtoms();
+    createAtoms(numAtoms_);
+    in.readFrame(*this);
+
     std::ifstream gro(groname.c_str());
     if(!gro.is_open()) return false;
 
@@ -95,9 +103,6 @@ bool Frame::initFromGRO(const string &groname){
     string tmp;
     getline(gro, name_);
     getline(gro, tmp);
-    numAtoms_ = stoi(tmp);
-    createAtoms(numAtoms_);
-//    assert(num_atoms == numAtoms_);
 
     vector<GROLine> grolines(numAtoms_);
 
@@ -110,7 +115,6 @@ bool Frame::initFromGRO(const string &groname){
         grolines[i].populate(tmp);
         if(grolines[i].resname.compare(grolines[i-1].resname)) num_residues++;
     }
-    gro >> box_[0][0] >> box_[1][1] >> box_[2][2];
     gro.close();
 
     if(residues_->size() < num_residues){
@@ -125,15 +129,7 @@ bool Frame::initFromGRO(const string &groname){
     res->set_start(0);
 
     // Final pass to populate residues
-    atoms_[0].resnum = grolines[0].resnum;
-    atoms_[0].atom_name = grolines[0].atomname;
     for(int i=1; i<numAtoms_; i++){
-        atoms_[i].resnum = grolines[i].resnum;
-        atoms_[i].atom_name = grolines[i].atomname;
-        atoms_[i].coords[0] = grolines[i].coords[0];
-        atoms_[i].coords[1] = grolines[i].coords[1];
-        atoms_[i].coords[2] = grolines[i].coords[2];
-
         if(grolines[i].resnum != grolines[i-1].resnum) resnum++;
         atomnum++;
 
@@ -188,7 +184,6 @@ bool Frame::initFromGRO(const string &groname){
 }
 
 void Frame::createAtoms(int natoms){
-    if(natoms < 0) natoms = numAtoms_;
     atoms_.resize(natoms);
     atomHas_.created = true;
 }

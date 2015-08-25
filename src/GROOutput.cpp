@@ -4,7 +4,7 @@
 
 #include "GROOutput.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "small_functions.h"
 
@@ -22,7 +22,6 @@ GROOutput::~GROOutput(){
 
 int GROOutput::openFile(const string &filename){
     backup_old_file(filename);
-    fprintf(stderr, "%s\n", filename.c_str());
     file_ = std::fopen(filename.c_str(), "w");
     if(!file_) return 1;
 

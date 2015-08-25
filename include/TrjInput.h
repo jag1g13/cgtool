@@ -8,6 +8,7 @@
 #include <string>
 
 #include "frame.h"
+#include "residue.h"
 
 struct TrjHas{
     bool num_atoms = false;
@@ -40,6 +41,15 @@ public:
 
     /** \brief Empty destructor to be overwritten. */
     virtual ~TrjInput(){};
+
+    /** \brief Read in residues from input file.  Does not have to be supported. */
+    virtual void readResidues(std::vector<Residue> &residues){
+        throw std::logic_error("Input file does not support reading residues");
+    };
+
+    int getNumAtoms() const{
+        return natoms_;
+    }
 
     friend class Frame;
 };

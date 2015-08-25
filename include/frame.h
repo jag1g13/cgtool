@@ -12,7 +12,7 @@
 class TrjOutput;
 class TrjInput;
 
-/** \brief Contains data from a line of a GRO file */
+/** \brief Contains data from a line of a GRO file. */
 struct GROLine{
     int resnum = 0;
     std::string resname = "";
@@ -21,7 +21,7 @@ struct GROLine{
     float coords[3] = {0.f, 0.f, 0.f};
     float velocity[3] = {0.f, 0.f, 0.f};
 
-    /** \brief Populate from string - line of GRO file */
+    /** \brief Populate from string - line of GRO file. */
     int populate(const std::string &line){
         if(line.size() < 41) return 0;
 
@@ -48,11 +48,25 @@ struct GROLine{
         return 1;
     };
 
-    /** \brief Print the parsed line for debugging */
-    void print(){
+    /** \brief Print the parsed line for debugging. */
+    void print() const{
         printf("%5d%5s%5s%5d%8.3f%8.3f%8.3f\n",
                resnum, resname.c_str(), atomname.c_str(),
                atomnum, coords[0], coords[1], coords[2]);
+    }
+
+    /** \brief Copy assignment operator. */
+    GROLine& operator=(const GROLine &other){
+        resnum = other.resnum;
+        resname = other.resname;
+        atomname = other.atomname;
+        atomnum = other.atomnum;
+        for(int i=0; i<3; i++){
+            coords[i] = other.coords[i];
+            velocity[i] = other.velocity[i];
+        }
+
+        return *this;
     }
 };
 
@@ -125,20 +139,16 @@ protected:
     /** \brief Input readers */
     TrjInput *trjIn_ = nullptr;
 
-    void createAtoms(int natoms=-1);
+    void createAtoms(int natoms);
 
-    /**
-    * \brief Create Frame, allocate atoms and read in data from start of XTC file
-    * \throws logic_error if Frame has already been setup
-    *
-    * Uses libxdrfile to get number of atoms and allocate storage.
-    * This function uses this data to create a Frame object to process this data.
-    */
     bool initFromGRO(const std::string &groname);
 
     /** \brief Perform wraparound to put all atoms in box.
      * Equivalent to GROMACS trjconv -pbc atom */
     void pbcAtom(int natoms=-1);
+
+    /** \brief Write the minimal GROMACS TOP file */
+    void writeTOP(const std::string &filename);
 
 public:
     /** Has the Frame been properly setup yet? */

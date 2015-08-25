@@ -29,7 +29,7 @@ protected:
     int closeFile();
 public:
     /** \brief Constructor.  Calls openFile(). */
-    XTCInput(const int natoms, const std::string &filename);
+    XTCInput(const std::string &filename);
     /** \brief Destructor.  Calls closeFile(). */
     ~XTCInput();
 

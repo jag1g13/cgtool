@@ -4,16 +4,17 @@
 
 #include "XTCInput.h"
 
+#include <cstdio>
+
 #include "xdrfile_xtc.h"
 
 using std::string;
 using std::printf;
 
-XTCInput::XTCInput(const int natoms, const string &filename){
+XTCInput::XTCInput(const string &filename){
     // How many atoms?  Prepare Frame for reading
     int status = read_xtc_natoms(filename.c_str(), &natoms_);
     if(status != exdrOK) throw std::runtime_error("Could not open input XTC for reading");
-    if(natoms != natoms_) throw std::runtime_error("Number of atoms in XTC not as expected");
 
     x_ = new rvec[natoms_];
     if(openFile(filename)) throw std::runtime_error("Error reading initial frame from XTC");
