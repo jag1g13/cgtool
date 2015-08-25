@@ -15,7 +15,7 @@ protected:
     /** \brief Stores box vectors copied from Frame. */
     float box_[3][3];
     /** \brief Output file handle. */
-    XDRFILE *file_;
+    XDRFILE *file_ = nullptr;
 
     /** \brief Open and prepare output file. */
     int openFile(const std::string &filename);

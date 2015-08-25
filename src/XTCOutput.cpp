@@ -22,9 +22,8 @@ XTCOutput::~XTCOutput(){
 }
 
 int XTCOutput::openFile(const string &filename){
-    char mode[2] = {'r', 'w'};
     backup_old_file(filename);
-    file_ = xdrfile_open(filename.c_str(), &mode[1]);
+    file_ = xdrfile_open(filename.c_str(), "w");
     if(file_) return 0;
     return 1;
 }
