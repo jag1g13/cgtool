@@ -43,9 +43,9 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
         numLipids_ += res.num_residues;
         for(int i = 0; i < res.num_residues; i++){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
-            const int x = clamp(int(frame.x_[num][0] * blocks / box_[0]), 0, blocks-1);
-            const int y = clamp(int(frame.x_[num][1] * blocks / box_[1]), 0, blocks-1);
-            block_avg_z(x, y) += frame.x_[num][2];
+            const int x = clamp(int(frame.atoms_[num].coords[0] * blocks / box_[0]), 0, blocks-1);
+            const int y = clamp(int(frame.atoms_[num].coords[1] * blocks / box_[1]), 0, blocks-1);
+            block_avg_z(x, y) += frame.atoms_[num].coords[2];
             block_tot_residues(x, y)++;
         }
     }
@@ -57,9 +57,9 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
         int num_in_leaflet[2] = {0, 0};
         for(int i = 0; i < res.num_residues; i++){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
-            const int x = std::max(int(frame.x_[num][0] * blocks / box_[0]), 0);
-            const int y = std::min(int(frame.x_[num][1] * blocks / box_[1]), blocks-1);
-            const double z = frame.x_[num][2];
+            const int x = std::max(int(frame.atoms_[num].coords[0] * blocks / box_[0]), 0);
+            const int y = std::min(int(frame.atoms_[num].coords[1] * blocks / box_[1]), blocks-1);
+            const double z = frame.atoms_[num].coords[2];
 
             if(z < block_avg_z(x, y)){
                 lowerHeads_.push_back(num);
@@ -109,16 +109,16 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
         double min_dist_2 = box_[2];
 
         double coords_i[3];
-        coords_i[0] = frame.x_[i][0];
-        coords_i[1] = frame.x_[i][1];
+        coords_i[0] = frame.atoms_[i].coords[0];
+        coords_i[1] = frame.atoms_[i].coords[1];
         coords_i[2] = 0.;
         double coords_j[3];
 
         // Find the closest reference particle in the other leaflet
         int closest = -1;
         for(const int j : other){
-            coords_j[0] = frame.x_[j][0];
-            coords_j[1] = frame.x_[j][1];
+            coords_j[0] = frame.atoms_[j].coords[0];
+            coords_j[1] = frame.atoms_[j].coords[1];
             coords_j[2] = 0.;
 
             const double dist_2 = distSqrPlane(coords_i, coords_j);
@@ -128,8 +128,8 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
             }
         }
 
-        coords_i[2] = frame.x_[i][2];
-        coords_j[2] = frame.x_[closest][2];
+        coords_i[2] = frame.atoms_[i].coords[2];
+        coords_j[2] = frame.atoms_[closest].coords[2];
         pairs[i] = fabs(coords_i[2] - coords_j[2]);
     }
 }
@@ -162,8 +162,8 @@ double Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
             // Find closest lipid in reference leaflet
             closest(i, j) = -1;
             for(int r : ref){
-                ref_coords[0] = frame.x_[r][0];
-                ref_coords[1] = frame.x_[r][1];
+                ref_coords[0] = frame.atoms_[r].coords[0];
+                ref_coords[1] = frame.atoms_[r].coords[1];
                 const double dist2 = distSqrPlane(grid_coords, ref_coords);
                 if(dist2 < min_dist2){
                     closest(i, j) = r;
@@ -211,8 +211,8 @@ void Membrane::curvature(const Frame &frame){
     // Calculate average z coord on grid
     for (int i = 0; i < grid_; i++) {
         for (int j = 0; j < grid_; j++) {
-            avg_z(i, j) = (frame.x_[closestUpper_.at(i, j)][2] +
-                           frame.x_[closestLower_.at(i, j)][2]) / 2.;
+            avg_z(i, j) = (frame.atoms_[closestUpper_.at(i, j)].coords[2] +
+                           frame.atoms_[closestLower_.at(i, j)].coords[2]) / 2.;
         }
     }
 

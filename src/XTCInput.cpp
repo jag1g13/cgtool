@@ -6,6 +6,9 @@
 
 #include "xdrfile_xtc.h"
 
+using std::string;
+using std::printf;
+
 XTCInput::XTCInput(const int natoms, const string &filename){
     // How many atoms?  Prepare Frame for reading
     int status = read_xtc_natoms(filename.c_str(), &natoms_);
@@ -23,7 +26,7 @@ XTCInput::~XTCInput(){
 
 int XTCInput::openFile(const std::string &filename){
     file_ = xdrfile_open(filename.c_str(), "r");
-    status = read_xtc(file_, numAtoms_, &step_, &time_, box_, x_, &prec_);
+    int status = read_xtc(file_, natoms_, &step_, &time_, box_, x_, &prec_);
     if(status != exdrOK) return 1;
 
     // Check box vectors
@@ -40,6 +43,7 @@ int XTCInput::openFile(const std::string &filename){
 
 int XTCInput::closeFile(){
     if(file_) xdrfile_close(file_);
+    return 0;
 }
 
 int XTCInput::readFrame(Frame &frame){

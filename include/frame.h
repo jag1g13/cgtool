@@ -9,8 +9,8 @@
 #include <boost/algorithm/string.hpp>
 
 #include "residue.h"
-//#include "trj_output.h"
 class TrjOutput;
+class TrjInput;
 
 /** \brief Contains data from a line of a GRO file */
 struct GROLine{
@@ -122,6 +122,8 @@ protected:
 
     /** \brief Output writers */
     TrjOutput *trjOut_ = nullptr;
+    /** \brief Input readers */
+    TrjInput *trjIn_ = nullptr;
 
     void createAtoms(int natoms=-1);
 
@@ -132,9 +134,7 @@ protected:
     * Uses libxdrfile to get number of atoms and allocate storage.
     * This function uses this data to create a Frame object to process this data.
     */
-    bool initFromXTC(const std::string &xtcname);
     bool initFromGRO(const std::string &groname);
-    void copyCoordsIntoAtoms(int natoms=-1);
 
     /** \brief Perform wraparound to put all atoms in box.
      * Equivalent to GROMACS trjconv -pbc atom */
@@ -157,8 +157,6 @@ public:
     int step_ = 0;
     /** Size of the simulation box */
     float box_[3][3];
-    /** Holds atomic coordinates for GROMACS */
-    rvec *x_ = nullptr;
     /** Which data have been loaded into atoms? */
     AtomsHave atomHas_;
     std::vector<Residue> *residues_;

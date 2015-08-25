@@ -13,6 +13,7 @@
 #include "small_functions.h"
 #include "XTCOutput.h"
 #include "GROOutput.h"
+#include "XTCInput.h"
 
 using std::string;
 using std::vector;
@@ -43,25 +44,22 @@ Frame::Frame(const string &xtcname, const string &groname,
              vector<Residue> *residues){
     residues_ = residues;
 
-    if(!initFromXTC(xtcname)){
-        printf("ERROR: Something went wrong with reading XTC file\n");
-        exit(EX_UNAVAILABLE);
-    };
-    createAtoms(numAtoms_);
-
-    // Populate atoms_
     if(!initFromGRO(groname)){
         printf("ERROR: Something went wrong with reading GRO file\n");
         exit(EX_UNAVAILABLE);
     };
 
+    trjIn_ = new XTCInput(numAtoms_, xtcname);
+//    createAtoms(numAtoms_);
+
+    // Populate atoms_
+
 }
 
 Frame::~Frame(){
     isSetup_ = false;
-    if(xtcInput_) xdrfile_close(xtcInput_);
+    if(trjIn_) delete trjIn_;
     if(trjOut_) delete trjOut_;
-    if(x_) delete[] x_;
 }
 
 void Frame::setupOutput(string xtcname, string topname){
@@ -70,9 +68,6 @@ void Frame::setupOutput(string xtcname, string topname){
     backup_old_file(topname);
 
     trjOut_ = new XTCOutput(numAtoms_, xtcname);
-
-    if(!x_) x_ = new rvec[numAtoms_];
-    if(!x_) throw std::runtime_error("Couldn't allocate memory for XTC output");
 
     std::ofstream top(topname);
     if(!top.is_open()) throw std::runtime_error("Could not open output TOP file");
@@ -92,50 +87,19 @@ bool Frame::outputTrajectoryFrame(){
     return trjOut_->writeFrame(*this) == 0;
 }
 
-bool Frame::initFromXTC(const string &xtcname){
-    // How many atoms?  Prepare Frame for reading
-    int status = read_xtc_natoms(xtcname.c_str(), &numAtoms_);
-    if(status != exdrOK) return false;
-
-    xtcInput_ = xdrfile_open(xtcname.c_str(), "r");
-    num_ = 0;
-
-    // Init system from XTC file - libxdrfile library
-    x_ = new rvec[numAtoms_];
-    status = read_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_);
-
-    // Check box vectors
-    boxType_ = BoxType::CUBIC;
-    for(int i=0; i<3; i++){
-        for(int j=0; j<3; j++){
-            if(i!=j && box_[i][j] > 0){
-                boxType_ = BoxType::TRICLINIC;
-            }
-        }
-    }
-    if(boxType_ != BoxType::CUBIC) printf("NOTE: Box is not cubic\n");
-
-    if(status == exdrOK) isSetup_ = true;
-    return isSetup_;
-}
-
 bool Frame::initFromGRO(const string &groname){
-    // Require that atoms have been created
-    assert(atomHas_.created);
-
-    std::ifstream gro(groname);
+    std::ifstream gro(groname.c_str());
     if(!gro.is_open()) return false;
 
     // Read top two lines of GRO - system name and number of atoms
     string tmp;
-    int num_atoms = 0;
     getline(gro, name_);
     getline(gro, tmp);
-    num_atoms = stoi(tmp);
-    assert(num_atoms == numAtoms_);
+    numAtoms_ = stoi(tmp);
+    createAtoms(numAtoms_);
+//    assert(num_atoms == numAtoms_);
 
-    // The columns of a GRO file
-    vector<GROLine> grolines(num_atoms);
+    vector<GROLine> grolines(numAtoms_);
 
     // Read in GRO file and get num of different resnames
     int num_residues = 1;
@@ -222,17 +186,6 @@ bool Frame::initFromGRO(const string &groname){
     return true;
 }
 
-void Frame::copyCoordsIntoAtoms(int natoms){
-    if(natoms < 0) natoms = numAtoms_;
-    assert(atoms_.size() >= natoms);
-    for(int i=0; i<natoms; i++){
-        atoms_[i].coords[0] = x_[i][0];
-        atoms_[i].coords[1] = x_[i][1];
-        atoms_[i].coords[2] = x_[i][2];
-    }
-    atomHas_.coords = true;
-}
-
 void Frame::createAtoms(int natoms){
     if(natoms < 0) natoms = numAtoms_;
     atoms_.resize(natoms);
@@ -244,8 +197,8 @@ void Frame::pbcAtom(int natoms){
     for(int i=0; i<natoms; i++){
         for(int j=0; j<3; j++){
             // For each coordinate wrap around into box
-            while(x_[i][j] < 0.) x_[i][j] += box_[j][j];
-            while(x_[i][j] > box_[j][j]) x_[i][j] -= box_[j][j];
+//            while(x_[i][j] < 0.) x_[i][j] += box_[j][j];
+//            while(x_[i][j] > box_[j][j]) x_[i][j] -= box_[j][j];
         }
     }
 }
@@ -324,14 +277,7 @@ void Frame::initFromFLD(const std::string &fldname){
 }
 
 bool Frame::readNext(){
-    assert(xtcInput_ != nullptr);
-    int status = read_xtc(xtcInput_, numAtoms_, &step_, &time_, box_, x_, &prec_);
-    if(status != exdrOK) return false;
-    num_++;
-
-    pbcAtom();
-    copyCoordsIntoAtoms();
-    return true;
+    return trjIn_->readFrame(*this) == 0;
 }
 
 void Frame::printAtoms(int natoms) const{

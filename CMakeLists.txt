@@ -129,6 +129,7 @@ set(CGTOOLCORE_FILES
     "src/parser.cpp"
     "src/residue.cpp"
     "src/small_functions.cpp"
+    "src/XTCInput.cpp"
     "src/GROOutput.cpp"
     "src/XTCOutput.cpp")
 

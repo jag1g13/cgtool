@@ -37,9 +37,9 @@ void RDF::calculateRDF(const Frame &frame){
         const int atom_a = res.start + i*res.num_atoms + res.ref_atom;
 
         double R_a[3];
-        R_a[0] = frame.x_[atom_a][0];
-        R_a[1] = frame.x_[atom_a][1];
-        R_a[2] = frame.x_[atom_a][2];
+        R_a[0] = frame.atoms_[atom_a].coords[0];
+        R_a[1] = frame.atoms_[atom_a].coords[1];
+        R_a[2] = frame.atoms_[atom_a].coords[2];
 
         int pbc_axis[3];
 
@@ -55,9 +55,9 @@ void RDF::calculateRDF(const Frame &frame){
 
             const int atom_b = res.start + j*res.num_atoms + res.ref_atom;
             double R_b[3];
-            R_b[0] = frame.x_[atom_b][0];
-            R_b[1] = frame.x_[atom_b][1];
-            R_b[2] = frame.x_[atom_b][2];
+            R_b[0] = frame.atoms_[atom_b].coords[0];
+            R_b[1] = frame.atoms_[atom_b].coords[1];
+            R_b[2] = frame.atoms_[atom_b].coords[2];
 
             // Loop over centre and neighbouring boxes
             for(int ii=-1; ii<=1; ii++){

@@ -8,7 +8,7 @@
 #include "TrjInput.h"
 #include "xdrfile.h"
 
-class XTCInput : TrjInput{
+class XTCInput : public TrjInput{
 protected:
     /** \brief Stores atoms from XTC. */
     rvec *x_ = nullptr;
@@ -17,7 +17,7 @@ protected:
     /** \brief Input file handle. */
     XDRFILE *file_ = nullptr;
     /** \brief Current timestep */
-    float step_;
+    int step_;
     /** \brief Current time */
     float time_;
     /** \brief XTC precision */
