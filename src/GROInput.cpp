@@ -39,6 +39,7 @@ int GROInput::closeFile(){
 
 int GROInput::readFrame(Frame &frame){
     // Discard top two lines of file - name and number of atoms
+    file_.seekg(0);
     string line;
     getline(file_, line);
     getline(file_, line);
@@ -69,6 +70,7 @@ int GROInput::readFrame(Frame &frame){
 
 void GROInput::readResidues(vector<Residue> &residues){
     // Discard top two lines of file - name and number of atoms
+    file_.seekg(0);
     string line;
     getline(file_, line); getline(file_, line);
 
@@ -88,9 +90,11 @@ void GROInput::readResidues(vector<Residue> &residues){
                 exit(EX_CONFIG);
             }
 
-            res = &(residues[num_res]);
+            res = &(residues[num_res-1]);
             res->start = i;
             res->resname = current.resname;
+            res->total_atoms = 0;
+            res->num_residues = 0;
 
         }
 
@@ -102,10 +106,6 @@ void GROInput::readResidues(vector<Residue> &residues){
         prev = current;
     }
 
-    // Account for last residue end
-    num_res++;
-    res = &(residues[num_res]);
-    res->end = natoms_;
 
     if(residues.size() != num_res){
         printf("ERROR: Found %'d residue(s) in GRO and %'d in CFG\n",
@@ -113,13 +113,18 @@ void GROInput::readResidues(vector<Residue> &residues){
         exit(EX_CONFIG);
     }
 
+    // Second pass for missing values
+    res = &(residues[num_res-1]);
+    res->end = natoms_;
     for(int i=0; i<num_res-1; i++){
         res = &(residues[i]);
         Residue *res_next = &(residues[i+1]);
 
-        res->end = res_next->start - 1;
+        res->end = res_next->start;
         res->set_num_atoms(res->total_atoms / res->num_residues);
         res->populated = true;
     }
-
+    res = &(residues[num_res-1]);
+    res->set_num_atoms(res->total_atoms / res->num_residues);
+    res->populated = true;
 }

@@ -95,73 +95,7 @@ bool Frame::initFromGRO(const string &groname){
     numAtoms_ = in.getNumAtoms();
     createAtoms(numAtoms_);
     in.readFrame(*this);
-
-    std::ifstream gro(groname.c_str());
-    if(!gro.is_open()) return false;
-
-    // Read top two lines of GRO - system name and number of atoms
-    string tmp;
-    getline(gro, name_);
-    getline(gro, tmp);
-
-    vector<GROLine> grolines(numAtoms_);
-
-    // Read in GRO file and get num of different resnames
-    int num_residues = 1;
-    getline(gro, tmp);
-    grolines[0].populate(tmp);
-    for(int i=1; i<numAtoms_; i++){
-        getline(gro, tmp);
-        grolines[i].populate(tmp);
-        if(grolines[i].resname.compare(grolines[i-1].resname)) num_residues++;
-    }
-    gro.close();
-
-    if(residues_->size() < num_residues){
-        printf("ERROR: Found %'d residue(s) not listed in CFG\n",
-               num_residues - static_cast<int>(residues_->size()));
-        exit(EX_CONFIG);
-    }
-
-    int resnum = 0, atomnum = 0;
-    num_residues = 1;
-    Residue *res = &((*residues_)[0]);
-    res->set_start(0);
-
-    // Final pass to populate residues
-    for(int i=1; i<numAtoms_; i++){
-        if(grolines[i].resnum != grolines[i-1].resnum) resnum++;
-        atomnum++;
-
-        if(grolines[i].resname.compare(grolines[i-1].resname)){
-            res->set_resname(grolines[i-1].resname);
-            res->set_num_residues(resnum);
-            res->set_total_atoms(atomnum);
-            res->set_num_atoms(res->total_atoms / res->num_residues);
-            res->calc_total();
-            res->populated = true;
-
-            num_residues++;
-            res = &((*residues_)[num_residues-1]);
-            res->set_start(i);
-            resnum = 0;
-            atomnum = 0;
-        }
-    }
-
-    // Complete final residue
-    resnum++;
-    atomnum++;
-    res->set_resname(grolines[numAtoms_-1].resname);
-    res->set_num_residues(resnum);
-    res->set_total_atoms(atomnum);
-    res->set_num_atoms(res->total_atoms / res->num_residues);
-    res->calc_total();
-    res->populated = true;
-
-    atomHas_.atom_name = true;
-    atomHas_.resnum = true;
-    atomHas_.coords = true;
+    in.readResidues(*residues_);
 
     for(Residue &res : *residues_){
         for(int i=0; i<res.num_atoms; i++){

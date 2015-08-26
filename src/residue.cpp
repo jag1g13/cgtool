@@ -4,14 +4,12 @@
 
 #include "residue.h"
 
-#include <iostream>
+#include <cstdio>
 
 #include <assert.h>
 #include <sysexits.h>
 
 using std::string;
-using std::cout;
-using std::endl;
 
 Residue& Residue::operator=(const Residue other){
     resname = other.resname;
@@ -67,7 +65,13 @@ void Residue::set_total_atoms(const int val){
     total_atoms = val;
 };
 
-void Residue::print() const{
-    printf("%'6d x %5s with %'3d atoms, starting at %'6d\n",
-           num_residues, resname.c_str(), num_atoms, start);
+void Residue::print(const bool extra) const{
+    if(extra){
+        printf("%'6d x %5s with %'3d atoms total %'6d, starting at %'6d end %'6d\n",
+               num_residues, resname.c_str(), num_atoms, total_atoms, start, end);
+    }else{
+
+        printf("%'6d x %5s with %'3d atoms\n",
+               num_residues, resname.c_str(), num_atoms);
+    }
 };

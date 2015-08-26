@@ -61,7 +61,7 @@ public:
     void set_total_atoms(const int val);
 
     /** \brief Print information about this residue */
-    void print() const;
+    void print(const bool extra=false) const;
 };
 
 #endif //CGTOOL_RESIDUE_H
