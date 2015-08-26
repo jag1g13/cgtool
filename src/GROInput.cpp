@@ -60,6 +60,10 @@ int GROInput::readFrame(Frame &frame){
     std::istringstream iss(line);
     iss >> frame.box_[0][0] >> frame.box_[1][1] >> frame.box_[2][2];
 
+    frame.atomHas_.atom_name = true;
+    frame.atomHas_.resnum = true;
+    frame.atomHas_.coords = true;
+
     return 0;
 }
 
@@ -71,20 +75,51 @@ void GROInput::readResidues(vector<Residue> &residues){
     // First pass to get number of residues
     int num_res = 0;
     GROLine current, prev;
+    Residue *res = &(residues[0]);
     for(int i=0; i<natoms_; i++){
         std::getline(file_, line);
         current.populate(line);
 
         if(current.resname != prev.resname){
             num_res++;
+
+            if(residues.size() < num_res){
+                printf("ERROR: Not all residues are listed in CFG\n");
+                exit(EX_CONFIG);
+            }
+
+            res = &(residues[num_res]);
+            res->start = i;
+            res->resname = current.resname;
+
         }
+
+        if(current.resnum != prev.resnum){
+            res->num_residues++;
+        }
+
+        res->total_atoms++;
         prev = current;
     }
+
+    // Account for last residue end
+    num_res++;
+    res = &(residues[num_res]);
+    res->end = natoms_;
 
     if(residues.size() != num_res){
         printf("ERROR: Found %'d residue(s) in GRO and %'d in CFG\n",
                num_res, static_cast<int>(residues.size()));
         exit(EX_CONFIG);
+    }
+
+    for(int i=0; i<num_res-1; i++){
+        res = &(residues[i]);
+        Residue *res_next = &(residues[i+1]);
+
+        res->end = res_next->start - 1;
+        res->set_num_atoms(res->total_atoms / res->num_residues);
+        res->populated = true;
     }
 
 }
