@@ -1,25 +1,22 @@
 #include "frame.h"
 
-#include <iostream>
 #include <sstream>
 
 #include <math.h>
 #include <assert.h>
 #include <sysexits.h>
 
-#include "xdrfile_xtc.h"
-
 #include "parser.h"
 #include "small_functions.h"
 #include "XTCOutput.h"
 #include "GROOutput.h"
+#include "LammpsDataOutput.h"
 #include "XTCInput.h"
 #include "GROInput.h"
 
 using std::string;
 using std::vector;
 using std::endl;
-using std::stoi;
 using std::stof;
 using std::printf;
 using std::map;
@@ -97,6 +94,7 @@ bool Frame::initFromGRO(const string &groname){
     in.readFrame(*this);
     in.readResidues(*residues_);
 
+    // Create diciontary of residues
     for(Residue &res : *residues_){
         for(int i=0; i<res.num_atoms; i++){
             const int atom = res.start + i;
@@ -125,10 +123,12 @@ void Frame::createAtoms(int natoms){
 void Frame::pbcAtom(int natoms){
     if(natoms < 0) natoms = numAtoms_;
     for(int i=0; i<natoms; i++){
+        Atom &atom = atoms_[i];
+
+        // For each coordinate wrap around into box
         for(int j=0; j<3; j++){
-            // For each coordinate wrap around into box
-//            while(x_[i][j] < 0.) x_[i][j] += box_[j][j];
-//            while(x_[i][j] > box_[j][j]) x_[i][j] -= box_[j][j];
+            while(atom.coords[j] < 0.) atom.coords[j] += box_[j][j];
+            while(atom.coords[j] > box_[j][j]) atom.coords[j] -= box_[j][j];
         }
     }
 }
@@ -224,8 +224,10 @@ void Frame::printAtoms(int natoms) const{
 
 void Frame::outputSingleFrame(string filename) const{
     if(filename == "") filename = (*residues_)[0].resname + ".gro";
-    GROOutput gro(numAtoms_, filename);
-    gro.writeFrame(*this);
+    GROOutput output(numAtoms_, filename);
+//    LammpsDataOutput output(numAtoms_, filename);
+
+    output.writeFrame(*this);
 }
 
 void Frame::printBox() const{

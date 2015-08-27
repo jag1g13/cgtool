@@ -12,6 +12,64 @@ using std::string;
 using std::printf;
 using std::vector;
 
+/** \brief Contains data from a line of a GRO file. */
+struct GROLine{
+    int resnum = 0;
+    std::string resname = "";
+    std::string atomname = "";
+    int atomnum = 0;
+    float coords[3] = {0.f, 0.f, 0.f};
+    float velocity[3] = {0.f, 0.f, 0.f};
+
+    /** \brief Populate from string - line of GRO file. */
+    int populate(const std::string &line){
+        if(line.size() < 41) return 0;
+
+        // Adjust for 7.2f formatting
+        int float_len = 8;
+        if(line.size() == 41) float_len = 7;
+
+        resnum = std::stoi(line.substr(0, 5));
+        resname = line.substr(5, 5);
+        boost::trim(resname);
+        atomname = line.substr(10, 5);
+        boost::trim(atomname);
+        atomnum = std::stoi(line.substr(15, 5));
+        coords[0] = std::stof(line.substr(20, float_len));
+        coords[1] = std::stof(line.substr(20 + float_len, float_len));
+        coords[2] = std::stof(line.substr(20 + 2*float_len, float_len));
+
+        if(line.size() >= 68){
+            velocity[0] = std::stof(line.substr(44, float_len));
+            velocity[1] = std::stof(line.substr(52, float_len));
+            velocity[2] = std::stof(line.substr(60, float_len));
+            return 2;
+        }
+        return 1;
+    };
+
+    /** \brief Print the parsed line for debugging. */
+    void print() const{
+        printf("%5d%5s%5s%5d%8.3f%8.3f%8.3f\n",
+               resnum, resname.c_str(), atomname.c_str(),
+               atomnum, coords[0], coords[1], coords[2]);
+    }
+
+    /** \brief Copy assignment operator. */
+    GROLine& operator=(const GROLine &other){
+        resnum = other.resnum;
+        resname = other.resname;
+        atomname = other.atomname;
+        atomnum = other.atomnum;
+        for(int i=0; i<3; i++){
+            coords[i] = other.coords[i];
+            velocity[i] = other.velocity[i];
+        }
+
+        return *this;
+    }
+};
+
 GROInput::GROInput(const string &filename){
     if(openFile(filename)) throw std::runtime_error("Error opening GRO file");
 }
@@ -48,7 +106,6 @@ int GROInput::readFrame(Frame &frame){
     for(int i=0; i<natoms_; i++){
         getline(file_, line);
         groline.populate(line);
-//        if(i>0 && grolines[i].resname.compare(grolines[i-1].resname)) num_residues++;
 
         frame.atoms_[i].resnum = groline.resnum;
         frame.atoms_[i].atom_name = groline.atomname;

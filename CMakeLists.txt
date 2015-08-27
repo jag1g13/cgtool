@@ -132,6 +132,7 @@ set(CGTOOLCORE_FILES
     "src/GROInput.cpp"
     "src/XTCInput.cpp"
     "src/GROOutput.cpp"
+    "src/LammpsDataOutput.cpp"
     "src/XTCOutput.cpp")
 
 set(CGTOOL_FILES
