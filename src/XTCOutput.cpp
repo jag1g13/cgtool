@@ -48,5 +48,5 @@ int XTCOutput::writeFrame(const Frame &frame){
     }
 
     return exdrOK == write_xtc(file_, natoms_, frame.step_,
-                               frame.time_, box_, x_, frame.prec_);
+                               frame.time_, box_, x_, 500.f);
 }

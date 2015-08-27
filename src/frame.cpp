@@ -11,6 +11,7 @@
 #include "XTCOutput.h"
 #include "GROOutput.h"
 #include "LammpsDataOutput.h"
+#include "LammpsTrjOutput.h"
 #include "XTCInput.h"
 #include "GROInput.h"
 
@@ -24,7 +25,6 @@ using std::map;
 Frame::Frame(const Frame &frame, vector<Residue> *residues){
     num_ = frame.num_;
     name_ = frame.name_;
-    prec_ = frame.prec_;
     time_ = frame.time_;
     step_ = frame.step_;
     boxType_ = frame.boxType_;
@@ -61,6 +61,7 @@ void Frame::setupOutput(string xtcname, string topname){
     if(topname == "") topname = (*residues_)[0].resname + ".top";
 
     trjOut_ = new XTCOutput(numAtoms_, xtcname);
+//    trjOut_ = new LammpsTrjOutput(numAtoms_, xtcname);
     writeTOP(topname);
     outputSetup_ = true;
 }
@@ -215,10 +216,12 @@ void Frame::printAtoms(int natoms) const{
     if(natoms == -1) natoms = numAtoms_;
     printf("  Num Name    Mass  Charge    Posx    Posy    Posz\n");
     for(int i=0; i<natoms; i++){
-        printf("%5i%5s%8.3f%8.3f%8.3f%8.3f%8.3f\n",
-               i, atoms_[i].atom_name.c_str(),
-               atoms_[i].mass, atoms_[i].charge,
-               atoms_[i].coords[0], atoms_[i].coords[1], atoms_[i].coords[2]);
+        const Atom &atom = atoms_[i];
+        printf("%5i%5s%8.3f%8.3f%8.3f%8.3f%8.3f%8.3f%8.3f%8.3f%8.3f\n",
+               i, atom.atom_name.c_str(),
+               atom.mass, atom.charge,
+               atom.coords[0], atom.coords[1], atom.coords[2],
+               atom.dipole[0], atom.dipole[1], atom.dipole[2], atom.dipole[3]);
     }
 }
 

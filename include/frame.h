@@ -98,8 +98,6 @@ public:
     int numAtoms_ = 0;
     /** The simulation time of this frame, in picoseconds */
     float time_ = 0.f;
-    /** XTC precision; not used internally, just for XTC input/output */
-    float prec_ = 0.f;
     /** The number of this Frame, starting at 0 */
     int num_ = 0;
     /** The simulation step corresponding to this frame */

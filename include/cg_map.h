@@ -94,6 +94,9 @@ public:
     * Requires that initFrame has already been called to setup the CG Frame.
     */
     bool apply(const Frame &aa_frame, Frame &cg_frame);
+
+    /** \brief Calculate dipoles from atomistic frame */
+    void calcDipoles(const Frame &aa_frame, Frame &cg_frame);
 };
 
 #endif

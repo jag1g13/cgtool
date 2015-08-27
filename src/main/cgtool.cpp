@@ -147,6 +147,7 @@ void Cgtool::mainLoop(){
     // Calculate bonds and store in BondStructs
     if(settings_["map"]["on"]){
         cgMap_->apply(*frame_, *cgFrame_);
+        cgMap_->calcDipoles(*frame_, *cgFrame_);
         cgFrame_->outputTrajectoryFrame();
         if(settings_["bonds"]["on"]) bondSet_->calcBondsInternal(*cgFrame_);
 
@@ -197,7 +198,10 @@ void Cgtool::postProcess(){
         printf("\n");
     }
 
-    if(settings_["map"]["on"]) cgFrame_->outputSingleFrame();
+    if(settings_["map"]["on"]){
+        cgFrame_->outputSingleFrame();
+        cgFrame_->printAtoms(cgResidues_[0].num_atoms);
+    }
     if(settings_["rdf"]["on"]) rdf_->normalize();
 }
 

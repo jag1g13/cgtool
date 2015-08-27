@@ -36,6 +36,8 @@ int LammpsDataOutput::closeFile(){
 }
 
 int LammpsDataOutput::writeFrame(const Frame &frame){
+    // Have to multiply all coords by 10 - Gromacs is in A, Lammps in nm
+
     // Print headers
     fprintf(file_, "        %d atoms\n", frame.numAtoms_);
     fprintf(file_, "        %d bonds\n", 0);
@@ -51,7 +53,7 @@ int LammpsDataOutput::writeFrame(const Frame &frame){
 
     double box[3];
     for(int i=0; i<3; i++){
-        box[i] = frame.box_[i][i] / 2;
+        box[i] = 10 * frame.box_[i][i] / 2;
     }
 
     fprintf(file_, "        %8.3f %8.3f    xlo xhi\n", -box[0], box[0]);
@@ -64,9 +66,9 @@ int LammpsDataOutput::writeFrame(const Frame &frame){
         //TODO change 2nd column to actual atom type number
         fprintf(file_, " %6d %4d %10.4f %10.4f %10.4f %6d %6.2f %9.5f %9.5f %9.5f %4.1f %4.1f\n",
                 i+1, i+1,
-                atom.coords[0]-box[0], atom.coords[1]-box[1], atom.coords[2]-box[2],
+                10*atom.coords[0]-box[0], 10*atom.coords[1]-box[1], 10*atom.coords[2]-box[2],
                 atom.resnum, atom.charge,
-                atom.dipole[0], atom.dipole[1], atom.dipole[2],
+                10*atom.dipole[0], 10*atom.dipole[1], 10*atom.dipole[2],
                 3.f, 2.7f);
     }
 
