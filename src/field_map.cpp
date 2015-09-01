@@ -182,7 +182,7 @@ void FieldMap::calcFieldDipolesContracted(const Frame &frame){
 
             for(int k=0; k<3; k++) {
                 coords[k] = gridContracted_(i, k);
-                vec_a[k] = gridContracted_(i, k) - frame.atoms_[j].coords[k];
+                vec_a[k] = coords[k] - frame.atoms_[j].coords[k];
                 vec_b[k] = dipoles_(j, k);
             }
 

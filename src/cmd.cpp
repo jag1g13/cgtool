@@ -40,7 +40,7 @@ CMD::CMD(const string &help_header, const string &help_string,
                                     parts[1].c_str());
                 break;
             case ArgType::INT:
-                desc_.add_options()((arg+","+arg[0]).c_str(),
+                desc_.add_options()((arg).c_str(),
                                     po::value<int>()->default_value(stoi(parts[3])),
                                     parts[1].c_str());
                 break;

@@ -102,10 +102,11 @@ TEST(ArrayTest, InitAccess1dSpeedSlow){
         }
         for(int j=0; j<size; j++){
             a = array(j);
+            array(j) = a+1;
         }
     }
     for(int j=0; j<size; j++){
-        ASSERT_DOUBLE_EQ(array(j), j);
+        ASSERT_DOUBLE_EQ(array(j), j+1);
     }
 }
 
@@ -120,10 +121,11 @@ TEST(ArrayTest, InitAccess1dSpeedFast){
         }
         for(int j=0; j<size; j++){
             a = array(j);
+            array(j) = a+1;
         }
     }
     for(int j=0; j<size; j++){
-        ASSERT_DOUBLE_EQ(array(j), j);
+        ASSERT_DOUBLE_EQ(array(j), j+1);
     }
 }
 
@@ -143,6 +145,7 @@ TEST(ArrayTest, InitAccess2dSpeedSlow){
         for(int j=0; j<size; j++){
             for(int k=0; k<size; k++){
                 a = array(j, k);
+                array(j, k) = a+1;
             }
         }
     }
@@ -150,7 +153,7 @@ TEST(ArrayTest, InitAccess2dSpeedSlow){
     // Check values
     for(int j=0; j<size; j++){
         for(int k=0; k<size; k++){
-            ASSERT_DOUBLE_EQ(array(j, k), float(j + k));
+            ASSERT_DOUBLE_EQ(array(j, k), float(j + k)+1);
         }
     }
 }
@@ -171,6 +174,7 @@ TEST(ArrayTest, InitAccess2dSpeedFast){
         for(int j=0; j<size; j++){
             for(int k=0; k<size; k++){
                 a = array(j, k);
+                array(j, k) = a+1;
             }
         }
     }
@@ -178,7 +182,7 @@ TEST(ArrayTest, InitAccess2dSpeedFast){
     // Check values
     for(int j=0; j<size; j++){
         for(int k=0; k<size; k++){
-            ASSERT_DOUBLE_EQ(array(j, k), float(j + k));
+            ASSERT_DOUBLE_EQ(array(j, k), float(j + k)+1);
         }
     }
 }
@@ -202,6 +206,7 @@ TEST(ArrayTest, InitAccess3dSpeedSlow){
             for(int k=0; k<size; k++){
                 for(int l=0; l<size; l++){
                     a = array(j, k, l);
+                    array(j, k, l) = a+1;
                 }
             }
         }
@@ -211,7 +216,7 @@ TEST(ArrayTest, InitAccess3dSpeedSlow){
     for(int j=0; j<size; j++){
         for(int k=0; k<size; k++){
             for(int l=0; l<size; l++) {
-                ASSERT_DOUBLE_EQ(array(j, k, l), float(j + k + l));
+                ASSERT_DOUBLE_EQ(array(j, k, l), float(j + k + l)+1);
             }
         }
     }
@@ -236,6 +241,7 @@ TEST(ArrayTest, InitAccess3dSpeedFast){
             for(int k=0; k<size; k++){
                 for(int l=0; l<size; l++){
                     a = array(j, k, l);
+                    array(j, k, l) = a+1;
                 }
             }
         }
@@ -245,7 +251,7 @@ TEST(ArrayTest, InitAccess3dSpeedFast){
     for(int j=0; j<size; j++){
         for(int k=0; k<size; k++){
             for(int l=0; l<size; l++) {
-                ASSERT_DOUBLE_EQ(array(j, k, l), float(j + k + l));
+                ASSERT_DOUBLE_EQ(array(j, k, l), float(j + k + l)+1);
             }
         }
     }

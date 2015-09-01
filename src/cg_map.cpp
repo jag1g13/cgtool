@@ -240,33 +240,30 @@ bool CGMap::apply(const Frame &aa_frame, Frame &cg_frame){
 }
 
 void CGMap::calcDipoles(const Frame &aa_frame, Frame &cg_frame){
-    // For each bead in the molecule
-    for(int i=0; i<numBeads_; i++){
-        const BeadMap &bead_type = mapping_[i];
-        Atom &cg_atom = cg_frame.atoms_[i];
-        cg_atom.dipole[0] = cg_atom.dipole[1] = cg_atom.dipole[2] = 0.;
+    // For each molecule
+    for(int k=0; k<(*cgResidues_)[0].num_residues; k++){
+        // For each bead in the molecule
+        for(int i = 0; i < numBeads_; i++){
+            const BeadMap &bead_type = mapping_[i];
+            Atom &cg_atom = cg_frame.atoms_[i];
+            cg_atom.dipole[0] = cg_atom.dipole[1] = cg_atom.dipole[2] = 0.;
 
-        // For each atom in the bead
-        for(const int j : bead_type.atom_nums){
-            const Atom &aa_atom = aa_frame.atoms_[j];
-            // Rescale charges so bead charge is zero
-            // This is how GMX_DIPOLE does it
-            const double charge = aa_atom.charge -
-                    (cg_atom.charge * aa_atom.mass / bead_type.mass);
-//            const double charge = aa_atom.charge;
-            cg_atom.dipole[0] += aa_atom.coords[0] * charge;
-            cg_atom.dipole[1] += aa_atom.coords[1] * charge;
-            cg_atom.dipole[2] += aa_atom.coords[2] * charge;
+            // For each atom in the bead
+            for(const int j : bead_type.atom_nums){
+                const Atom &aa_atom = aa_frame.atoms_[j];
+                // Rescale charges so bead charge is zero
+                // This is how GMX_DIPOLE does it
+                const double charge = aa_atom.charge -
+                                      (cg_atom.charge * aa_atom.mass / bead_type.mass);
+                cg_atom.dipole[0] += aa_atom.coords[0] * charge;
+                cg_atom.dipole[1] += aa_atom.coords[1] * charge;
+                cg_atom.dipole[2] += aa_atom.coords[2] * charge;
+            }
+
+            // Calculate magnitude
+            cg_atom.dipole[3] = sqrt(cg_atom.dipole[0] * cg_atom.dipole[0] +
+                                     cg_atom.dipole[1] * cg_atom.dipole[1] +
+                                     cg_atom.dipole[2] * cg_atom.dipole[2]);
         }
-
-//        double charge = cg_atom.charge;
-//        cg_atom.dipole[0] -= cg_atom.coords[0] * charge;
-//        cg_atom.dipole[1] -= cg_atom.coords[1] * charge;
-//        cg_atom.dipole[2] -= cg_atom.coords[2] * charge;
-
-        // Calculate magnitude
-        cg_atom.dipole[3] = sqrt(cg_atom.dipole[0]*cg_atom.dipole[0] +
-                                 cg_atom.dipole[1]*cg_atom.dipole[1] +
-                                 cg_atom.dipole[2]*cg_atom.dipole[2]);
     }
 }

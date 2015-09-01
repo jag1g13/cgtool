@@ -200,7 +200,6 @@ void Cgtool::postProcess(){
 
     if(settings_["map"]["on"]){
         cgFrame_->outputSingleFrame();
-        cgFrame_->printAtoms(cgResidues_[0].num_atoms);
     }
     if(settings_["rdf"]["on"]) rdf_->normalize();
 }

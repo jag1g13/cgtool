@@ -26,7 +26,7 @@ Residue& Residue::operator=(const Residue other){
 void Residue::calc_total(){
     total_atoms = num_atoms * num_residues;
     end = start + total_atoms;
-};
+}
 
 void Residue::init(){
     num_atoms = 0;
@@ -36,17 +36,17 @@ void Residue::init(){
 void Residue::set_num_atoms(const int val){
     if(num_atoms != -1) assert(val == num_atoms);
     num_atoms = val;
-};
+}
 
 void Residue::set_num_residues(const int val){
     if(num_residues != -1) assert(val == num_residues);
     num_residues = val;
-};
+}
 
 void Residue::set_start(const int val){
 //    if(start != -1) assert(val == start);
     start = val;
-};
+}
 
 void Residue::set_resname(const string &val){
     if(resname.compare("") && val.compare(resname)){
@@ -57,13 +57,13 @@ void Residue::set_resname(const string &val){
     }else{
         resname = val;
     }
-};
+}
 
 void Residue::set_total_atoms(const int val){
     // Assertion not true if both num_residues and num_atoms are -1
 //    if(total_atoms != -1) assert(val == total_atoms);
     total_atoms = val;
-};
+}
 
 void Residue::print(const bool extra) const{
     if(extra){
@@ -74,4 +74,4 @@ void Residue::print(const bool extra) const{
         printf("%'6d x %5s with %'3d atoms\n",
                num_residues, resname.c_str(), num_atoms);
     }
-};
+}
