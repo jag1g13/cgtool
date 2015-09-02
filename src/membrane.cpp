@@ -135,16 +135,14 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
         }
 
         if(closest == -1) throw std::logic_error("Could not find closest partner lipid in membrane");
-//        printf("%8.3f\n", min_dist_2);
 
         coords_i[2] = frame.atoms_[i].coords[2];
         coords_j[2] = frame.atoms_[closest].coords[2];
         pairs[i] = fabs(coords_i[2] - coords_j[2]);
-//        printf("%8.3f\n", fabs(coords_i[2] - coords_j[2]));
     }
 }
 
-//TODO optimise this - it takes >90% of runtime
+//TODO optimise this - it takes >80% of runtime
 double Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
                             const std::map<int, double> &pairs, LightArray<int> &closest){
     const double max_box = box_[0] > box_[1] ? box_[0] : box_[1];
@@ -170,18 +168,19 @@ double Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
             double min_dist2 = max_box*max_box;
 
             // Find closest lipid in reference leaflet
-            closest(i, j) = -1;
+            int closest_int = -1;
             for(int r : ref){
                 ref_coords[0] = frame.atoms_[r].coords[0];
                 ref_coords[1] = frame.atoms_[r].coords[1];
                 const double dist2 = distSqrPlane(grid_coords, ref_coords);
                 if(dist2 < min_dist2){
-                    closest(i, j) = r;
+                    closest_int = r;
                     min_dist2 = dist2;
                 }
             }
 
-            const double tmp = pairs.at(closest(i, j));
+            closest(i, j) = closest_int;
+            const double tmp = pairs.at(closest_int);
             sum += tmp;
             thickness_(i, j) += tmp;
         }
