@@ -51,7 +51,7 @@ void Ramsi::readConfig(){
     settings_["mem"]["freq"] =
             cfg_parser.getIntKeyFromSection("membrane", "calculate", 1);
     settings_["mem"]["export"] =
-            cfg_parser.getIntKeyFromSection("membrane", "export", 100);
+            cfg_parser.getIntKeyFromSection("membrane", "export", -1);
     settings_["mem"]["calculate"] =
             cfg_parser.getIntKeyFromSection("membrane", "calculate", 1);
     settings_["mem"]["resolution"] =
@@ -73,8 +73,6 @@ void Ramsi::setupObjects(){
         cgMap_ = new CGMap(&residues_, &cgResidues_);
         cgMap_->fromFile(inputFiles_["cfg"].name);
         cgMap_->initFrame(*frame_, *cgFrame_);
-//        cgFrame_->setupOutput();
-//        cgFrame_->outputSingleFrame();
     }else{
         // If not mapping make both frames point to the same thing
         cgFrame_ = frame_;
@@ -89,7 +87,6 @@ void Ramsi::setupObjects(){
 void Ramsi::mainLoop(){
     if(settings_["map"]["on"]){
         cgMap_->apply(*frame_, *cgFrame_);
-//        cgFrame_->outputTrajectoryFrame();
     }
 
     // Membrane calculations

@@ -137,6 +137,7 @@ set(CGTOOLCORE_FILES
     "src/XTCOutput.cpp")
 
 set(CGTOOL_FILES
+    "src/main/cgtool.cpp"
     "src/array.cpp"
     "src/boltzmann_inverter.cpp"
     "src/bond_struct.cpp"
@@ -144,21 +145,25 @@ set(CGTOOL_FILES
     "src/field_map.cpp"
     "src/histogram.cpp"
     "src/itp_writer.cpp"
-    "src/light_array.cpp"
     "src/non_bondset.cpp"
     "src/rdf.cpp")
+
+set(RAMSI_FILES
+    "src/main/ramsi.cpp"
+    "src/membrane.cpp"
+    "src/array.cpp")
 
 # Add CGTOOLCORE library
 add_library(cgtoolcore ${CGTOOLCORE_FILES})
 target_link_libraries(cgtoolcore ${EXTRA_LIBS})
 
 # Add CGTOOL target
-add_executable(cgtool "src/main/cgtool.cpp" ${CGTOOL_FILES})
+add_executable(cgtool ${CGTOOL_FILES})
 add_dependencies(cgtool flens)
-target_link_libraries (cgtool cgtoolcore)
+target_link_libraries(cgtool cgtoolcore)
 
 # Add RAMSi target
-add_executable(ramsi "src/main/ramsi.cpp" "src/membrane.cpp" "src/array.cpp" ${SOURCE_FILES})
+add_executable(ramsi ${RAMSI_FILES})
 target_link_libraries(ramsi cgtoolcore)
 
 # Testing
@@ -189,7 +194,7 @@ add_test(IntegrationGRO ${CMAKE_COMMAND} -E compare_files
 add_test(IntegrationTOP ${CMAKE_COMMAND} -E compare_files
     ${CMAKE_SOURCE_DIR}/build/ALLA.top ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.top)
 
-add_test(IntegrationRUNRAMSi ramsi -c ../test_data/staph/mem.cfg -x ../test_data/staph/md.xtc -g ../test_data/staph/md.gro)
+add_test(IntegrationRUNRAMSi ./ramsi -c ../test_data/staph/mem.cfg -x ../test_data/staph/md.xtc -g ../test_data/staph/md.gro)
 
 enable_testing()
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}

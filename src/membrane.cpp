@@ -5,6 +5,7 @@
 #include "membrane.h"
 
 #include <cmath>
+#include <cstdio>
 #include <boost/algorithm/clamp.hpp>
 
 #include "small_functions.h"
@@ -36,7 +37,8 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
     // Find middle of membrane in z coord
     // Do this in blocks to account for curvature - more curvature needs more blocks
     Array block_avg_z(blocks, blocks);
-    Array block_tot_residues(blocks, blocks);
+//    Array block_tot_residues(blocks, blocks);
+    LightArray<int> block_tot_residues(blocks, blocks);
 
     for(const Residue &res : *residues_){
         if(res.ref_atom < 0) continue;
@@ -49,7 +51,13 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
             block_tot_residues(x, y)++;
         }
     }
-    block_avg_z.elementDivide(block_tot_residues);
+
+//    block_avg_z.elementDivide(block_tot_residues);
+    for(int i=0; i<blocks; i++){
+        for(int j=0; j<blocks; j++){
+            block_avg_z(i, j) /= block_tot_residues(i, j);
+        }
+    }
 
     // Separate membrane into upper and lower
     for(const Residue &res : *residues_){
@@ -106,12 +114,11 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
                          const vector<int> &other, map<int, double> &pairs){
     // For each reference particle in the ref leaflet
     for(const int i : ref){
-        double min_dist_2 = box_[2];
+        double min_dist_2 = box_[0] * box_[1];
 
         double coords_i[3];
         coords_i[0] = frame.atoms_[i].coords[0];
         coords_i[1] = frame.atoms_[i].coords[1];
-        coords_i[2] = 0.;
         double coords_j[3];
 
         // Find the closest reference particle in the other leaflet
@@ -119,7 +126,6 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
         for(const int j : other){
             coords_j[0] = frame.atoms_[j].coords[0];
             coords_j[1] = frame.atoms_[j].coords[1];
-            coords_j[2] = 0.;
 
             const double dist_2 = distSqrPlane(coords_i, coords_j);
             if(dist_2 < min_dist_2){
@@ -128,9 +134,13 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
             }
         }
 
+        if(closest == -1) throw std::logic_error("Could not find closest partner lipid in membrane");
+//        printf("%8.3f\n", min_dist_2);
+
         coords_i[2] = frame.atoms_[i].coords[2];
         coords_j[2] = frame.atoms_[closest].coords[2];
         pairs[i] = fabs(coords_i[2] - coords_j[2]);
+//        printf("%8.3f\n", fabs(coords_i[2] - coords_j[2]));
     }
 }
 

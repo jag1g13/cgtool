@@ -57,7 +57,7 @@ template <typename T> void LightArray<T>::smooth(const int n_iter){
 }
 
 /** \brief Print the array - format required to account for different types */
-template <typename T> void LightArray<T>::print(const char *format){
+template <typename T> void LightArray<T>::print(const char *format) const{
     for(int i=0; i<size_[0]; i++){
         for(int j=0; j<size_[1]; j++){
             printf(format, array_[i*size_[0] + j]);
