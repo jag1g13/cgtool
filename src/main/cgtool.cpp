@@ -110,7 +110,11 @@ void Cgtool::readConfig(){
 void Cgtool::setupObjects(){
     // Open files and do setup
     frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, &residues_);
-    if(inputFiles_["itp"].exists) frame_->initFromITP(inputFiles_["itp"].name);
+    if(inputFiles_["itp"].exists){
+        frame_->initFromITP(inputFiles_["itp"].name);
+    }else{
+        printf("WARNING: Without ITP file no charges/dipoles will be present in the output.\n");
+    }
     if(inputFiles_["fld"].exists) frame_->initFromFLD(inputFiles_["fld"].name);
     for(Residue &res : residues_) res.print();
 
