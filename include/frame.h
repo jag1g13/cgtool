@@ -146,9 +146,6 @@ public:
     /** \brief Print info for all atoms up to n.  Default print all. */
     void printAtoms(int natoms=-1) const;
 
-    /** \brief Output single frame to file. */
-    void outputSingleFrame(std::string filename = "") const;
-
     /** \brief Print box vectors */
     void printBox() const;
 };

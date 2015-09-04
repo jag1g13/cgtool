@@ -225,14 +225,6 @@ void Frame::printAtoms(int natoms) const{
     }
 }
 
-void Frame::outputSingleFrame(string filename) const{
-    if(filename == "") filename = (*residues_)[0].resname + ".gro";
-    GROOutput output(numAtoms_, filename);
-//    LammpsDataOutput output(numAtoms_, filename);
-
-    output.writeFrame(*this);
-}
-
 void Frame::printBox() const{
     // Print box vectors - assume cubic
     for(int i=0; i<3; i++){

@@ -7,6 +7,9 @@
 
 #include "itp_writer.h"
 
+#include "GROOutput.h"
+#include "LammpsDataOutput.h"
+
 using std::string;
 using std::vector;
 
@@ -203,7 +206,19 @@ void Cgtool::postProcess(){
     }
 
     if(settings_["map"]["on"]){
-        cgFrame_->outputSingleFrame();
+        string filename = residues_[0].resname;
+        switch(outProgram_){
+            case FileFormat::GROMACS:{
+                GROOutput output(cgFrame_->numAtoms_, filename + ".gro");
+                output.writeFrame(*cgFrame_);
+            }
+                break;
+            case FileFormat::LAMMPS:{
+                LammpsDataOutput output(cgFrame_->numAtoms_, filename + ".data");
+                output.writeFrame(*cgFrame_);
+            }
+                break;
+        }
     }
     if(settings_["rdf"]["on"]) rdf_->normalize();
 }
