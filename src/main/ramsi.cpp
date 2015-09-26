@@ -3,6 +3,8 @@
 
 #include "ramsi.h"
 
+#include "small_functions.h"
+
 using std::string;
 using std::vector;
 
@@ -91,7 +93,7 @@ void Ramsi::mainLoop(){
 
     // Membrane calculations
     if(currFrame_ % settings_["mem"]["freq"] == 0){
-        membrane_->thickness(*cgFrame_);
+        thickness_.push_back(membrane_->thickness(*cgFrame_));
         membrane_->curvature(*cgFrame_);
     }
 
@@ -111,6 +113,10 @@ void Ramsi::postProcess(){
         membrane_->printCSV("thickness_avg");
         membrane_->printCSVCurvature("curvature_final");
     }
+    double mean = vector_mean(thickness_);
+    double se = vector_stderr(thickness_, mean);
+
+    printf("Thickness mean: %8.3f, SE %8.3f\n", mean, se);
 }
 
 Ramsi::~Ramsi(){

@@ -71,6 +71,12 @@ void polar(const double cart[3], double polar[3]);
 /** \brief Get (approximate) number of frames in XTC file */
 int get_xtc_num_frames(const std::string &xtcname);
 
+/** \brief Calculate mean of vector */
+double vector_mean(std::vector<double> &vec);
+
+/** \brief Calculate standard error of vector */
+double vector_stderr(std::vector<double> &vec, double mean=0.);
+
 struct StatsBox{
     /** RMS difference between items */
     double rmsd = 0.;

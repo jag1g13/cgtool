@@ -82,7 +82,7 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
     }
 }
 
-void Membrane::thickness(const Frame &frame, const bool with_reset){
+double Membrane::thickness(const Frame &frame, const bool with_reset){
     if(with_reset) reset();
 
     // Copy box from Frame - assume orthorhombic
@@ -108,6 +108,7 @@ void Membrane::thickness(const Frame &frame, const bool with_reset){
 //    curvature(closestUpper_, closestLower_, frame);
 //    printCSVCurvature("curvature_" + std::to_string(frame.num_));
     numFrames_++;
+    return avg_thickness;
 }
 
 void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
