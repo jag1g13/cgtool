@@ -103,6 +103,19 @@ int get_xtc_num_frames(const string &xtcname){
     return total_size / frame_size;
 }
 
+double vector_mean(vector<double> &vec){
+    double sum = 0.;
+    for(const double &it : vec) sum += it;
+    return sum / vec.size();
+}
+
+double vector_stderr(vector<double> &vec, double mean){
+    if(mean == 0.) mean = vector_mean(vec);
+    double sum = 0.;
+    for(const double &it : vec) sum += (it-mean)*(it-mean);
+    return sqrt(sum) / vec.size();
+}
+
 StatsBox vector_stats(const vector<double> &a, const vector<double> &b){
     assert(a.size() == b.size());
     const int N = a.size();

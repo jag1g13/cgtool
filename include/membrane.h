@@ -85,7 +85,7 @@ public:
     void sortBilayer(const Frame &frame, const int blocks=4);
 
     /** \brief Calculate thickness of bilayer */
-    void thickness(const Frame &frame, const bool with_reset=false);
+    double thickness(const Frame &frame, const bool with_reset=false);
 
     /** \brief Calculate surface area per lipid by residue */
     void areaPerLipid(const LightArray<int> &closest);
