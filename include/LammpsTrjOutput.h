@@ -7,7 +7,7 @@
 
 #include "trj_output.h"
 
-class LammpsTrjOutput : TrjOutput{
+class LammpsTrjOutput : public TrjOutput{
 protected:
     /** \brief Output file handle. */
     FILE *file_ = nullptr;

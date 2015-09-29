@@ -23,6 +23,8 @@ protected:
     RDF      *rdf_ = nullptr;
     FieldMap *field_ = nullptr;
 
+    TrjOutput *trjOutput_ = nullptr;
+
     // Protected functions
     /** \brief Read config file and determine which functions should be performed */
     void readConfig();

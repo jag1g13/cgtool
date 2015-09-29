@@ -8,12 +8,9 @@
 
 #include "parser.h"
 #include "small_functions.h"
-#include "XTCOutput.h"
-#include "GROOutput.h"
-#include "LammpsDataOutput.h"
-#include "LammpsTrjOutput.h"
 #include "XTCInput.h"
 #include "GROInput.h"
+#include "trj_output.h"
 
 using std::string;
 using std::vector;
@@ -53,15 +50,11 @@ Frame::Frame(const string &xtcname, const string &groname,
 Frame::~Frame(){
     isSetup_ = false;
     if(trjIn_) delete trjIn_;
-    if(trjOut_) delete trjOut_;
 }
 
 void Frame::setupOutput(string xtcname, string topname){
-    if(xtcname == "") xtcname = (*residues_)[0].resname + ".xtc";
     if(topname == "") topname = (*residues_)[0].resname + ".top";
 
-    trjOut_ = new XTCOutput(numAtoms_, xtcname);
-//    trjOut_ = new LammpsTrjOutput(numAtoms_, xtcname);
     writeTOP(topname);
     outputSetup_ = true;
 }
@@ -82,10 +75,10 @@ void Frame::writeTOP(const string &filename){
     top.close();
 }
 
-bool Frame::outputTrajectoryFrame(){
+bool Frame::outputTrajectoryFrame(TrjOutput &output){
     if(!outputSetup_) throw std::logic_error("Output has not been setup");
 
-    return trjOut_->writeFrame(*this) == 0;
+    return output.writeFrame(*this) == 0;
 }
 
 bool Frame::initFromGRO(const string &groname){

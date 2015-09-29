@@ -73,8 +73,6 @@ protected:
     /** What box shape do we have?  Currently must be cubic */
     BoxType boxType_ = BoxType::CUBIC;
 
-    /** \brief Output writers */
-    TrjOutput *trjOut_ = nullptr;
     /** \brief Input readers */
     TrjInput *trjIn_ = nullptr;
 
@@ -141,7 +139,7 @@ public:
     void setupOutput(std::string xtcnameout="", std::string top="");
 
     /** \brief Output frame to trajectory file. */
-    bool outputTrajectoryFrame();
+    bool outputTrajectoryFrame(TrjOutput &output);
 
     /** \brief Print info for all atoms up to n.  Default print all. */
     void printAtoms(int natoms=-1) const;

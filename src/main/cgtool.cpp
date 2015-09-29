@@ -9,6 +9,8 @@
 
 #include "GROOutput.h"
 #include "LammpsDataOutput.h"
+#include "XTCOutput.h"
+#include "LammpsTrjOutput.h"
 
 using std::string;
 using std::vector;
@@ -129,6 +131,19 @@ void Cgtool::setupObjects(){
         cgFrame_->setupOutput();
         if(settings_["bonds"]["on"])
             bondSet_ = new BondSet(inputFiles_["cfg"].name, &cgResidues_, potentialTypes_);
+
+        string outname = residues_[0].resname;
+        switch(outProgram_){
+            case FileFormat::GROMACS:
+                outname += ".xtc";
+                trjOutput_ = new XTCOutput(cgFrame_->numAtoms_, outname);
+                break;
+            case FileFormat::LAMMPS:
+                outname += ".trj";
+                trjOutput_ = new LammpsTrjOutput(cgFrame_->numAtoms_, outname);
+                break;
+
+        }
     }else{
         // If not mapping make both frames point to the same thing
         cgFrame_ = frame_;
@@ -155,7 +170,7 @@ void Cgtool::mainLoop(){
     if(settings_["map"]["on"]){
         cgMap_->apply(*frame_, *cgFrame_);
         cgMap_->calcDipoles(*frame_, *cgFrame_);
-        cgFrame_->outputTrajectoryFrame();
+        cgFrame_->outputTrajectoryFrame(*trjOutput_);
         if(settings_["bonds"]["on"]) bondSet_->calcBondsInternal(*cgFrame_);
 
         // Calculate electric field/dipoles
@@ -227,4 +242,5 @@ Cgtool::~Cgtool(){
     if(bondSet_) delete bondSet_;
     if(rdf_) delete rdf_;
     if(field_) delete field_;
+    if(trjOutput_) delete trjOutput_;
 }
