@@ -37,7 +37,7 @@ public:
     * If argument was not provided by the user the default value will be used.
     * If there is no default value, print an error
     */
-    const std::string getFileArg(const std::string &arg);
+    const std::string getStringArg(const std::string &arg);
 
     /** \brief Return the value of a named boolean argument.
     * If argument was not provided by the user the default value will be used.

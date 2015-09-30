@@ -52,8 +52,8 @@ void Common::collectInput(const int argc, const char *argv[],
     CMD cmd_parser(helpHeader_, helpOptions_, compileInfo_, argc, argv);
 
     // Read in files
-    for(const string &f : req_files) inputFiles_[f].name = cmd_parser.getFileArg(f);
-    for(const string &f : opt_files) inputFiles_[f].name = cmd_parser.getFileArg(f);
+    for(const string &f : req_files) inputFiles_[f].name = cmd_parser.getStringArg(f);
+    for(const string &f : opt_files) inputFiles_[f].name = cmd_parser.getStringArg(f);
 
     for(auto &item : inputFiles_) item.second.exists = file_exists(item.second.name);
 

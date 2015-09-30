@@ -17,7 +17,7 @@ using std::vector;
 
 int main(const int argc, const char *argv[]){
     const string version_string =
-            "CGTOOL v0.3"
+            "CGTOOL v0.4"
             #include "revision_number.inc"
     ;
 
@@ -36,12 +36,10 @@ int main(const int argc, const char *argv[]){
     const string help_options =
             "--cfg\tCGTOOL config file\t0\n"
             "--xtc\tGROMACS XTC file\t0\n"
-            "--itp\tGROMACS ITP file\t0\n"
             "--gro\tGROMACS GRO file\t0\n"
+            "--itp\tGROMACS ITP file\t0\n"
             "--fld\tGROMACS forcefield file\t0\n"
-            "--dir\tDirectory containing all of the above\t0\n"
-            "--frames\tNumber of frames to read\t2\t-1\n"
-            "--csv\tOutput bond measurements to CSV\t4\t0";
+            "--frames\tNumber of frames to read\t2\t-1";
 
     const string compile_info =
             #include "compile_info.inc"

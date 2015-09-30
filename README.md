@@ -1,13 +1,13 @@
-# CGTOOLS v0.3
+# CGTOOLS v0.4
 ##README
 
 The aim of this project is to create a tool to aid in parametrising coarse-grained (CG) molecular mechanics models.  The program currently calculates bonded parameters for CG models from atomistic simulations in GROMACS, i.e. bond lengths, angles, dihedrals and their force constants.
-Bonded parameters are output into a GROMACS/MARTINI style ITP forcefield file and a coarse-grained representation of the system created in GRO form to allow initial simulations to be started with minimal hand tuning.
+Bonded parameters are output into a GROMACS/MARTINI style forcefield file and a coarse-grained representation of the system created in GROMACS GRO or LAMMPS DATA format to allow initial simulations to be started with minimal hand tuning.
 
-The completed tools will be compatible with a range of MD simulators and forcefield types, including support for dipoles (work in progress).  Primary targets are GROMACS/MARTINI and LAMMPS/ELBA.
+The completed tools will be compatible with a range of MD simulators and forcefield types, including support for dipoles (work in progress).  Current targets are GROMACS/MARTINI and LAMMPS/ELBA.
 
 RAMSi stands for Rapid Analysis of Membrane Simulations and is a tool to aid in analysing simulations of biomembranes.  It is able to calculate membrane thickness, curvature and surface area per lipid.  RAMSi makes use of multiple CPU cores via OpenMP.
-Input is GROMACS XTC and GRO files, along with a custom config file based which specifies options for the analysis. Membrane properties can be averaged over the complete simulation trajectory or output in batches.
+Input is GROMACS XTC and GRO files, along with a custom config file based which specifies options for the analysis. Membrane properties can be averaged over the complete simulation trajectory or output in batches.  An example config file lists the available options.
 
 These programs are work-in-progress and are not yet extensively tested.
 
