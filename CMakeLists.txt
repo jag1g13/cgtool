@@ -185,7 +185,7 @@ target_link_libraries (gtest_array gtest gtest_main cgtoolcore)
 add_test(GTestArrayAll gtest_array)
 
 # Integration test - does it run
-add_test(IntegrationRUNCGTOOL cgtool --dir ../test_data/ALLA -c cg.cfg -x md.xtc -g md.gro -i topol.top)
+add_test(IntegrationRUNCGTOOL cgtool -c ../test_data/ALLA/cg.cfg -x ../test_data/ALLA/md.xtc -g ../test_data/ALLA/md.gro -i ../test_data/ALLA/topol.top)
 # Integration test - check output files
 add_test(IntegrationITP ${CMAKE_COMMAND} -E compare_files
    ${CMAKE_SOURCE_DIR}/build/ALLA.itp ${CMAKE_SOURCE_DIR}/test_data/ALLA/ALLACG.itp)
