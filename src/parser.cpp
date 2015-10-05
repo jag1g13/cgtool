@@ -54,7 +54,9 @@ bool Parser::getLine(vector <string> &tokens){
     }
 
     // Separate and trim whitespace from tokens
-    boost::split(tokens, line_, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+    vector<string> tmp;
+    boost::split(tmp, line_, boost::is_any_of(";"), boost::algorithm::token_compress_on);
+    boost::split(tokens, tmp[0], boost::is_any_of("\t "), boost::algorithm::token_compress_on);
     for(string &tok : tokens) boost::trim(tok);
 
     // Return true if there is still file to read
