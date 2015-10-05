@@ -2,14 +2,11 @@ cmake_minimum_required(VERSION 2.8.4)
 
 project(CGTOOL)
 set(CGTOOL_VERSION_MAJOR 0)
-set(CGTOOL_VERSION_MINOR 3)
-
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/Modules/")
+set(CGTOOL_VERSION_MINOR 4)
 
 MESSAGE("CMAKE ${CMAKE_VERSION}")
 MESSAGE("CXX   ${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 MESSAGE("C     ${CMAKE_SYSTEM_NAME} ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
-MESSAGE("MOD   ${CMAKE_MODULE_PATH}")
 
 # TODO add C++11 checks
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -ffast-math -march=native")
@@ -34,7 +31,7 @@ elseif(CMAKE_BUILD_TYPE MATCHES "Debug")
 endif()
 
 # Should we ignore warnings - default ignore a few - only on gcc
-option(INGORE_SOME_WARNINGS "Don't ignore any warnings" ON)
+option(INGORE_SOME_WARNINGS "Don't ignore warnings" ON)
 set(IGNORED_WARNINGS " -Wno-sign-compare -Wno-unused-variable -Wno-comment -Wno-unused-but-set-variable")
 set(IGNORED_WARNINGS_ALWAYS " -Wno-sign-compare")
 
@@ -97,9 +94,15 @@ ExternalProject_Add(flens
 # Find Boost library - required
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED)
-find_package(Boost COMPONENTS REQUIRED program_options)
+find_package(Boost COMPONENTS program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES})
+
+if(Boost_PROGRAM_OPTIONS_FOUND)
+    set(CMD_SRC "src/cmd.cpp")
+else()
+    set(CMD_SRC "src/cmd_simple.cpp")
+endif()
 
 # Find Python to create compilation info
 find_package(PythonInterp 2.6 REQUIRED)
@@ -125,7 +128,6 @@ set(CGTOOLCORE_FILES
     "src/main/common.cpp"
     "src/frame.cpp"
     "src/cg_map.cpp"
-    "src/cmd.cpp"
     "src/parser.cpp"
     "src/residue.cpp"
     "src/small_functions.cpp"
@@ -134,7 +136,8 @@ set(CGTOOLCORE_FILES
     "src/GROOutput.cpp"
     "src/LammpsDataOutput.cpp"
     "src/LammpsTrjOutput.cpp"
-    "src/XTCOutput.cpp")
+    "src/XTCOutput.cpp"
+    ${CMD_SRC})
 
 set(CGTOOL_FILES
     "src/main/cgtool.cpp"

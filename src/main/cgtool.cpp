@@ -39,7 +39,7 @@ int main(const int argc, const char *argv[]){
             "--gro\tGROMACS GRO file\t0\n"
             "--itp\tGROMACS ITP file\t0\n"
             "--fld\tGROMACS forcefield file\t0\n"
-            "--frames\tNumber of frames to read\t2\t-1";
+            "--frames\tNumber of frames to read\t1\t-1";
 
     const string compile_info =
             #include "compile_info.inc"

@@ -3,12 +3,12 @@
 
 #include <string>
 
-enum class ArgType{PATH, STRING, INT, FLOAT, BOOL};
+enum class ArgType{STRING, INT, FLOAT, BOOL};
 
 /**
 * \brief Object to handle input to programs from the command line.
 */
-class CMD_Abstract{
+class CMDAbstract{
 protected:
     /** Program help string.  Should be parsed to generate arguments */
     std::string helpString_;
