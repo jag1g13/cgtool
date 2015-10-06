@@ -50,8 +50,8 @@ protected:
     * Default is geometric centre of component atoms. */
     MapType mapType_ = MapType::GC;
 
-    const std::vector<Residue> *aaResidues_;
-    std::vector<Residue> *cgResidues_;
+    const std::vector<Residue> &aaRes_;
+    std::vector<Residue> &cgRes_;
 
     /** \brief Correct LJ parameters for CG */
     double calcLJ(const std::vector<int> &ljs);
@@ -63,15 +63,12 @@ public:
     std::vector<BeadMap> mapping_;
 
     /**
-    * \brief Constructor to create a blank instance
-    */
-    CGMap(){};
-
-    /**
     * \brief Constructor to create an instance from the mapping file provided
     */
-    CGMap(const std::vector<Residue> *aa_residues, std::vector<Residue> *cg_residues,
-          const std::string &filename="");
+    CGMap(const std::vector<Residue> &aa_res, std::vector<Residue> &cg_res,
+          const std::string &filename="") : aaRes_(aa_res), cgRes_(cg_res) {
+        if(filename != "") fromFile(filename);
+    };
 
     /**
     * \brief Read in CG mapping from file

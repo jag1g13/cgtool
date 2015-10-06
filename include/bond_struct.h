@@ -7,6 +7,7 @@
 #include "frame.h"
 
 enum class BondType{LENGTH, ANGLE, DIHEDRAL};
+enum class FunctionalForm{HARMONIC, COS, COSHARMONIC};
 
 /**
 * \brief Class to hold atoms in bonds, angles and dihedrals.
