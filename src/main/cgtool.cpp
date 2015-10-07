@@ -150,7 +150,7 @@ void Cgtool::setupObjects(){
     }
 
     if(settings_["rdf"]["on"])
-        rdf_ = new RDF(&residues_, settings_["rdf"]["cutoff"]/100.,
+        rdf_ = new RDF(residues_, settings_["rdf"]["cutoff"]/100.,
                        settings_["rdf"]["resolution"]);
 
     if(settings_["field"]["on"]){

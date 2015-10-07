@@ -10,27 +10,14 @@
 
 using std::vector;
 
-RDF::RDF(const vector<Residue> *residues, const double cutoff, const int resolution){
-    init(residues, cutoff, resolution);
-}
-
-void RDF::init(const vector<Residue> *residues, const double cutoff, const int resolution){
-    residues_ = residues;
-    cutoff_ = cutoff;
-    resolution_ = resolution;
-    grid_ = static_cast<int>(cutoff * resolution_);
-    histogram_.init(grid_);
-    rdf_.init(grid_);
-}
-
 void RDF::calculateRDF(const Frame &frame){
     // Calculate average number density in cell
     const double box[3] = {frame.box_[0][0], frame.box_[1][1], frame.box_[2][2]};
     const double volume = box[0] * box[1] * box[2];
-    density_ += (*residues_)[0].num_residues / volume;
+    density_ += residues_[0].num_residues / volume;
 
     //TODO just put this inline?
-    const Residue &res = (*residues_)[0];
+    const Residue &res = residues_[0];
     #pragma omp parallel for default(none) shared(res, frame, box)
     for(int i=0; i<res.num_residues; i++){
         // Get number of ref atom for this residue
