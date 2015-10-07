@@ -5,9 +5,11 @@
 #ifndef CGTOOL_LIGHT_ARRAY_H
 #define CGTOOL_LIGHT_ARRAY_H
 
+#include "small_functions.h"
+
 template <typename T> class LightArray{
 protected:
-    T *array_;
+    T *array_ = nullptr;
     int size_[2] = {0, 0};
     int length_ = 0;
     bool safe_ = true;
@@ -26,6 +28,12 @@ public:
     LightArray<T>(const LightArray &other);
     LightArray<T>& operator=(const LightArray<T> &other);
 
+    LightArray<T>& operator/=(const int div){
+        const double mult = 1./div;
+        for(int i=0; i<length_; i++) array_[i] *= mult;
+        return *this;
+    }
+
     void alloc(const int x, const int y=1);
 
     void zero(const T init=0);
@@ -36,7 +44,33 @@ public:
 
     void smooth(const int n_iter=1);
 
+    double mean() const{
+        double mean = 0.;
+        for(int i=0; i<length_; i++) mean += array_[i];
+        return mean / length_;
+    }
+
     void print(const char *format="%8.3f") const;
+
+    void printCSV(const std::string &filename, const bool suppress_backup=false,
+                  const int remove_border=0) const{
+        const int r = remove_border;
+        assert(r >= 0);
+        const std::string file = filename + ".dat";
+
+        // Backup using small_functions.h
+        if(!suppress_backup) backup_old_file(file);
+
+        FILE *f = fopen(file.c_str(), "a");
+        for(int i=r; i < size_[0]-r; i++){
+            for(int j=r; j < size_[1]-r; j++){
+                fprintf(f, "%8.3f", array_[i*size_[0] + j]);
+            }
+            fprintf(f, "\n");
+        }
+
+        fclose(f);
+    }
 };
 
 /** \brief Copy constructor */
@@ -57,10 +91,13 @@ template <typename T> LightArray<T>& LightArray<T>::operator=(const LightArray<T
 }
 
 template <typename T> void LightArray<T>::alloc(const int x, const int y){
+    delete array_;
+    array_ = nullptr;
     size_[0] = x; size_[1] = y;
     length_ = x * y;
     array_ = new T[length_];
     if(array_ == nullptr) throw std::runtime_error("Could not allocate array");
+    zero();
 }
 
 template <typename T> void LightArray<T>::zero(const T init){
@@ -72,7 +109,7 @@ template <typename T> T& LightArray<T>::operator()(const int x, const int y){
 }
 
 template <typename T> const T& LightArray<T>::at(const int x, const int y) const{
-    return array_[x*size_[1] + y];
+    return array_[(x%size_[0])*size_[1] + (y%size_[1])];
 }
 
 /** \brief Apply n iterations of Jacobi smoothing */

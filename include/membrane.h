@@ -42,7 +42,7 @@ protected:
     /** Distance between grid points in xy plane */
     double step_[2];
     /** 2d Array to hold the membrane thickness on a grid */
-    Array thickness_;
+    LightArray<double> thickness_;
     /** Number of grid points in x and y direction */
     int grid_ = 0;
     /** Total number of frames processed - for averaging */

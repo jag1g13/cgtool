@@ -35,7 +35,7 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
 
     // Find middle of membrane in z coord
     // Do this in blocks to account for curvature - more curvature needs more blocks
-    Array block_avg_z(blocks, blocks);
+    LightArray<double> block_avg_z(blocks, blocks);
 //    Array block_tot_residues(blocks, blocks);
     LightArray<int> block_tot_residues(blocks, blocks);
 
@@ -44,8 +44,8 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
         numLipids_ += res.num_residues;
         for(int i = 0; i < res.num_residues; i++){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
-            const int x = clamp(int(frame.atoms_[num].coords[0] * blocks / box_[0]), 0, blocks-1);
-            const int y = clamp(int(frame.atoms_[num].coords[1] * blocks / box_[1]), 0, blocks-1);
+            const int x = int(frame.atoms_[num].coords[0] * blocks / box_[0]);
+            const int y = int(frame.atoms_[num].coords[1] * blocks / box_[1]);
             block_avg_z(x, y) += frame.atoms_[num].coords[2];
             block_tot_residues(x, y)++;
         }
@@ -165,7 +165,7 @@ double Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
 
         for(int j=0; j<grid_; j++){
             grid_coords[1] = (j + 0.5) * step_[1];
-            double min_dist2 = max_box*max_box;
+            double min_dist2 = 2*max_box*max_box;
 
             // Find closest lipid in reference leaflet
             int closest_int = -1;
@@ -340,14 +340,17 @@ void Membrane::printCSV(const std::string &filename) const{
         fprintf(f, "@xwidth %f\n", box_[0]);
         fprintf(f, "@ywidth %f\n", box_[1]);
         fclose(f);
+
+        // Print CSV - true suppresses backup - file has been opened already
+        thickness_.printCSV(filename, true);
+    }else{
+        thickness_.printCSV(filename);
     }
-    // Print CSV - true suppresses backup - file has been opened already
-    thickness_.printCSV(filename, true);
 }
 
 void Membrane::setResolution(const int n){
     grid_ = n;
-    thickness_.init(grid_, grid_);
+    thickness_.alloc(grid_, grid_);
     step_[0] = box_[0] / grid_;
     step_[1] = box_[1] / grid_;
 
