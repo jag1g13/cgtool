@@ -34,7 +34,7 @@ protected:
     LightArray<double> curvGaussian_;
 
     /** List of residues present in simulation */
-    const std::vector<Residue> *residues_;
+    const std::vector<Residue> &residues_;
     /** Total number of lipids */
     int numLipids_ = 0;
     /** Size of he simulation box - assume orthorhombic */
@@ -71,14 +71,11 @@ public:
     /** \brief Print header in CSV or not */
     bool header_ = false;
 
-    /** \brief Blank constructor */
-    Membrane(){};
-
     /** \brief Destructor */
     ~Membrane();
 
     /** \brief Construct Membrane with vector of Residues present in simulation */
-    Membrane(const std::vector<Residue> *residues);
+    Membrane(const std::vector<Residue> &residues);
 
     /** \brief Sort head groups into upper and lower bilayer
      *  Divided into blocks to account for curvature. Size blocks * blocks */

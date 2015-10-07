@@ -15,9 +15,8 @@ using std::vector;
 using std::map;
 using boost::algorithm::clamp;
 
-Membrane::Membrane(const vector<Residue> *residues){
-    residues_ = residues;
-    residuePPL_.resize((*residues_).size());
+Membrane::Membrane(const vector<Residue> &residues) : residues_(residues){
+    residuePPL_.resize(residues_.size());
 
     prepCSVAreaPerLipid();
     prepCSVAvgThickness();
@@ -40,7 +39,7 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
 //    Array block_tot_residues(blocks, blocks);
     LightArray<int> block_tot_residues(blocks, blocks);
 
-    for(const Residue &res : *residues_){
+    for(const Residue &res : residues_){
         if(res.ref_atom < 0) continue;
         numLipids_ += res.num_residues;
         for(int i = 0; i < res.num_residues; i++){
@@ -60,7 +59,7 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
     }
 
     // Separate membrane into upper and lower
-    for(const Residue &res : *residues_){
+    for(const Residue &res : residues_){
         if(res.ref_atom < 0) continue;
         int num_in_leaflet[2] = {0, 0};
         for(int i = 0; i < res.num_residues; i++){
@@ -193,11 +192,11 @@ double Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
 void Membrane::areaPerLipid(const LightArray<int> &closest){
 #pragma omp parallel default(none) shared(closest)
 #pragma omp for
-    for(int k=0; k<(*residues_).size(); k++){
+    for(int k=0; k<residues_.size(); k++){
         for(int i=0; i<grid_; i++){
             for(int j=0; j<grid_; j++){
             const int lipid = closest.at(i, j);
-                if(lipid >= (*residues_)[k].start && lipid < (*residues_)[k].end){
+                if(lipid >= residues_[k].start && lipid < residues_[k].end){
                     residuePPL_[k]++;
                 }
             }
@@ -298,7 +297,7 @@ void Membrane::printCSVAreaPerLipid(const float time) const{
     for(int i=0; i<residuePPL_.size(); i++){
         const int num = residuePPL_[i];
         const double area = num * step_[0] * step_[1];
-        const double APL = area / (*residues_)[i].num_residues;
+        const double APL = area / residues_[i].num_residues;
         fprintf(aplFile_, "%8.3f", APL);
     }
     fprintf(aplFile_, "\n");
