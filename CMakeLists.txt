@@ -33,7 +33,7 @@ endif()
 # Should we ignore warnings - default ignore a few - only on gcc
 option(INGORE_SOME_WARNINGS "Don't ignore warnings" ON)
 set(IGNORED_WARNINGS " -Wno-sign-compare -Wno-unused-variable -Wno-comment -Wno-unused-but-set-variable")
-set(IGNORED_WARNINGS_ALWAYS " -Wno-sign-compare")
+set(IGNORED_WARNINGS_ALWAYS " -Wno-sign-compare -Wno-reorder")
 
 # Platform specifics
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")

@@ -5,6 +5,7 @@
 #include <string>
 
 #include <boost/algorithm/string.hpp>
+#include <sysexits.h>
 
 #include "residue.h"
 class TrjOutput;
@@ -104,12 +105,21 @@ public:
     float box_[3][3];
     /** Which data have been loaded into atoms? */
     AtomsHave atomHas_;
-    std::vector<Residue> *residues_;
+    std::vector<Residue> &residues_;
 
     /** \brief Create Frame passing config files.
     * Replaces calls to the function Frame::setupFrame() */
     Frame(const std::string &xtcname, const std::string &groname,
-          std::vector<Residue> *residues);
+          std::vector<Residue> &residues);
+
+    Frame(const Frame &frame) : residues_(frame.residues_), num_(frame.num_),
+                                name_(frame.name_), time_(frame.time_),
+                                step_(frame.step_), boxType_(frame.boxType_) {}
+
+    Frame(const Frame &frame, std::vector<Residue> &residues) :
+                                residues_(residues), num_(frame.num_),
+                                name_(frame.name_), time_(frame.time_),
+                                step_(frame.step_), boxType_(frame.boxType_) {}
 
     /** \brief Create Frame by copying data from another Frame
     * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied. */

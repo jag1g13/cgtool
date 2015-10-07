@@ -67,11 +67,11 @@ void Ramsi::readConfig(){
 }
 
 void Ramsi::setupObjects(){
-    frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, &residues_);
+    frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, residues_);
     for(Residue &res : residues_) res.print();
 
     if(settings_["map"]["on"]){
-        cgFrame_ = new Frame(*frame_, &cgResidues_);
+        cgFrame_ = new Frame(*frame_, cgResidues_);
         cgMap_ = new CGMap(residues_, cgResidues_);
         cgMap_->fromFile(inputFiles_["cfg"].name);
         cgMap_->initFrame(*frame_, *cgFrame_);

@@ -112,7 +112,7 @@ void Cgtool::readConfig(){
 
 void Cgtool::setupObjects(){
     // Open files and do setup
-    frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, &residues_);
+    frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, residues_);
     if(inputFiles_["itp"].exists){
         frame_->initFromITP(inputFiles_["itp"].name);
     }else{
@@ -124,7 +124,7 @@ void Cgtool::setupObjects(){
     if(settings_["map"]["on"]){
         cgMap_ = new CGMap(residues_, cgResidues_);
         cgMap_->fromFile(inputFiles_["cfg"].name);
-        cgFrame_ = new Frame(*frame_, &cgResidues_);
+        cgFrame_ = new Frame(*frame_, cgResidues_);
         cgMap_->initFrame(*frame_, *cgFrame_);
         cgFrame_->setupOutput();
         if(settings_["bonds"]["on"])
