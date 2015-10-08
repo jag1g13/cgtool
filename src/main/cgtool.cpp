@@ -128,7 +128,7 @@ void Cgtool::setupObjects(){
         cgMap_->initFrame(*frame_, *cgFrame_);
         cgFrame_->setupOutput();
         if(settings_["bonds"]["on"])
-            bondSet_ = new BondSet(inputFiles_["cfg"].name, &cgResidues_, potentialTypes_);
+            bondSet_ = new BondSet(inputFiles_["cfg"].name, cgResidues_, potentialTypes_);
 
         string outname = residues_[0].resname;
         switch(outProgram_){
@@ -146,7 +146,7 @@ void Cgtool::setupObjects(){
         // If not mapping make both frames point to the same thing
         cgFrame_ = frame_;
         if(settings_["bonds"]["on"])
-            bondSet_ = new BondSet(inputFiles_["cfg"].name, &residues_, potentialTypes_);
+            bondSet_ = new BondSet(inputFiles_["cfg"].name, residues_, potentialTypes_);
     }
 
     if(settings_["rdf"]["on"])

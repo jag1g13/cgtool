@@ -4,33 +4,11 @@
 
 #include "small_functions.h"
 
-BondStruct::BondStruct(const int size){
-    atomNums_.resize(size);
-    switch(size){
-        case 2:
-            type_ = BondType::LENGTH;
-            break;
-        case 3:
-            type_ = BondType::ANGLE;
-            break;
-        case 4:
-            type_ = BondType::DIHEDRAL;
-            break;
-        default:
-            throw std::logic_error("BondStruct created with unexpected size");
-    }
+BondStruct::BondStruct(const BondType type) : type_(type) {
+    atomNums_.resize(static_cast<int>(type_));
 }
 
-BondStruct::BondStruct(const BondStruct &other){
-    size_t size = other.atomNums_.size();
-    atomNums_.resize(size);
-    for(size_t i = 0; i < size; i++){
-        atomNums_[i] = other.atomNums_[i];
-    }
-    type_ = other.type_;
-}
-
-double BondStruct::bondLength(const Frame &frame, const int offset) {
+double BondStruct::bondLength(const Frame &frame, const int offset) const{
     const int a = atomNums_[0] + offset;
     const int b = atomNums_[1] + offset;
 
@@ -39,21 +17,20 @@ double BondStruct::bondLength(const Frame &frame, const int offset) {
     vec[1] = frame.atoms_[a].coords[1] - frame.atoms_[b].coords[1];
     vec[2] = frame.atoms_[a].coords[2] - frame.atoms_[b].coords[2];
 
-    const double val = abs(vec);
-    return val;
+    return abs(vec);
 }
 
-double BondStruct::bondAngle(const Frame &frame, const int offset){
+double BondStruct::bondAngle(const Frame &frame, const int offset) const{
     const int a = atomNums_[0] + offset;
     const int b = atomNums_[1] + offset;
     int c, d;
 
-    switch(atomNums_.size()){
-        case 4:
+    switch(type_){
+        case BondType::DIHEDRAL:
             c = atomNums_[2] + offset;
             d = atomNums_[3] + offset;
             break;
-        case 3:
+        case BondType::ANGLE:
             c = atomNums_[1] + offset;
             d = atomNums_[2] + offset;
             break;

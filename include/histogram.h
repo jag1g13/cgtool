@@ -8,7 +8,7 @@
 class Histogram{
 protected:
     int size_;
-    int* array_ = nullptr;
+    int *array_ = nullptr;
     bool fast_ = false;
     bool allocated_ = false;
     double min_ = 0.;
