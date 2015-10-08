@@ -21,40 +21,27 @@ class FieldMap{
 private:
     /** Dimensions of the field grids (3 ints) */
     int gridDims_[3];
-    /** Array to hold electric field calculated from monopoles */
-    Array fieldMonopole_;
-    /** Array to hold electric field calculated from dipoles */
-    Array fieldDipole_;
     /** \brief Border to leave around molecule in field grid
     * Also the radius of selection for the CHELPG style grid */
-    double border_ = 1.;    // 1nm
-    /** Array to hold grid bounds; needs to be reset each frame (or often) */
-    Array gridBounds_;
+    const static double border_ = 1.;    // 1nm
     /** Coordinates of each grid point */
-    Array gridCoords_;
-    /** Centre of grid */
-    double gridCentre_[3];
-    Array gridContracted_;
+    std::vector<double[3]> gridContracted_;
     int numGridPoints_;
     std::vector<double> fieldMonopoleContracted_;
     std::vector<double> fieldDipoleContracted_;
-    int numDipoles_;
     /** Dipole of each atom, coords, vector, magnitude */
     Array dipoles_;
-    Array totalDipole_;
-    Array sumDipoles_;
+    double totalDipole_[6];
+    double sumDipole_[6];
     /** Frame number */
     int frameNum_ = 0;
     /** Number of atoms in a single aa residue */
-    int aaNumAtoms_ = 0;
+    const int aaNumAtoms_ = 0;
     /** Number of atoms in a single cg residue */
-    int cgNumAtoms_ = 0;
+    const int cgNumAtoms_ = 0;
     /** Residues in both representations */
-    const std::vector<Residue> *aaResidues_;
-    const std::vector<Residue> *cgResidues_;
-
-    /** Determine grid bounds from a Frame object and do setup each time */
-    void setupGrid(const Frame &frame);
+    const std::vector<Residue> &aaResidues_;
+    const std::vector<Residue> &cgResidues_;
 
     /** Create a CHELPG style grid using only points in a shell around the molecule */
     void setupGridContracted(const Frame &frame);
@@ -83,17 +70,9 @@ private:
 
 
 public:
-    /** Constructor for a blank instance of an electric field map */
-    FieldMap();
-
     /** Constructor for FieldMap to perform setup - uses init() */
-    FieldMap(const int a, const int b, const int c, const int natoms=0);
-//    FieldMap(const int res, const int natoms=0);
-    FieldMap(const int res, const std::vector<Residue> *aa_residues,
-             const std::vector<Residue> *cg_residues);
-
-    /** Init FieldMap */
-    void init(const int a, const int b, const int c, const int ndipoles);
+    FieldMap(const int grid, const std::vector<Residue> &aa_res,
+             const std::vector<Residue> &cg_res);
 
     /** \brief Run all electric field calculations */
     void calculate(const Frame &aa_frame, const Frame &cg_frame, const CGMap &cgmap);
@@ -101,14 +80,5 @@ public:
     /** Print the electric field to file */
     void printFieldsToFile();
 };
-
-/** \brief Calculate the square of the distance between two points */
-inline double distSqr(const double c1[3], const double c2[3]);
-/** 3d vector dot product */
-inline double dot(const double A[3], const double B[3]);
-/** 3d vector magnitude */
-inline double abs(const double vec[3]);
-/** 3d polar coordinate conversion */
-void polar(const double cart[3], double polar[3]);
 
 #endif

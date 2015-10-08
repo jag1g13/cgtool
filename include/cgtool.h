@@ -9,7 +9,7 @@
 
 #include "bondset.h"
 #include "rdf.h"
-#include "field_map.h"
+//#include "field_map.h"
 
 class Cgtool : public Common{
 protected:
@@ -21,7 +21,7 @@ protected:
 
     BondSet  *bondSet_ = nullptr;
     RDF      *rdf_ = nullptr;
-    FieldMap *field_ = nullptr;
+//    FieldMap *field_ = nullptr;
 
     TrjOutput *trjOutput_ = nullptr;
 

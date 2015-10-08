@@ -154,12 +154,14 @@ void Cgtool::setupObjects(){
                        settings_["rdf"]["resolution"]);
 
     if(settings_["field"]["on"]){
-        if(settings_["map"]["on"]){
-            field_ = new FieldMap(settings_["field"]["resolution"], &residues_, &cgResidues_);
-        }else{
-            printf("ERROR: Option 'field' requires 'mapping'\n");
-            exit(EX_USAGE);
-        }
+        printf("ERROR: Option 'field' is no longer supported\n");
+        exit(EX_USAGE);
+//        if(settings_["map"]["on"]){
+//            field_ = new FieldMap(settings_["field"]["resolution"], residues_, cgResidues_);
+//        }else{
+//            printf("ERROR: Option 'field' requires 'mapping'\n");
+//            exit(EX_USAGE);
+//        }
     }
 }
 
@@ -172,14 +174,14 @@ void Cgtool::mainLoop(){
         if(settings_["bonds"]["on"]) bondSet_->calcBondsInternal(*cgFrame_);
 
         // Calculate electric field/dipoles
-        if(settings_["field"]["on"]){
-            if(currFrame_ % settings_["field"]["freq"] == 0){
-                field_->calculate(*frame_, *cgFrame_, *cgMap_);
-            }
-            if(currFrame_ % settings_["field"]["export"] == 0){
-                field_->printFieldsToFile();
-            }
-        }
+//        if(settings_["field"]["on"]){
+//            if(currFrame_ % settings_["field"]["freq"] == 0){
+//                field_->calculate(*frame_, *cgFrame_, *cgMap_);
+//            }
+//            if(currFrame_ % settings_["field"]["export"] == 0){
+//                field_->printFieldsToFile();
+//            }
+//        }
     }else{
         if(settings_["bonds"]["on"]) bondSet_->calcBondsInternal(*frame_);
     }
@@ -239,6 +241,6 @@ void Cgtool::postProcess(){
 Cgtool::~Cgtool(){
     if(bondSet_) delete bondSet_;
     if(rdf_) delete rdf_;
-    if(field_) delete field_;
+//    if(field_) delete field_;
     if(trjOutput_) delete trjOutput_;
 }

@@ -15,41 +15,17 @@ using std::cout;
 using std::endl;
 using std::ofstream;
 
-FieldMap::FieldMap(){
-}
+FieldMap::FieldMap(const int grid, const vector<Residue> &aa_res, const vector<Residue> &cg_res) :
+          aaResidues_(aa_res), cgResidues_(cg_res), gridDims_(grid, grid, grid),
+          aaNumAtoms_(aa_res[0].num_atoms), cgNumAtoms_(cg_res[0].num_atoms){
+//    gridDims_[0] = grid; gridDims_[1] = grid; gridDims_[2] = grid;
 
-FieldMap::FieldMap(const int a, const int b, const int c, const int ndipoles){
-    init(a, b, c, ndipoles);
-}
-
-FieldMap::FieldMap(const int res, const vector<Residue> *aa_residues, const vector<Residue> *cg_residues){
-    aaResidues_ = aa_residues;
-    cgResidues_ = cg_residues;
-    init(res, res, res, (*cgResidues_)[0].num_atoms);
-}
-
-void FieldMap::init(const int a, const int b, const int c, const int ndipoles){
-    gridDims_[0] = a; gridDims_[1] = b; gridDims_[2] = c;
-
-    gridBounds_.init(3, 2, 1, false);
-    gridCoords_.init(3, max(a, max(b, c)), 1, false);
-    gridContracted_.init(a*b*c, 4, 1, true);
-
-    fieldMonopole_.init(a, b, c, false);
-    fieldDipole_.init(a, b, c, false);
-
-    numDipoles_ = ndipoles;
     dipoles_.init(ndipoles, 6, 1, false);
-    totalDipole_.init(6, 1, 1, false);
-    sumDipoles_.init(6, 1, 1, false);
 }
 
 void FieldMap::calculate(const Frame &aa_frame, const Frame &cg_frame, const CGMap &cgmap){
     frameNum_ = aa_frame.num_;
     if(frameNum_ != cg_frame.num_) throw std::logic_error("Frame numbers do not match");
-    // Calculate only the first molecule
-    aaNumAtoms_ = (*aaResidues_)[0].num_atoms;
-    cgNumAtoms_ = (*cgResidues_)[0].num_atoms;
 
     calcDipolesDirect(cgmap, cg_frame, aa_frame);
     setupGrid(aa_frame);
@@ -62,36 +38,6 @@ void FieldMap::calculate(const Frame &aa_frame, const Frame &cg_frame, const CGM
 
     StatsBox sb = vector_stats(fieldMonopoleContracted_, fieldDipoleContracted_);
     cout << "\tRMS: " << sb.rmsd << "\tRRMS: " << sb.nrmsd << endl;
-}
-
-void FieldMap::setupGrid(const Frame &frame){
-    // Create min and max initial values
-    gridBounds_(0, 0) = frame.atoms_[0].coords[0]; gridBounds_(0, 1) = frame.atoms_[0].coords[0];
-    gridBounds_(1, 0) = frame.atoms_[0].coords[1]; gridBounds_(1, 1) = frame.atoms_[0].coords[1];
-    gridBounds_(2, 0) = frame.atoms_[0].coords[2]; gridBounds_(2, 1) = frame.atoms_[0].coords[2];
-
-    for(int i=0; i < aaNumAtoms_; i++){
-        // Find bounding box of molecule
-        const Atom *atom = &(frame.atoms_[i]);
-        gridBounds_(0, 0) = min(gridBounds_(0, 0), atom->coords[0]);
-        gridBounds_(0, 1) = max(gridBounds_(0, 1), atom->coords[0]);
-        gridBounds_(1, 0) = min(gridBounds_(1, 0), atom->coords[1]);
-        gridBounds_(1, 1) = max(gridBounds_(1, 1), atom->coords[1]);
-        gridBounds_(2, 0) = min(gridBounds_(2, 0), atom->coords[2]);
-        gridBounds_(2, 1) = max(gridBounds_(2, 1), atom->coords[2]);
-    }
-
-    gridBounds_(0, 0) -= border_; gridBounds_(0, 1) += border_;
-    gridBounds_(1, 0) -= border_; gridBounds_(1, 1) += border_;
-    gridBounds_(2, 0) -= border_; gridBounds_(2, 1) += border_;
-
-    gridCentre_[0] = (gridBounds_(0, 1) - gridBounds_(0, 0)) / 2.;
-    gridCentre_[1] = (gridBounds_(1, 1) - gridBounds_(1, 0)) / 2.;
-    gridCentre_[2] = (gridBounds_(2, 1) - gridBounds_(2, 0)) / 2.;
-
-    gridCoords_.linspace(0, gridDims_[0], gridBounds_(0, 0), gridBounds_(0, 1));
-    gridCoords_.linspace(1, gridDims_[1], gridBounds_(1, 0), gridBounds_(1, 1));
-    gridCoords_.linspace(2, gridDims_[2], gridBounds_(2, 0), gridBounds_(2, 1));
 }
 
 void FieldMap::setupGridContracted(const Frame &frame){
@@ -201,14 +147,6 @@ void FieldMap::calcFieldDipolesContracted(const Frame &frame){
 }
 
 
-/**
-* This uses a hack to allow direct calculation: charges within a bead are
-* rescaled to make each bead neutral.  This means that dipoles are no longer
-* dependent on the frame of reference.
-* The electric field from these dipoles should be compared against the field
-* from atomic point charges to determine validity.  They may need to be rescaled.
-* I don't see a better way to do this.
-*/
 void FieldMap::calcDipolesDirect(const CGMap &cgmap, const Frame &cg_frame, const Frame &aa_frame){
     dipoles_.zero();
     for(int i=0; i<cgNumAtoms_; i++){
@@ -239,38 +177,42 @@ void FieldMap::calcDipolesDirect(const CGMap &cgmap, const Frame &cg_frame, cons
 }
 
 void FieldMap::calcTotalDipole(const Frame &aa_frame){
-    totalDipole_.zero();
+    for(int i=0; i<6; i++) totalDipole_[i] = 0.;
 
     for(int i=0; i < aaNumAtoms_; i++){
         double charge = aa_frame.atoms_[i].charge;
-        totalDipole_(0) += aa_frame.atoms_[i].coords[0] * charge;
-        totalDipole_(1) += aa_frame.atoms_[i].coords[1] * charge;
-        totalDipole_(2) += aa_frame.atoms_[i].coords[2] * charge;
+        totalDipole_[0] += aa_frame.atoms_[i].coords[0] * charge;
+        totalDipole_[1] += aa_frame.atoms_[i].coords[1] * charge;
+        totalDipole_[2] += aa_frame.atoms_[i].coords[2] * charge;
     }
 
-    totalDipole_(5) = sqrt(totalDipole_(0)*totalDipole_(0) +
-                           totalDipole_(1)*totalDipole_(1) +
-                           totalDipole_(2)*totalDipole_(2));
+//    totalDipole_[5] = sqrt(totalDipole_[0]*totalDipole_[0] +
+//                           totalDipole_[1]*totalDipole_[1] +
+//                           totalDipole_[2]*totalDipole_[2]);
+    totalDipole_[5] = abs(totalDipole_);
 }
 
 void FieldMap::calcSumDipole(){
-    sumDipoles_.zero();
-    for(int i=0; i < numDipoles_; i++){
-        sumDipoles_(0) += dipoles_(i, 0);
-        sumDipoles_(1) += dipoles_(i, 1);
-        sumDipoles_(2) += dipoles_(i, 2);
+    for(int i=0; i<6; i++) sumDipole_[i] = 0.;
+
+    for(int i=0; i < cgNumAtoms_; i++){
+        sumDipole_[0] += dipoles_(i, 0);
+        sumDipole_[1] += dipoles_(i, 1);
+        sumDipole_[2] += dipoles_(i, 2);
     }
 
     // Calc magnitude
-    sumDipoles_(5) = sqrt(sumDipoles_(0)*sumDipoles_(0) +
-                          sumDipoles_(1)*sumDipoles_(1) +
-                          sumDipoles_(2)*sumDipoles_(2));
+    sumDipole_[5] = sqrt(sumDipole_[0]*sumDipole_[0] +
+                         sumDipole_[1]*sumDipole_[1] +
+                         sumDipole_[2]*sumDipole_[2]);
 }
 
 void FieldMap::printDipoles(){
-    cout << "Total molecular dipole and sum of bead dipoles" << endl;
-    totalDipole_.print(8, 4, constants::ENM2DEBYE);
-    sumDipoles_.print(8, 4, constants::ENM2DEBYE);
+    printf("Total molecular dipole and sum of bead dipoles\n");
+    for(int i=0; i<6; i++) printf("%8.4f", totalDipole_[0]*constants::ENM2DEBYE);
+    printf("\n");
+    for(int i=0; i<6; i++) printf("%8.4f", sumDipole_[0]*constants::ENM2DEBYE);
+    printf("\n");
 }
 
 void FieldMap::printFieldsToFile(){
