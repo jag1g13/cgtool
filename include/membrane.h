@@ -7,7 +7,7 @@
 
 #include <string>
 #include <vector>
-#include <memory>
+#include <set>
 
 #include "frame.h"
 #include "array.h"
@@ -17,9 +17,9 @@
 class Membrane{
 protected:
     /** Head group reference atoms in the upper layer */
-    std::vector<int> upperHeads_;
+    std::set<int> upperHeads_;
     /** Head group reference atoms in the lower layer */
-    std::vector<int> lowerHeads_;
+    std::set<int> lowerHeads_;
     /** Distance from ref in upper leaflet to closest in lower */
     std::map<int, double> upperPair_;
     /** Distance from ref in lower leaflet to closest in upper */
@@ -55,11 +55,11 @@ protected:
     std::vector<int> residuePPL_;
 
     /** \brief Create closest pairs of reference groups between layers */
-    void makePairs(const Frame &frame, const std::vector<int> &ref,
-                   const std::vector<int> &other, std::map<int, double> &pairs);
+    void makePairs(const Frame &frame, const std::set<int> &ref,
+                   const std::set<int> &other, std::map<int, double> &pairs);
 
     /** \brief Find closest head group to each grid cell */
-    double closestLipid(const Frame &frame, const std::vector<int> &ref,
+    double closestLipid(const Frame &frame, const std::set<int> &ref,
                       const std::map<int, double> &pairs, LightArray<int> &closest);
 
     void printCSVAreaPerLipid(const float time) const;

@@ -121,7 +121,7 @@ void Common::doMainLoop(){
     sectionStart_ = start_timer();
 
     wholeXTCFrames_ = get_xtc_num_frames(inputFiles_["xtc"].name);
-    printf("Approx %'8d frames in XTC\n", wholeXTCFrames_);
+    printf("%'8d frames in XTC\n", wholeXTCFrames_);
 
     untilEnd_ = numFramesMax_ < 0;
     if(untilEnd_){

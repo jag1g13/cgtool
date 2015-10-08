@@ -9,9 +9,8 @@ using std::cout;
 using std::endl;
 using std::vector;
 
-BoltzmannInverter::BoltzmannInverter(const double temp, const int bins){
-    if(bins != -1) bins_ = bins;
-    temp_ = temp;
+BoltzmannInverter::BoltzmannInverter(const double temp, const int bins) :
+                   temp_(temp), bins_(bins){
     histogram_.init(bins_);
     gaussian_.init(bins_);
     harmonic_.init(bins_);
@@ -158,8 +157,8 @@ double BoltzmannInverter::statisticalMoments(const vector<double> &vec){
         ep += dev;
         adev_ += fabs(dev);
         var_ += dev * dev;
-        if(val < min_) min_ = val;
-        if(val > max_) max_ = val;
+        min_ = std::min(min_, val);
+        max_ = std::max(max_, val);
     }
 
     adev_ /= n_;

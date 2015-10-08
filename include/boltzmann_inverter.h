@@ -16,11 +16,12 @@ protected:
     Histogram histogram_;
     Array gaussian_;
     Array harmonic_;
-    int bins_ = 55, n_ = 0, meanBin_=0;
-    double temp_ = 310.;
+    const int bins_;
+    int n_ = 0, meanBin_=0;
+    const double temp_;
     double min_, max_, step_;
     double integral_, mean_, adev_, var_, sdev_;
-    BondType type_ = BondType::LENGTH;
+    BondType type_;
 
     /** \brief Print an array/histogram to terminal for debugging */
     void printGraph(Array &arr, const int scale=10);
@@ -37,7 +38,7 @@ protected:
 
 
 public:
-    BoltzmannInverter(const double temp=310, const int bins=-1);
+    BoltzmannInverter(const double temp=310., const int bins=55);
 
     /** \brief Calculate statistical moments of bond data.
     * Mean, standard deviation, skewness and kurtosis.

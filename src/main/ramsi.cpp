@@ -27,7 +27,8 @@ int main(const int argc, const char *argv[]){
     const string help_options =
             "--cfg\tRAMSi config file\t0\n"
             "--xtc\tGROMACS XTC file\t0\n"
-            "--gro\tGROMACS GRO file\t0";
+            "--gro\tGROMACS GRO file\t0\n"
+            "--frames\tNumber of frames\t1\t-1";
 
     const string compile_info =
             #include "compile_info.inc"

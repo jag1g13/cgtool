@@ -13,6 +13,7 @@
 using std::string;
 using std::vector;
 using std::map;
+using std::set;
 using boost::algorithm::clamp;
 
 Membrane::Membrane(const vector<Residue> &residues) : residues_(residues){
@@ -44,8 +45,8 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
         numLipids_ += res.num_residues;
         for(int i = 0; i < res.num_residues; i++){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
-            const int x = int(frame.atoms_[num].coords[0] * blocks / box_[0]);
-            const int y = int(frame.atoms_[num].coords[1] * blocks / box_[1]);
+            const int x = int(frame.atoms_[num].coords[0] * blocks / box_[0]) % blocks;
+            const int y = int(frame.atoms_[num].coords[1] * blocks / box_[1]) % blocks;
             block_avg_z(x, y) += frame.atoms_[num].coords[2];
             block_tot_residues(x, y)++;
         }
@@ -64,15 +65,17 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
         int num_in_leaflet[2] = {0, 0};
         for(int i = 0; i < res.num_residues; i++){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
-            const int x = std::max(int(frame.atoms_[num].coords[0] * blocks / box_[0]), 0);
-            const int y = std::min(int(frame.atoms_[num].coords[1] * blocks / box_[1]), blocks-1);
+            const int x = int(frame.atoms_[num].coords[0] * blocks / box_[0]) % blocks;
+            const int y = int(frame.atoms_[num].coords[1] * blocks / box_[1]) % blocks;
             const double z = frame.atoms_[num].coords[2];
 
             if(z < block_avg_z(x, y)){
-                lowerHeads_.push_back(num);
+//                lowerHeads_.emplace_hint(lowerHeads_.end(), num);
+                lowerHeads_.insert(num);
                 num_in_leaflet[0]++;
             }else{
-                upperHeads_.push_back(num);
+//                upperHeads_.emplace_hint(upperHeads_.end(), num);
+                upperHeads_.insert(num);
                 num_in_leaflet[1]++;
             }
         }
@@ -110,8 +113,8 @@ double Membrane::thickness(const Frame &frame, const bool with_reset){
     return avg_thickness;
 }
 
-void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
-                         const vector<int> &other, map<int, double> &pairs){
+void Membrane::makePairs(const Frame &frame, const set<int> &ref,
+                         const set<int> &other, map<int, double> &pairs){
     // For each reference particle in the ref leaflet
     for(const int i : ref){
         double min_dist_2 = box_[0] * box_[1];
@@ -143,23 +146,30 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
 }
 
 //TODO optimise this - it takes >80% of runtime
-double Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
+double Membrane::closestLipid(const Frame &frame, const std::set<int> &ref,
                             const std::map<int, double> &pairs, LightArray<int> &closest){
     const double max_box = box_[0] > box_[1] ? box_[0] : box_[1];
 
-    double grid_coords[3];
-    double ref_coords[3];
+    double grid_coords[2];
 
     grid_coords[2] = 0.;
-    ref_coords[2] = 0.;
 
     double sum = 0.;
 
-#pragma omp parallel default(none) \
- shared(frame, ref, pairs, closest) \
- private(grid_coords, ref_coords) \
+    double ref_cache[ref.size()][2];
+    int ref_lookup[ref.size()];
+    int it = 0;
+    for(const int r : ref){
+        ref_cache[it][0] = frame.atoms_[r].coords[0];
+        ref_cache[it][1] = frame.atoms_[r].coords[1];
+        ref_lookup[it] = r;
+        it++;
+    }
+
+#pragma omp parallel for default(none) \
+ shared(frame, ref, pairs, closest, ref_cache, ref_lookup) \
+ private(grid_coords) \
  reduction(+: sum)
-#pragma omp for
     for(int i=0; i<grid_; i++){
         grid_coords[0] = (i + 0.5) * step_[0];
 
@@ -169,18 +179,14 @@ double Membrane::closestLipid(const Frame &frame, const std::vector<int> &ref,
 
             // Find closest lipid in reference leaflet
             int closest_int = -1;
-            for(int r : ref){
-                ref_coords[0] = frame.atoms_[r].coords[0];
-                ref_coords[1] = frame.atoms_[r].coords[1];
-                const double dist2 = distSqrPlane(grid_coords, ref_coords);
-                if(dist2 < min_dist2){
-                    closest_int = r;
-                    min_dist2 = dist2;
-                }
+            for(int k=0; k<ref.size(); k++){
+                const double dist2 = distSqrPlane(grid_coords, ref_cache[k]);
+                closest_int = dist2 < min_dist2 ? k : closest_int;
+                min_dist2 = std::min(min_dist2, dist2);
             }
 
-            closest(i, j) = closest_int;
-            const double tmp = pairs.at(closest_int);
+            closest(i, j) = ref_lookup[closest_int];
+            const double tmp = pairs.at(ref_lookup[closest_int]);
             sum += tmp;
             thickness_(i, j) += tmp;
         }
