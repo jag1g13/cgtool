@@ -79,12 +79,14 @@ void Ramsi::setupObjects(){
     }else{
         // If not mapping make both frames point to the same thing
         cgFrame_ = frame_;
+        cgResidues_ = residues_;
     }
 
-    membrane_ = new Membrane(residues_);
-    membrane_->sortBilayer(*frame_, settings_["mem"]["blocks"]);
-    membrane_->setResolution(settings_["mem"]["resolution"]);
-    membrane_->header_ = static_cast<bool>(settings_["mem"]["header"]);
+    membrane_ = new Membrane(residues_, *frame_, settings_["mem"]["resolution"],
+                             settings_["mem"]["blocks"], settings_["mem"]["header"]);
+//    membrane_->sortBilayer(*frame_, settings_["mem"]["blocks"]);
+//    membrane_->setResolution(settings_["mem"]["resolution"]);
+//    membrane_->header_ = static_cast<bool>(settings_["mem"]["header"]);
 }
 
 void Ramsi::mainLoop(){
@@ -103,6 +105,7 @@ void Ramsi::mainLoop(){
             membrane_->normalize(0);
             membrane_->printCSV("thickness_" + std::to_string(currFrame_));
             membrane_->printCSVCurvature("curvature_" + std::to_string(currFrame_));
+            membrane_->printCSVAreaPerLipid(cgFrame_->time_);
             membrane_->reset();
         }
     }
@@ -113,6 +116,7 @@ void Ramsi::postProcess(){
         membrane_->normalize(0);
         membrane_->printCSV("thickness_avg");
         membrane_->printCSVCurvature("curvature_final");
+        membrane_->printCSVAreaPerLipid(cgFrame_->time_);
     }
     double mean = vector_mean(thickness_);
     double se = vector_stderr(thickness_, mean);

@@ -52,7 +52,10 @@ protected:
     FILE *aplFile_ = nullptr;
     FILE *avgFile_ = nullptr;
     /** \brief Number of grid points for each residue */
-    std::vector<int> residuePPL_;
+    std::map<std::string, int> upperResPPL_;
+    std::map<std::string, int> lowerResPPL_;
+    std::map<std::string, int> upperNumRes_;
+    std::map<std::string, int> lowerNumRes_;
 
     /** \brief Create closest pairs of reference groups between layers */
     void makePairs(const Frame &frame, const std::set<int> &ref,
@@ -60,11 +63,14 @@ protected:
 
     /** \brief Find closest head group to each grid cell */
     double closestLipid(const Frame &frame, const std::set<int> &ref,
-                      const std::map<int, double> &pairs, LightArray<int> &closest);
+                        const std::map<int, double> &pairs,
+                        std::map<std::string, int> &resPPL, LightArray<int> &closest);
+    double closestLipid2(const Frame &frame, const std::set<int> &ref,
+                        const std::map<int, double> &pairs,
+                        std::map<std::string, int> &resPPL, LightArray<int> &closest);
 
-    void printCSVAreaPerLipid(const float time) const;
-    void prepCSVAreaPerLipid();
     void prepCSVAvgThickness();
+    void prepCSVAreaPerLipid();
 
 public:
 
@@ -75,7 +81,8 @@ public:
     ~Membrane();
 
     /** \brief Construct Membrane with vector of Residues present in simulation */
-    Membrane(const std::vector<Residue> &residues);
+    Membrane(const std::vector<Residue> &residues, const Frame &frame,
+             const int resolution=100, const int blocks=4, const bool header=true);
 
     /** \brief Sort head groups into upper and lower bilayer
      *  Divided into blocks to account for curvature. Size blocks * blocks */
@@ -83,9 +90,6 @@ public:
 
     /** \brief Calculate thickness of bilayer */
     double thickness(const Frame &frame, const bool with_reset=false);
-
-    /** \brief Calculate surface area per lipid by residue */
-    void areaPerLipid(const LightArray<int> &closest);
 
     /** \brief Calculate curvature of membrane by 2nd order finite differences */
     void curvature(const Frame &frame);
@@ -101,6 +105,8 @@ public:
 
     /** \brief Print thickness array to CSV */
     void printCSV(const std::string &filename) const;
+
+    void printCSVAreaPerLipid(const float time) const;
 
     /** \brief Set resolution of calculation
      * Number of grid points in x and y */

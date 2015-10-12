@@ -59,7 +59,7 @@ inline double distSqr(const double c1[3], const double c2[3]){
 
 /** \brief Distance squared between two points in a plane as double[3]
  *   Slightly more efficient than distSqr */
-inline double distSqrPlane(const double c1[3], const double c2[3]){
+inline double distSqrPlane(const double c1[2], const double c2[2]){
     return (c1[0] - c2[0]) * (c1[0] - c2[0]) +
            (c1[1] - c2[1]) * (c1[1] - c2[1]);
 }
