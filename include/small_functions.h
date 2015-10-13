@@ -68,32 +68,13 @@ inline double distSqrPlane(const double c1[2], const double c2[2]){
 /** \brief Convert 3d vector as double[3] to polar coordinates */
 void polar(const double cart[3], double polar[3]);
 
-/** \brief Get (approximate) number of frames in XTC file */
+/** \brief Get number of frames in XTC file */
 int get_xtc_num_frames(const std::string &xtcname);
 
 /** \brief Calculate mean of vector */
 double vector_mean(std::vector<double> &vec);
 
-/** \brief Calculate standard error of vector */
-double vector_stderr(std::vector<double> &vec, double mean=0.);
-
-struct StatsBox{
-    /** RMS difference between items */
-    double rmsd = 0.;
-    /** RRMS difference between items - RMS / mean value */
-    double nrmsd = 0.;
-    /** Mean difference between items */
-    double diff_means = 0.;
-    /** Mean of values in array A */
-    double mean_a = 0.;
-    /** Mean of values in array B */
-    double mean_b = 0.;
-    /** Minimum value of a **/
-    double min_a;
-    /** Maximum value of a **/
-    double max_a;
-};
-
-StatsBox vector_stats(const std::vector<double> &a, const std::vector<double> &b);
+/** \brief Calculate standard error of vector using Welford's one pass method */
+double vector_stderr(std::vector<double> &vec);
 
 #endif //_CGTOOL_SMALL_FUNCTIONS_H_

@@ -115,35 +115,14 @@ double vector_mean(vector<double> &vec){
     return sum / vec.size();
 }
 
-double vector_stderr(vector<double> &vec, double mean){
-    if(mean == 0.) mean = vector_mean(vec);
-    double sum = 0.;
-    for(const double &it : vec) sum += (it-mean)*(it-mean);
-    return sqrt(sum) / vec.size();
-}
-
-StatsBox vector_stats(const vector<double> &a, const vector<double> &b){
-    assert(a.size() == b.size());
-    const int N = a.size();
-    assert(a.size() != 0);
-    assert(b.size() != 0);
-    StatsBox result;
-    result.min_a = a[0]; result.max_a = a[0];
-
-    double sumsqr = 0.;
-    for(int i=0; i<N; i++){
-        sumsqr += (a[i] - b[i]) * (a[i] - b[i]);
-        result.mean_a += a[i];
-        result.mean_b += b[i];
-        result.min_a = fmin(result.min_a, a[i]);
-        result.max_a = fmax(result.max_a, a[i]);
+double vector_stderr(vector<double> &vec){
+    double sum_sq = 0., sum = 0.;
+    for(const double &it : vec){
+        sum_sq += it*it;
+        sum += it;
     }
-
-    result.mean_a /= N;
-    result.mean_b /= N;
-    result.diff_means = fabs(result.mean_a - result.mean_b);
-    result.rmsd = sqrt(sumsqr / N);
-    result.nrmsd = result.rmsd / (result.max_a - result.min_a);
-
-    return result;
+    const int n = vec.size();
+    const double var = (n*sum_sq - sum*sum) / (n*n);
+    return sqrt(var / n);
 }
+

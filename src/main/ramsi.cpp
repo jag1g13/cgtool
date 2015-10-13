@@ -119,9 +119,9 @@ void Ramsi::postProcess(){
         membrane_->printCSVAreaPerLipid(cgFrame_->time_);
     }
     double mean = vector_mean(thickness_);
-    double se = vector_stderr(thickness_, mean);
+    double se = vector_stderr(thickness_);
 
-    printf("Thickness mean: %8.3f, SE %8.3f\n", mean, se);
+    printf("Thickness mean: %8.3f, SE %8.3e\n", mean, se);
 }
 
 Ramsi::~Ramsi(){
