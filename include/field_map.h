@@ -20,29 +20,33 @@ namespace constants{
 */
 class FieldMap{
 private:
+    /** \brief Residues of atomistic representation */
+    const std::vector<Residue> &aaResidues_;
+    /** \brief Residues of coarse-grained representation */
+    const std::vector<Residue> &cgResidues_;
+    /** \brief Number of atoms in a single aa residue */
+    const int aaNumAtoms_ = 0;
+    /** \brief Number of atoms in a single cg residue */
+    const int cgNumAtoms_ = 0;
+
     /** Dimensions of the field grids (3 ints) */
     int gridDims_[3];
     /** \brief Border to leave around molecule in field grid
     * Also the radius of selection for the CHELPG style grid */
     const double border_ = 1.;    // 1nm
+
     /** Coordinates of each grid point */
     std::vector<std::array<double, 3>> gridContracted_;
     int numGridPoints_;
+    /** Frame number */
+    int frameNum_ = 0;
+
     std::vector<double> fieldMonopoleContracted_;
     std::vector<double> fieldDipoleContracted_;
     /** Dipole of each atom, coords, vector, magnitude */
     LightArray<double> dipoles_;
     double totalDipole_[6];
     double sumDipole_[6];
-    /** Frame number */
-    int frameNum_ = 0;
-    /** Number of atoms in a single aa residue */
-    const int aaNumAtoms_ = 0;
-    /** Number of atoms in a single cg residue */
-    const int cgNumAtoms_ = 0;
-    /** Residues in both representations */
-    const std::vector<Residue> &aaResidues_;
-    const std::vector<Residue> &cgResidues_;
 
     /** Create a CHELPG style grid using only points in a shell around the molecule */
     void setupGridContracted(const Frame &frame);

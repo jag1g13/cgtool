@@ -15,13 +15,16 @@
 class RDF{
 protected:
     const std::vector<Residue> &residues_;
-    Histogram histogram_;
-    Array rdf_;
-    int resolution_ = 100;
     double cutoff_ = 2.;
+    int resolution_ = 100;
+
     int grid_ = 200;
+
     int frames_ = 0;
     double density_ = 0.;
+
+    Histogram histogram_;
+    Array rdf_;
 
 public:
     RDF(const std::vector<Residue> &residues, const double cutoff, const int resolution) :

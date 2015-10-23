@@ -112,14 +112,14 @@ public:
     Frame(const std::string &xtcname, const std::string &groname,
           std::vector<Residue> &residues);
 
-    Frame(const Frame &frame) : residues_(frame.residues_), num_(frame.num_),
-                                name_(frame.name_), time_(frame.time_),
-                                step_(frame.step_), boxType_(frame.boxType_) {}
+    Frame(const Frame &frame) : name_(frame.name_), boxType_(frame.boxType_),
+                                time_(frame.time_), num_(frame.num_), step_(frame.step_),
+                                residues_(frame.residues_){}
 
     Frame(const Frame &frame, std::vector<Residue> &residues) :
-                                residues_(residues), num_(frame.num_),
-                                name_(frame.name_), time_(frame.time_),
-                                step_(frame.step_), boxType_(frame.boxType_) {}
+                                name_(frame.name_), boxType_(frame.boxType_),
+                                time_(frame.time_), num_(frame.num_), step_(frame.step_),
+                                residues_(frame.residues_){}
 
     /** \brief Create Frame by copying data from another Frame
     * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied. */

@@ -14,10 +14,14 @@ enum class FunctionalForm{HARMONIC, COS, COSHARMONIC};
 */
 class BondStruct{
 public:
+    /** \brief What type of bond measure is it?  Length, angle or dihedral */
+    const BondType type_;
+
     /** \brief The values of the bond parameter (length, angle, dih) for each Frame */
     std::vector<double> values_;
     /** \brief Vector of atom numbers for this bond property; For a bond length will contain two names; three for angle; four for dihedral */
     std::vector<int> atomNums_;
+
     /** \brief Average of bond parameter.  Double avoids overflow on summing over large numbers of Frames */
     double avg_ = 0.;
     /** \brief Force constant */
@@ -25,8 +29,6 @@ public:
     /** \brief R^2 of fitting gaussian to bond distribution
     * A low value indicates that the bond is probably bimodal */
     double rsqr_ = 0.;
-    /** \brief What type of bond measure is it?  Length, angle or dihedral */
-    const BondType type_;
 
     /** Constructor to set size (bond/angle/dihedral) */
     BondStruct(const BondType type);
