@@ -6,12 +6,14 @@
 
 #include <cmath>
 #include <cstdio>
+#include <array>
 #include <boost/algorithm/clamp.hpp>
 
 #include "small_functions.h"
 
 using std::string;
 using std::vector;
+using std::array;
 using std::map;
 using std::set;
 using boost::algorithm::clamp;
@@ -113,10 +115,9 @@ void Membrane::makePairs(const Frame &frame, const set<int> &ref,
     for(const int i : ref){
         double min_dist_2 = box_[0] * box_[1];
 
-        double coords_i[3];
+        array<double, 3> coords_i, coords_j;
         coords_i[0] = frame.atoms_[i].coords[0];
         coords_i[1] = frame.atoms_[i].coords[1];
-        double coords_j[3];
 
         // Find the closest reference particle in the other leaflet
         int closest = -1;
@@ -145,11 +146,12 @@ double Membrane::closestLipid(const Frame &frame, const set<int> &ref,
                               map<string, int> &resPPL, LightArray<int> &closest){
     const double max_box = box_[0] > box_[1] ? box_[0] : box_[1];
 
-    double grid_coords[2];
+    array<double, 2> grid_coords;
     double sum = 0.;
 
-    double ref_cache[ref.size()][2];
-    int ref_lookup[ref.size()];
+    const size_t ref_len = ref.size();
+    vector<array<double, 2>> ref_cache(ref_len);
+    vector<int> ref_lookup(ref_len);
     int it = 0;
     for(const int r : ref){
         ref_cache[it][0] = frame.atoms_[r].coords[0];
@@ -171,7 +173,7 @@ double Membrane::closestLipid(const Frame &frame, const set<int> &ref,
 
             // Find closest lipid in reference leaflet
             int closest_int = -1;
-            for(int k=0; k<ref.size(); k++){
+            for(int k=0; k<ref_len; k++){
                 const double dist2 = distSqrPlane(grid_coords, ref_cache[k]);
                 closest_int = dist2 < min_dist2 ? k : closest_int;
                 min_dist2 = std::min(min_dist2, dist2);

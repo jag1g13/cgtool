@@ -1,8 +1,11 @@
 #include "bond_struct.h"
 
 #include <stdexcept>
+#include <array>
 
 #include "small_functions.h"
+
+using std::array;
 
 BondStruct::BondStruct(const BondType type) : type_(type) {
     atomNums_.resize(static_cast<int>(type_));
@@ -12,7 +15,7 @@ double BondStruct::bondLength(const Frame &frame, const int offset) const{
     const int a = atomNums_[0] + offset;
     const int b = atomNums_[1] + offset;
 
-    double vec[3];
+    array<double, 3> vec;
     vec[0] = frame.atoms_[a].coords[0] - frame.atoms_[b].coords[0];
     vec[1] = frame.atoms_[a].coords[1] - frame.atoms_[b].coords[1];
     vec[2] = frame.atoms_[a].coords[2] - frame.atoms_[b].coords[2];
@@ -38,7 +41,7 @@ double BondStruct::bondAngle(const Frame &frame, const int offset) const{
             throw std::logic_error("Passing a bond length as an angle");
     }
 
-    double vec1[3], vec2[3];
+    array<double, 3> vec1, vec2;
     vec1[0] = frame.atoms_[b].coords[0] - frame.atoms_[a].coords[0];
     vec1[1] = frame.atoms_[b].coords[1] - frame.atoms_[a].coords[1];
     vec1[2] = frame.atoms_[b].coords[2] - frame.atoms_[a].coords[2];

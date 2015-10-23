@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <array>
 
 #include <boost/algorithm/string.hpp>
 #include <sysexits.h>
@@ -38,20 +39,27 @@ struct Atom{
     std::string atom_type = "";
     /** Atomname as a string */
     std::string atom_name = "";
+
     /** Atomic coordinates in x, y, z */
-    double coords[3] = {0., 0., 0.};
+    std::array<double, 3> coords = {{0., 0., 0.}};
+//    double coords[3] = {0., 0., 0.};
     /** Atom dipole components in x, y, z and magnitude */
-    double dipole[4] = {0., 0., 0., 0.};
+    std::array<double, 4> dipole = {{0., 0., 0., 0.}};
+//    double dipole[4] = {0., 0., 0., 0.};
+
     /** Atomic charge from the force field */
     double charge = 0.;
     /** Atomic mass */
     double mass = 0.;
-    /** Residue number */
-    int resnum = 0;
+
     /** Lennard-Jones C6 parameter */
     double c06 = 0.;
     /** Lennard-Jones C12 parameter */
     double c12 = 0.;
+
+    /** Residue number */
+    int resnum = 0;
+
     /** Create a blank Atom instance */
     Atom(){};
 

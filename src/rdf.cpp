@@ -5,10 +5,12 @@
 #include "rdf.h"
 
 #include <cmath>
+#include <array>
 
 #include "small_functions.h"
 
 using std::vector;
+using std::array;
 
 void RDF::calculateRDF(const Frame &frame){
     // Calculate average number density in cell
@@ -23,7 +25,7 @@ void RDF::calculateRDF(const Frame &frame){
         // Get number of ref atom for this residue
         const int atom_a = res.start + i*res.num_atoms + res.ref_atom;
 
-        double R_a[3];
+        array<double, 3> R_a;
         R_a[0] = frame.atoms_[atom_a].coords[0];
         R_a[1] = frame.atoms_[atom_a].coords[1];
         R_a[2] = frame.atoms_[atom_a].coords[2];
@@ -41,7 +43,7 @@ void RDF::calculateRDF(const Frame &frame){
             if(i == j) continue;
 
             const int atom_b = res.start + j*res.num_atoms + res.ref_atom;
-            double R_b[3];
+            array<double, 3> R_b;
             R_b[0] = frame.atoms_[atom_b].coords[0];
             R_b[1] = frame.atoms_[atom_b].coords[1];
             R_b[2] = frame.atoms_[atom_b].coords[2];
@@ -54,7 +56,7 @@ void RDF::calculateRDF(const Frame &frame){
                     for(int kk=-1; kk<=1; kk++){
                         if(pbc_axis[2] != kk && kk != 0) continue;
 
-                        double R_b_adj[3];
+                        array<double, 3> R_b_adj;
                         R_b_adj[0] = R_b[0] + ii*box[0];
                         R_b_adj[1] = R_b[1] + jj*box[1];
                         R_b_adj[2] = R_b[2] + kk*box[2];

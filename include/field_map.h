@@ -45,8 +45,7 @@ private:
     std::vector<double> fieldDipoleContracted_;
     /** Dipole of each atom, coords, vector, magnitude */
     LightArray<double> dipoles_;
-    double totalDipole_[6];
-    double sumDipole_[6];
+    std::array<double, 6> totalDipole_, sumDipole_;
 
     /** Create a CHELPG style grid using only points in a shell around the molecule */
     void setupGridContracted(const Frame &frame);
