@@ -145,7 +145,7 @@ set(CGTOOL_FILES
     "src/boltzmann_inverter.cpp"
     "src/bond_struct.cpp"
     "src/bondset.cpp"
-#   "src/field_map.cpp"
+    "src/field_map.cpp"
     "src/histogram.cpp"
     "src/itp_writer.cpp"
     "src/non_bondset.cpp"
@@ -168,6 +168,14 @@ target_link_libraries(cgtool cgtoolcore)
 # Add RAMSi target
 add_executable(ramsi ${RAMSI_FILES})
 target_link_libraries(ramsi cgtoolcore)
+
+# Add xtc-length target
+add_executable(xtc-length "src/xtc-length.c")
+
+# Add install option
+install(TARGETS xtc-length RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+install(TARGETS ramsi RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+install(TARGETS cgtool RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
 # Testing
 add_subdirectory(lib/gtest-1.7.0)

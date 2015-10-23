@@ -14,21 +14,14 @@ using std::vector;
 using std::cout;
 using std::endl;
 using std::ofstream;
+using std::array;
 
-FieldMap::FieldMap(const int grid, const vector<Residue> &aa_res, const vector<Residue> &cg_res) :
-          aaResidues_(aa_res), cgResidues_(cg_res), gridDims_(grid, grid, grid),
-          aaNumAtoms_(aa_res[0].num_atoms), cgNumAtoms_(cg_res[0].num_atoms){
-//    gridDims_[0] = grid; gridDims_[1] = grid; gridDims_[2] = grid;
-
-    dipoles_.init(ndipoles, 6, 1, false);
-}
 
 void FieldMap::calculate(const Frame &aa_frame, const Frame &cg_frame, const CGMap &cgmap){
     frameNum_ = aa_frame.num_;
     if(frameNum_ != cg_frame.num_) throw std::logic_error("Frame numbers do not match");
 
     calcDipolesDirect(cgmap, cg_frame, aa_frame);
-    setupGrid(aa_frame);
     setupGridContracted(aa_frame);
     calcFieldMonopolesContracted(aa_frame);
     calcFieldDipolesContracted(cg_frame);
@@ -36,8 +29,6 @@ void FieldMap::calculate(const Frame &aa_frame, const Frame &cg_frame, const CGM
     calcSumDipole();
     printDipoles();
 
-    StatsBox sb = vector_stats(fieldMonopoleContracted_, fieldDipoleContracted_);
-    cout << "\tRMS: " << sb.rmsd << "\tRRMS: " << sb.nrmsd << endl;
 }
 
 void FieldMap::setupGridContracted(const Frame &frame){
@@ -48,17 +39,17 @@ void FieldMap::setupGridContracted(const Frame &frame){
     const double vrad2 = 0.1 * 0.1;
     bool accepted;
     int accepted_count = 0, close_count = 0, far_count = 0;
-    double coords[3];
+    array<double, 3> coords;
 
-    gridContracted_.resetAppendedRows();
+    gridContracted_.clear();
 
 //    #pragma omp parallel for private(coords, radmin2, dist2, accepted) reduction(+: accepted_count, far_count, close_count)
     for(int i=0; i < gridDims_[0]; i++){
-        coords[0] = gridCoords_(0, i);
+//        coords[0] = gridCoords_(0, i);
         for(int j=0; j < gridDims_[1]; j++){
-            coords[1] = gridCoords_(1, j);
+//            coords[1] = gridCoords_(1, j);
             for(int k=0; k < gridDims_[2]; k++){
-                coords[2] = gridCoords_(2, k);
+//                coords[2] = gridCoords_(2, k);
                 radmin2 = 500.;
                 accepted = true;
 
@@ -80,14 +71,14 @@ void FieldMap::setupGridContracted(const Frame &frame){
                 if(accepted){
 //                    #pragma omp critical
                     {
-                        gridContracted_.append(coords);
+                        gridContracted_.push_back(coords);
                         ++accepted_count;
                     }
                 }
             }
         }
     }
-    numGridPoints_ = gridContracted_.getAppendedRows();
+    numGridPoints_ = gridContracted_.size();
     fieldMonopoleContracted_.resize(numGridPoints_);
     fieldDipoleContracted_.resize(numGridPoints_);
 }
@@ -98,9 +89,9 @@ void FieldMap::calcFieldMonopolesContracted(const Frame &frame){
     for(int i=0; i < numGridPoints_; i++){
         fieldMonopoleContracted_[i] = 0.;
         for(int j=0; j<aaNumAtoms_; j++){
-            coords[0] = gridContracted_(i, 0);
-            coords[1] = gridContracted_(i, 1);
-            coords[2] = gridContracted_(i, 2);
+            coords[0] = gridContracted_[i][0];
+            coords[1] = gridContracted_[i][1];
+            coords[2] = gridContracted_[i][2];
             fieldMonopoleContracted_[i] += frame.atoms_[j].charge /
                     distSqr(frame.atoms_[j].coords, coords);
         }
@@ -119,6 +110,7 @@ void FieldMap::calcFieldDipolesContracted(const Frame &frame){
     double vec_a[3], vec_b[3];
     double abs_a;
     double coords[3];
+
 //#pragma omp parallel for private(coords, vec_a, vec_b, abs_a)
     for(int i=0; i < numGridPoints_; i++) {
         fieldDipoleContracted_[i] = 0.;
@@ -127,7 +119,7 @@ void FieldMap::calcFieldDipolesContracted(const Frame &frame){
 //            fieldDipoleContracted_[i] += dipoles_(j, 5) / (abs_a*abs_a);
 
             for(int k=0; k<3; k++) {
-                coords[k] = gridContracted_(i, k);
+                coords[k] = gridContracted_[i][k];
                 vec_a[k] = coords[k] - frame.atoms_[j].coords[k];
                 vec_b[k] = dipoles_(j, k);
             }
@@ -186,9 +178,6 @@ void FieldMap::calcTotalDipole(const Frame &aa_frame){
         totalDipole_[2] += aa_frame.atoms_[i].coords[2] * charge;
     }
 
-//    totalDipole_[5] = sqrt(totalDipole_[0]*totalDipole_[0] +
-//                           totalDipole_[1]*totalDipole_[1] +
-//                           totalDipole_[2]*totalDipole_[2]);
     totalDipole_[5] = abs(totalDipole_);
 }
 
@@ -201,17 +190,14 @@ void FieldMap::calcSumDipole(){
         sumDipole_[2] += dipoles_(i, 2);
     }
 
-    // Calc magnitude
-    sumDipole_[5] = sqrt(sumDipole_[0]*sumDipole_[0] +
-                         sumDipole_[1]*sumDipole_[1] +
-                         sumDipole_[2]*sumDipole_[2]);
+    sumDipole_[5] = abs(sumDipole_);
 }
 
 void FieldMap::printDipoles(){
     printf("Total molecular dipole and sum of bead dipoles\n");
-    for(int i=0; i<6; i++) printf("%8.4f", totalDipole_[0]*constants::ENM2DEBYE);
+    for(int i=0; i<6; i++) printf("%8.4f", totalDipole_[5]*constants::ENM2DEBYE);
     printf("\n");
-    for(int i=0; i<6; i++) printf("%8.4f", sumDipole_[0]*constants::ENM2DEBYE);
+    for(int i=0; i<6; i++) printf("%8.4f", sumDipole_[5]*constants::ENM2DEBYE);
     printf("\n");
 }
 
@@ -225,11 +211,11 @@ void FieldMap::printFieldsToFile(){
 
     for(int i=0; i<numGridPoints_; i++){
         fprintf(faa, "%12.5f%12.5f%12.5f%12.5f\n",
-                gridContracted_(i, 0), gridContracted_(i, 1),
-                gridContracted_(i, 2), fieldMonopoleContracted_[i]);
+                gridContracted_[i][0], gridContracted_[i][1],
+                gridContracted_[i][2], fieldMonopoleContracted_[i]);
         fprintf(fcg, "%12.5f%12.5f%12.5f%12.5f\n",
-                gridContracted_(i, 0), gridContracted_(i, 1),
-                gridContracted_(i, 2), fieldDipoleContracted_[i]);
+                gridContracted_[i][0], gridContracted_[i][1],
+                gridContracted_[i][2], fieldDipoleContracted_[i]);
     }
 
     std::fclose(faa);

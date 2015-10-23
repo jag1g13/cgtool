@@ -5,6 +5,9 @@
 #ifndef CGTOOL_LIGHT_ARRAY_H
 #define CGTOOL_LIGHT_ARRAY_H
 
+#include <cassert>
+#include <stdexcept>
+
 #include "small_functions.h"
 
 template <typename T> class LightArray{
@@ -12,13 +15,12 @@ protected:
     T *array_ = nullptr;
     int size_[2] = {0, 0};
     int length_ = 0;
-    bool safe_ = true;
+    const bool safe_;
 
 public:
-    LightArray<T>(){};
-    LightArray<T>(const int x, const int y=1, const bool safe=true){
+    LightArray<T>() : safe_(true){};
+    LightArray<T>(const int x, const int y=1, const bool safe=true) : safe_(safe){
         alloc(x, y);
-        safe_ = safe;
         if(safe_) zero();
     };
     ~LightArray<T>(){

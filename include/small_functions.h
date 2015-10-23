@@ -9,6 +9,7 @@
 #include <ctime>
 #include <vector>
 #include <cmath>
+#include <array>
 
 #include <time.h>
 
@@ -52,6 +53,11 @@ inline double abs(const double vec[3]){
 
 /** \brief Distance squared between two points as double[3] */
 inline double distSqr(const double c1[3], const double c2[3]){
+    return (c1[0] - c2[0]) * (c1[0] - c2[0]) +
+           (c1[1] - c2[1]) * (c1[1] - c2[1]) +
+           (c1[2] - c2[2]) * (c1[2] - c2[2]);
+}
+inline double distSqr(const double c1[3], const std::array<double, 3> &c2){
     return (c1[0] - c2[0]) * (c1[0] - c2[0]) +
            (c1[1] - c2[1]) * (c1[1] - c2[1]) +
            (c1[2] - c2[2]) * (c1[2] - c2[2]);
