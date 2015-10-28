@@ -183,17 +183,21 @@ include_directories(lib/gtest-1.7.0/include lib/gtest-1.7.0/include)
 
 # Test parser
 add_executable(gtest_parser src/tests/parser_test.cpp)
-target_link_libraries (gtest_parser gtest gtest_main cgtoolcore)
+target_link_libraries(gtest_parser gtest gtest_main cgtoolcore)
 add_test(GTestParserAll gtest_parser)
 # Test bondset
 add_executable(gtest_bondset src/tests/bondset_test.cpp
     src/bondset.cpp src/boltzmann_inverter.cpp src/array.cpp src/histogram.cpp src/bond_struct.cpp)
-target_link_libraries (gtest_bondset gtest gtest_main cgtoolcore)
+target_link_libraries(gtest_bondset gtest gtest_main cgtoolcore)
 add_test(GTestBondSetAll gtest_bondset)
 # Test array
-add_executable(gtest_array src/tests/array_test.cpp src/array.cpp)
-target_link_libraries (gtest_array gtest gtest_main cgtoolcore)
+add_executable(gtest_array src/tests/array_test.cpp src/array.cpp src/small_functions.cpp)
+target_link_libraries(gtest_array gtest gtest_main)
 add_test(GTestArrayAll gtest_array)
+# Test lightarray
+add_executable(gtest_light_array src/tests/light_array_test.cpp)
+target_link_libraries(gtest_light_array gtest gtest_main)
+add_test(GTestLightArrayAll gtest_light_array)
 
 # Integration test - does it run
 add_test(IntegrationRUNCGTOOL cgtool -c ../test_data/ALLA/cg.cfg -x ../test_data/ALLA/md.xtc -g ../test_data/ALLA/md.gro -i ../test_data/ALLA/topol.top)

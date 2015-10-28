@@ -76,7 +76,7 @@ public:
 };
 
 /** \brief Copy constructor */
-template <typename T> LightArray<T>::LightArray(const LightArray &other){
+template <typename T> LightArray<T>::LightArray(const LightArray &other) : safe_(other.safe_){
     alloc(other.size_[0], other.size_[1]);
     for(int i=0; i<length_; i++){
         array_[i] = other.array_[i];
