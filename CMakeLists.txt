@@ -12,19 +12,21 @@ MESSAGE("C     ${CMAKE_SYSTEM_NAME} ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VE
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -ffast-math -march=native")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -march=native")
 
+message("${CMAKE_BUILD_TYPE}")
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING
         "Defaults to Release build" FORCE)
 endif()
 
-if(NOT CMAKE_FLAGS_Release)
-    set(CMAKE_FLAGS_Release "-O3")
+if(NOT CMAKE_CXX_FLAGS_Release)
+    set(CMAKE_CXX_FLAGS_Release "-O3")
 endif()
-if(NOT CMAKE_FLAGS_Debug)
-    set(CMAKE_FLAGS_Release "-g")
+if(NOT CMAKE_CXX_FLAGS_Debug)
+    set(CMAKE_CXX_FLAGS_Release "-g")
 endif()
 
-if(CMAKE_BUILD_TYPE MATCHES "Release")
+if(${CMAKE_BUILD_TYPE} MATCHES "Release")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_Release}")
 elseif(CMAKE_BUILD_TYPE MATCHES "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_Release}")
@@ -178,24 +180,24 @@ install(TARGETS ramsi RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 install(TARGETS cgtool RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
 # Testing
-add_subdirectory(lib/gtest-1.7.0)
+add_subdirectory(lib/gtest-1.7.0 EXCLUDE_FROM_ALL)
 include_directories(lib/gtest-1.7.0/include lib/gtest-1.7.0/include)
 
 # Test parser
-add_executable(gtest_parser src/tests/parser_test.cpp)
+add_executable(gtest_parser EXCLUDE_FROM_ALL src/tests/parser_test.cpp)
 target_link_libraries(gtest_parser gtest gtest_main cgtoolcore)
 add_test(GTestParserAll gtest_parser)
 # Test bondset
-add_executable(gtest_bondset src/tests/bondset_test.cpp
+add_executable(gtest_bondset EXCLUDE_FROM_ALL src/tests/bondset_test.cpp
     src/bondset.cpp src/boltzmann_inverter.cpp src/array.cpp src/histogram.cpp src/bond_struct.cpp)
 target_link_libraries(gtest_bondset gtest gtest_main cgtoolcore)
 add_test(GTestBondSetAll gtest_bondset)
 # Test array
-add_executable(gtest_array src/tests/array_test.cpp src/array.cpp src/small_functions.cpp)
+add_executable(gtest_array EXCLUDE_FROM_ALL src/tests/array_test.cpp src/array.cpp src/small_functions.cpp)
 target_link_libraries(gtest_array gtest gtest_main)
 add_test(GTestArrayAll gtest_array)
 # Test lightarray
-add_executable(gtest_light_array src/tests/light_array_test.cpp)
+add_executable(gtest_light_array EXCLUDE_FROM_ALL src/tests/light_array_test.cpp)
 target_link_libraries(gtest_light_array gtest gtest_main)
 add_test(GTestLightArrayAll gtest_light_array)
 
@@ -213,4 +215,4 @@ add_test(IntegrationRUNRAMSi ./ramsi -c ../test_data/staph/mem.cfg -x ../test_da
 
 enable_testing()
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-                  DEPENDS gtest_parser gtest_bondset gtest_array cgtool ramsi)
+                  DEPENDS gtest_parser gtest_bondset gtest_array gtest_light_array cgtool ramsi)

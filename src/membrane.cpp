@@ -41,7 +41,7 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
     // Find middle of membrane in z coord
     // Do this in blocks to account for curvature - more curvature needs more blocks
     LightArray<double> block_avg_z(blocks, blocks);
-    LightArray<int> block_tot_residues(blocks, blocks);
+    LightArray<double> block_tot_residues(blocks, blocks);
 
     for(const Residue &res : residues_){
         if(res.ref_atom < 0) continue;
@@ -50,16 +50,13 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
             const int x = int(frame.atoms_[num].coords[0] * blocks / box_[0]) % blocks;
             const int y = int(frame.atoms_[num].coords[1] * blocks / box_[1]) % blocks;
+            if(x<0 || y<0) printf("Less than 0\n");
             block_avg_z(x, y) += frame.atoms_[num].coords[2];
             block_tot_residues(x, y)++;
         }
     }
 
-    for(int i=0; i<blocks; i++){
-        for(int j=0; j<blocks; j++){
-            block_avg_z(i, j) /= block_tot_residues(i, j);
-        }
-    }
+    block_avg_z /= block_tot_residues;
 
     // Separate membrane into upper and lower
     for(const Residue &res : residues_){

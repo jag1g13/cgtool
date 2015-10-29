@@ -8,9 +8,9 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <array>
 
 #include "frame.h"
-#include "array.h"
 #include "residue.h"
 #include "light_array.h"
 
@@ -38,9 +38,9 @@ protected:
     /** Total number of lipids */
     int numLipids_ = 0;
     /** Size of he simulation box - assume orthorhombic */
-    double box_[3];
+    std::array<double, 3> box_;
     /** Distance between grid points in xy plane */
-    double step_[2];
+    std::array<double, 2> step_;
     /** 2d Array to hold the membrane thickness on a grid */
     LightArray<double> thickness_;
     /** Number of grid points in x and y direction */
@@ -75,7 +75,7 @@ protected:
 public:
 
     /** \brief Print header in CSV or not */
-    bool header_ = false;
+    const bool header_;
 
     /** \brief Destructor */
     ~Membrane();
