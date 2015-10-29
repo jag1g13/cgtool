@@ -39,9 +39,8 @@ public:
         return *this;
     }
 
-    LightArray<T> &operator/=(const int div){
-        const double mult = 1. / div;
-        array_ *= mult;
+    LightArray<T> &operator/=(const T &div){
+        array_ /= div;
         return *this;
     }
 

@@ -65,9 +65,6 @@ protected:
     double closestLipid(const Frame &frame, const std::set<int> &ref,
                         const std::map<int, double> &pairs,
                         std::map<std::string, int> &resPPL, LightArray<int> &closest);
-    double closestLipid2(const Frame &frame, const std::set<int> &ref,
-                        const std::map<int, double> &pairs,
-                        std::map<std::string, int> &resPPL, LightArray<int> &closest);
 
     void prepCSVAvgThickness();
     void prepCSVAreaPerLipid();

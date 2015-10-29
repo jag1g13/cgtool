@@ -16,6 +16,7 @@ using std::vector;
 using std::array;
 using std::map;
 using std::set;
+using std::abs;
 using boost::algorithm::clamp;
 
 Membrane::Membrane(const vector<Residue> &residues, const Frame &frame,
@@ -93,12 +94,21 @@ double Membrane::thickness(const Frame &frame, const bool with_reset){
     step_[0] = box_[0] / grid_;
     step_[1] = box_[1] / grid_;
 
-    makePairs(frame, upperHeads_, lowerHeads_, upperPair_);
-    makePairs(frame, lowerHeads_, upperHeads_, lowerPair_);
-
     double avg_thickness = 0.;
-    avg_thickness += closestLipid(frame, upperHeads_, upperPair_, upperResPPL_, closestUpper_);
-    avg_thickness += closestLipid(frame, lowerHeads_, lowerPair_, lowerResPPL_, closestLower_);
+#pragma omp parallel sections num_threads(2) reduction(+:avg_thickness)
+    {
+#pragma omp section
+        {
+            makePairs(frame, upperHeads_, lowerHeads_, upperPair_);
+            avg_thickness += closestLipid(frame, upperHeads_, upperPair_, upperResPPL_, closestUpper_);
+        }
+#pragma omp section
+        {
+            makePairs(frame, lowerHeads_, upperHeads_, lowerPair_);
+            avg_thickness += closestLipid(frame, lowerHeads_, lowerPair_, lowerResPPL_, closestLower_);
+        }
+    }
+
     avg_thickness /= 2 * grid_ * grid_;
     fprintf(avgFile_, "%8.3f%8.3f\n", frame.time_, avg_thickness);
 
@@ -111,29 +121,22 @@ void Membrane::makePairs(const Frame &frame, const set<int> &ref,
     // For each reference particle in the ref leaflet
     for(const int i : ref){
         double min_dist_2 = box_[0] * box_[1];
-
-        array<double, 3> coords_i, coords_j;
-        coords_i[0] = frame.atoms_[i].coords[0];
-        coords_i[1] = frame.atoms_[i].coords[1];
+        array<double, 3> r_i = frame.atoms_[i].coords;
 
         // Find the closest reference particle in the other leaflet
-        int closest = -1;
+        array<double, 3> r_j = {{0., 0., 0.}};
         for(const int j : other){
-            coords_j[0] = frame.atoms_[j].coords[0];
-            coords_j[1] = frame.atoms_[j].coords[1];
+            r_j[0] = frame.atoms_[j].coords[0];
+            r_j[1] = frame.atoms_[j].coords[1];
 
-            const double dist_2 = distSqrPlane(coords_i, coords_j);
+            const double dist_2 = distSqrPlane(r_i, r_j);
             if(dist_2 < min_dist_2){
                 min_dist_2 = dist_2;
-                closest = j;
+                r_j[2] = frame.atoms_[j].coords[2];
             }
         }
 
-        if(closest == -1) throw std::logic_error("Could not find closest partner lipid in membrane");
-
-        coords_i[2] = frame.atoms_[i].coords[2];
-        coords_j[2] = frame.atoms_[closest].coords[2];
-        pairs[i] = fabs(coords_i[2] - coords_j[2]);
+        pairs[i] = abs(r_i[2] - r_j[2]);
     }
 }
 
@@ -141,39 +144,43 @@ void Membrane::makePairs(const Frame &frame, const set<int> &ref,
 double Membrane::closestLipid(const Frame &frame, const set<int> &ref,
                               const map<int, double> &pairs,
                               map<string, int> &resPPL, LightArray<int> &closest){
-    const double max_box = box_[0] > box_[1] ? box_[0] : box_[1];
+    const double box_diag2 = box_[0] > box_[1] ? box_[0] : box_[1];
 
-    array<double, 2> grid_coords;
     double sum = 0.;
 
     const size_t ref_len = ref.size();
-    vector<array<double, 2>> ref_cache(ref_len);
-    vector<int> ref_lookup(ref_len);
-    int it = 0;
-    for(const int r : ref){
-        ref_cache[it][0] = frame.atoms_[r].coords[0];
-        ref_cache[it][1] = frame.atoms_[r].coords[1];
-        ref_lookup[it] = r;
-        it++;
+    vector<array<double, 3>> ref_cache(ref.size());
+    vector<int> ref_lookup(ref.size());
+    {
+        int it = 0;
+        for(const int r : ref){
+            ref_cache[it] = frame.atoms_[r].coords;
+            ref_lookup[it] = r;
+            it++;
+        }
     }
 
 #pragma omp parallel for default(none) \
  shared(frame, ref, pairs, closest, ref_cache, ref_lookup, resPPL) \
- private(grid_coords) \
  reduction(+: sum)
     for(int i=0; i<grid_; i++){
+        array<double, 3> grid_coords;
         grid_coords[0] = (i + 0.5) * step_[0];
 
         for(int j=0; j<grid_; j++){
             grid_coords[1] = (j + 0.5) * step_[1];
-            double min_dist2 = 2*max_box*max_box;
+            double min_dist2 = box_diag2;
 
             // Find closest lipid in reference leaflet
             int closest_int = -1;
             for(int k=0; k<ref_len; k++){
                 const double dist2 = distSqrPlane(grid_coords, ref_cache[k]);
-                closest_int = dist2 < min_dist2 ? k : closest_int;
-                min_dist2 = std::min(min_dist2, dist2);
+//                closest_int = dist2 < min_dist2 ? k : closest_int;
+//                min_dist2 = std::min(min_dist2, dist2);
+                if(dist2 < min_dist2){
+                    closest_int = k;
+                    min_dist2 = dist2;
+                }
             }
 
             const int close_ref = ref_lookup[closest_int];
@@ -193,7 +200,6 @@ double Membrane::closestLipid(const Frame &frame, const set<int> &ref,
 
     return sum;
 }
-
 
 void Membrane::curvature(const Frame &frame){
     LightArray<double> avg_z(grid_, grid_);
