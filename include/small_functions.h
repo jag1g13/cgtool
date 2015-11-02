@@ -12,7 +12,6 @@
 #include <array>
 #include <cassert>
 
-#include <time.h>
 
 /** \brief Check if a file exists */
 bool file_exists(const std::string name);

@@ -1,9 +1,8 @@
 #include "cgtool.h"
 
-#include <string>
-#include <vector>
-
 #include <sysexits.h>
+
+#include <boost/algorithm/string.hpp>
 
 #include "itp_writer.h"
 

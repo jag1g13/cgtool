@@ -50,6 +50,11 @@ public:
         return *this;
     }
 
+    bool operator==(const LightArray<T> &other) const{
+        std::valarray<bool> eq = array_ == other.array_;
+        return (size_ == other.size_) && (std::all_of(std::begin(eq), std::end(eq), [](bool b){return b;}));
+    }
+
     void alloc(const int x, const int y = 1){
         size_[0] = x;
         size_[1] = y;

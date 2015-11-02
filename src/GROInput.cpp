@@ -8,6 +8,8 @@
 #include <vector>
 #include <sysexits.h>
 
+#include <boost/algorithm/string.hpp>
+
 using std::string;
 using std::printf;
 using std::vector;

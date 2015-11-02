@@ -9,6 +9,7 @@
 #include <vector>
 #include <set>
 #include <array>
+#include <map>
 
 #include "frame.h"
 #include "residue.h"

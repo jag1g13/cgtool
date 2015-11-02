@@ -5,10 +5,8 @@
 #include <string>
 #include <array>
 
-#include <boost/algorithm/string.hpp>
-#include <sysexits.h>
-
 #include "residue.h"
+
 class TrjOutput;
 class TrjInput;
 
@@ -35,22 +33,20 @@ struct AtomsHave{
 
 /** \brief Struct to hold atom data */
 struct Atom{
-    /** Atomtype as a string */
-    std::string atom_type = "";
-    /** Atomname as a string */
-    std::string atom_name = "";
-
     /** Atomic coordinates in x, y, z */
     std::array<double, 3> coords = {{0., 0., 0.}};
-//    double coords[3] = {0., 0., 0.};
     /** Atom dipole components in x, y, z and magnitude */
     std::array<double, 4> dipole = {{0., 0., 0., 0.}};
-//    double dipole[4] = {0., 0., 0., 0.};
 
     /** Atomic charge from the force field */
     double charge = 0.;
     /** Atomic mass */
     double mass = 0.;
+
+    /** Atomtype as a string */
+    std::string atom_type = "\0\0\0\0\0";
+    /** Atomname as a string */
+    std::string atom_name = "\0\0\0\0\0";
 
     /** Lennard-Jones C6 parameter */
     double c06 = 0.;
@@ -59,11 +55,6 @@ struct Atom{
 
     /** Residue number */
     int resnum = 0;
-
-    /** Create a blank Atom instance */
-    Atom(){};
-
-    Atom(const Atom &other){};
 };
 
 enum class BoxType{CUBIC, TRICLINIC};
@@ -84,8 +75,6 @@ protected:
 
     /** \brief Input readers */
     TrjInput *trjIn_ = nullptr;
-
-    void createAtoms(int natoms);
 
     bool initFromGRO(const std::string &groname);
 

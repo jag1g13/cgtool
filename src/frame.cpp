@@ -2,8 +2,8 @@
 
 #include <sstream>
 
-#include <math.h>
 #include <assert.h>
+#include <sysexits.h>
 
 #include "parser.h"
 #include "small_functions.h"
@@ -66,7 +66,9 @@ bool Frame::outputTrajectoryFrame(TrjOutput &output){
 bool Frame::initFromGRO(const string &groname){
     GROInput in(groname);
     numAtoms_ = in.getNumAtoms();
-    createAtoms(numAtoms_);
+    atoms_.resize(numAtoms_);
+    atomHas_.created = true;
+
     in.readFrame(*this);
     in.readResidues(residues_);
 
@@ -89,11 +91,6 @@ bool Frame::initFromGRO(const string &groname){
     }
 
     return true;
-}
-
-void Frame::createAtoms(int natoms){
-    atoms_.resize(natoms);
-    atomHas_.created = true;
 }
 
 void Frame::pbcAtom(int natoms){

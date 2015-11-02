@@ -4,11 +4,6 @@
 
 #include "membrane.h"
 
-#include <cmath>
-#include <cstdio>
-#include <array>
-#include <boost/algorithm/clamp.hpp>
-
 #include "small_functions.h"
 
 using std::string;
@@ -17,7 +12,6 @@ using std::array;
 using std::map;
 using std::set;
 using std::abs;
-using boost::algorithm::clamp;
 
 Membrane::Membrane(const vector<Residue> &residues, const Frame &frame,
                    const int resolution, const int blocks, const bool header) :
@@ -95,7 +89,7 @@ double Membrane::thickness(const Frame &frame, const bool with_reset){
     step_[1] = box_[1] / grid_;
 
     double avg_thickness = 0.;
-#pragma omp parallel sections num_threads(2) reduction(+:avg_thickness)
+#pragma omp parallel sections reduction(+:avg_thickness) default(shared)
     {
 #pragma omp section
         {
@@ -175,8 +169,6 @@ double Membrane::closestLipid(const Frame &frame, const set<int> &ref,
             int closest_int = -1;
             for(int k=0; k<ref_len; k++){
                 const double dist2 = distSqrPlane(grid_coords, ref_cache[k]);
-//                closest_int = dist2 < min_dist2 ? k : closest_int;
-//                min_dist2 = std::min(min_dist2, dist2);
                 if(dist2 < min_dist2){
                     closest_int = k;
                     min_dist2 = dist2;

@@ -32,7 +32,7 @@ TEST(LightArrayTest, CopyConstruct){
     LightArray<int> A(size);
     for(int i=0; i<size; i++) A(i) = i;
     LightArray<int> B(A);
-    for(int i=0; i<size; i++) ASSERT_EQ(A(i), B(i));
+    ASSERT_EQ(A, B);
 }
 
 TEST(LightArrayTest, CopyAssign){
@@ -41,7 +41,7 @@ TEST(LightArrayTest, CopyAssign){
     for(int i=0; i<size; i++) A(i) = i;
     LightArray<int> B(size);
     B = A;
-    for(int i=0; i<size; i++) ASSERT_EQ(A(i), B(i));
+    ASSERT_EQ(A, B);
 }
 
 TEST(LightArrayTest, Mean){

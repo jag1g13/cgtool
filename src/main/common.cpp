@@ -5,7 +5,6 @@
 #include "common.h"
 
 #include <iostream>
-#include <vector>
 
 #include <sysexits.h>
 #include <locale.h>

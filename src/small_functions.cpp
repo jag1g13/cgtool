@@ -5,8 +5,6 @@
 
 #include <stdexcept>
 #include <iostream>
-#include <cmath>
-#include <cassert>
 
 #include <sys/stat.h>
 #include <fstream>
