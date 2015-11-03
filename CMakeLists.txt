@@ -216,3 +216,5 @@ add_test(IntegrationRUNRAMSi ./ramsi -c ../test_data/staph/mem.cfg -x ../test_da
 enable_testing()
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
                   DEPENDS gtest_parser gtest_bondset gtest_array gtest_light_array cgtool ramsi)
+add_custom_target(check-v COMMAND ${CMAKE_CTEST_COMMAND} "-V"
+                  DEPENDS gtest_parser gtest_bondset gtest_array gtest_light_array cgtool ramsi)

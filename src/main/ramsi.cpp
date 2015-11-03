@@ -84,9 +84,6 @@ void Ramsi::setupObjects(){
 
     membrane_ = new Membrane(residues_, *frame_, settings_["mem"]["resolution"],
                              settings_["mem"]["blocks"], settings_["mem"]["header"]);
-//    membrane_->sortBilayer(*frame_, settings_["mem"]["blocks"]);
-//    membrane_->setResolution(settings_["mem"]["resolution"]);
-//    membrane_->header_ = static_cast<bool>(settings_["mem"]["header"]);
 }
 
 void Ramsi::mainLoop(){
