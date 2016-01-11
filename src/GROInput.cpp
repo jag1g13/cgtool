@@ -144,8 +144,15 @@ void GROInput::readResidues(vector<Residue> &residues){
         if(current.resname != prev.resname){
             num_res++;
 
-            if(residues.size() < num_res){
-                printf("ERROR: Not all residues are listed in CFG\n");
+            bool res_found = false;
+            for(const Residue &r : residues){
+                if(current.resname == r.resname){
+                    res_found = true;
+                    break;
+                }
+            }
+            if(!res_found){
+                printf("ERROR: Residue %s in GRO not in CFG\n", current.resname.c_str());
                 exit(EX_CONFIG);
             }
 
@@ -154,7 +161,6 @@ void GROInput::readResidues(vector<Residue> &residues){
             res->resname = current.resname;
             res->total_atoms = 0;
             res->num_residues = 0;
-
         }
 
         if(current.resnum != prev.resnum){
