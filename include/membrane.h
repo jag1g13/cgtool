@@ -21,6 +21,8 @@ protected:
     std::set<int> upperHeads_;
     /** Head group reference atoms in the lower layer */
     std::set<int> lowerHeads_;
+    /** Protein reference atoms */
+    std::set<int> protAtoms_;
     /** Distance from ref in upper leaflet to closest in lower */
     std::map<int, double> upperPair_;
     /** Distance from ref in lower leaflet to closest in upper */

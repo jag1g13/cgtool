@@ -74,6 +74,8 @@ bool Frame::initFromGRO(const string &groname){
 
     // Create diciontary of residues
     for(Residue &res : residues_){
+        if(res.resname == "PROT") continue;
+
         for(int i=0; i<res.num_atoms; i++){
             const int atom = res.start + i;
             res.name_to_num.insert(std::pair<string, int>(atoms_[atom].atom_name, i));

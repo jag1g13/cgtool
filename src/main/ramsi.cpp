@@ -69,7 +69,7 @@ void Ramsi::readConfig(){
 
 void Ramsi::setupObjects(){
     frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, residues_);
-    for(Residue &res : residues_) res.print();
+    for(Residue &res : residues_) res.print(true);
 
     if(settings_["map"]["on"]){
         cgFrame_ = new Frame(*frame_, cgResidues_);

@@ -53,6 +53,9 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
 
     block_avg_z /= block_tot_residues;
 
+    double minz = block_avg_z.mean();
+    double maxz = minz;
+
     // Separate membrane into upper and lower
     for(const Residue &res : residues_){
         if(res.ref_atom < 0) continue;
@@ -62,6 +65,9 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
             const int x = int(frame.atoms_[num].coords[0] * blocks / box_[0]) % blocks;
             const int y = int(frame.atoms_[num].coords[1] * blocks / box_[1]) % blocks;
             const double z = frame.atoms_[num].coords[2];
+
+            minz = std::min(minz, z);
+            maxz = std::max(maxz, z);
 
             if(z < block_avg_z(x, y)){
                 lowerHeads_.insert(num);
@@ -75,6 +81,16 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
         }
         printf("%5s: %'4d lower, %'4d upper\n",
                res.resname.c_str(), num_in_leaflet[0], num_in_leaflet[1]);
+    }
+
+    for(const Residue &res : residues_){
+        if(res.resname != "PROT") continue;
+        if(res.ref_atom_name == "ALL"){
+            for(int i=res.start; i<res.end; i++){
+                const double z = frame.atoms_[i].coords[2];
+                if(minz < z && z < maxz) protAtoms_.insert(i);
+            }
+        }
     }
 }
 
@@ -150,6 +166,15 @@ double Membrane::closestLipid(const Frame &frame, const set<int> &ref,
         for(const int r : ref){
             ref_cache[it] = frame.atoms_[r].coords;
             ref_lookup[it] = r;
+            it++;
+        }
+    }
+
+    vector<array<double, 3>> prot_cache(protAtoms_.size());
+    {
+        int it = 0;
+        for(const int r : protAtoms_){
+            prot_cache[it] = frame.atoms_[r].coords;
             it++;
         }
     }

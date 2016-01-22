@@ -140,7 +140,9 @@ void GROInput::readResidues(vector<Residue> &residues){
     for(int i=0; i<natoms_; i++){
         std::getline(file_, line);
         current.populate(line);
+        if(aminoAcids_.count(current.resname)) current.resname = "PROT";
 
+//        if(not (aminoAcids_.count(current.resname) != 0 and res->resname != "PROT")){
         if(current.resname != prev.resname){
             num_res++;
 
@@ -156,7 +158,7 @@ void GROInput::readResidues(vector<Residue> &residues){
                 exit(EX_CONFIG);
             }
 
-            res = &(residues[num_res-1]);
+            res = &(residues[num_res - 1]);
             res->start = i;
             res->resname = current.resname;
             res->total_atoms = 0;
