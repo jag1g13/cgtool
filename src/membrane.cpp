@@ -90,6 +90,7 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
                 const double z = frame.atoms_[i].coords[2];
                 if(minz < z && z < maxz) protAtoms_.insert(i);
             }
+            protein_ = true;
         }
     }
 }
@@ -104,7 +105,8 @@ double Membrane::thickness(const Frame &frame, const bool with_reset){
     step_[0] = box_[0] / grid_;
     step_[1] = box_[1] / grid_;
 
-    double avg_thickness = 0.;
+    double avg_thickness = 0;
+
 #pragma omp parallel sections reduction(+:avg_thickness) default(shared)
     {
 #pragma omp section
@@ -119,7 +121,7 @@ double Membrane::thickness(const Frame &frame, const bool with_reset){
         }
     }
 
-    avg_thickness /= 2 * grid_ * grid_;
+    avg_thickness /= 2;
     fprintf(avgFile_, "%8.3f%8.3f\n", frame.time_, avg_thickness);
 
     numFrames_++;
@@ -154,9 +156,7 @@ void Membrane::makePairs(const Frame &frame, const set<int> &ref,
 double Membrane::closestLipid(const Frame &frame, const set<int> &ref,
                               const map<int, double> &pairs,
                               map<string, int> &resPPL, LightArray<int> &closest){
-    const double box_diag2 = box_[0] > box_[1] ? box_[0] : box_[1];
-
-    double sum = 0.;
+    const double box_diag2 = std::max(box_[0], box_[1]);
 
     const size_t ref_len = ref.size();
     vector<array<double, 3>> ref_cache(ref.size());
@@ -170,8 +170,9 @@ double Membrane::closestLipid(const Frame &frame, const set<int> &ref,
         }
     }
 
-    vector<array<double, 3>> prot_cache(protAtoms_.size());
-    {
+    const size_t prot_len = protAtoms_.size();
+    vector<array<double, 3>> prot_cache(prot_len);
+    if(protein_){
         int it = 0;
         for(const int r : protAtoms_){
             prot_cache[it] = frame.atoms_[r].coords;
@@ -179,9 +180,12 @@ double Membrane::closestLipid(const Frame &frame, const set<int> &ref,
         }
     }
 
+    double sum = 0;
+    int n_vals = 0;
+
 #pragma omp parallel for default(none) \
- shared(frame, ref, pairs, closest, ref_cache, ref_lookup, resPPL) \
- reduction(+: sum)
+ shared(frame, ref, pairs, closest, ref_cache, ref_lookup, prot_cache, resPPL) \
+ reduction(+: sum, n_vals)
     for(int i=0; i<grid_; i++){
         array<double, 3> grid_coords;
         grid_coords[0] = (i + 0.5) * step_[0];
@@ -200,22 +204,40 @@ double Membrane::closestLipid(const Frame &frame, const set<int> &ref,
                 }
             }
 
-            const int close_ref = ref_lookup[closest_int];
-            closest(i, j) = close_ref;
-            const double tmp = pairs.at(close_ref);
-            for(const Residue &res : residues_){
-                if(close_ref >= res.start && close_ref < res.end){
-#pragma omp atomic update
-                    resPPL[res.resname]++;
+            bool is_protein = false;
+            if(protein_){
+                for(int k=0; k<prot_len; k++){
+                    const double dist2 = distSqrPlane(grid_coords, prot_cache[k]);
+                    if(dist2 < min_dist2){
+                        is_protein = true;
+                        break;
+                    }
                 }
             }
 
-            sum += tmp;
-            thickness_(i, j) += tmp;
+            if(is_protein){
+//#pragma omp atomic update
+//                resPPL["PROT"]++;
+            }else{
+                const int close_ref = ref_lookup[closest_int];
+                closest(i, j) = close_ref;
+                const double tmp = pairs.at(close_ref);
+                for(const Residue &res : residues_){
+                    if(close_ref >= res.start && close_ref < res.end){
+#pragma omp atomic update
+                        resPPL[res.resname]++;
+                    }
+                }
+
+                n_vals++;
+                sum += tmp;
+#pragma omp atomic update
+                thickness_(i, j) += tmp;
+            }
         }
     }
 
-    return sum;
+    return sum / n_vals;
 }
 
 void Membrane::curvature(const Frame &frame){

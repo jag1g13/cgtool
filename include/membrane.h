@@ -23,6 +23,8 @@ protected:
     std::set<int> lowerHeads_;
     /** Protein reference atoms */
     std::set<int> protAtoms_;
+    /** Is protein present? */
+    bool protein_ = false;
     /** Distance from ref in upper leaflet to closest in lower */
     std::map<int, double> upperPair_;
     /** Distance from ref in lower leaflet to closest in upper */

@@ -95,6 +95,7 @@ void Ramsi::mainLoop(){
     if(currFrame_ % settings_["mem"]["freq"] == 0){
         thickness_.push_back(membrane_->thickness(*cgFrame_));
         membrane_->curvature(*cgFrame_);
+        membrane_->printCSVAreaPerLipid(cgFrame_->time_);
     }
 
     if(settings_["mem"]["export"] > 0){
@@ -102,7 +103,6 @@ void Ramsi::mainLoop(){
             membrane_->normalize(0);
             membrane_->printCSV("thickness_" + std::to_string(currFrame_));
             membrane_->printCSVCurvature("curvature_" + std::to_string(currFrame_));
-            membrane_->printCSVAreaPerLipid(cgFrame_->time_);
             membrane_->reset();
         }
     }
