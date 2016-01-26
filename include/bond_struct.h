@@ -46,6 +46,8 @@ public:
     * Wrapper around float bondAngle(int, int, int, int)
     */
     double bondAngle(const Frame &frame, const int offset) const;
+
+    double bondDihedral(const Frame &frame, const int offset) const;
 };
 
 #endif

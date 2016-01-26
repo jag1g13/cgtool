@@ -57,6 +57,14 @@ inline double abs(const std::array<double, SIZE> &vec){
     return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 }
 
+template<std::size_t SIZE>
+std::array<double, SIZE> operator-(const std::array<double, SIZE> &vec,
+                                   const std::array<double, SIZE> &vec2){
+    std::array<double, SIZE> res;
+    for(std::size_t i=0; i<SIZE; i++) res[i] = vec[i] - vec2[i];
+    return vec;
+}
+
 /** \brief Distance squared between two points as std::array<double, 3> */
 template<std::size_t SIZE>
 inline double distSqr(const std::array<double, SIZE> &c1, const std::array<double, SIZE> &c2){

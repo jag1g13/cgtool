@@ -93,7 +93,7 @@ void BondSet::calcBondsInternal(Frame &frame){
             if(!std::isinf(val) && !std::isnan(val)) bond.values_.push_back(val);
         }
         for(BondStruct &bond : dihedrals_){
-            const double val = bond.bondAngle(frame, offset);
+            const double val = bond.bondDihedral(frame, offset);
             if(!std::isinf(val) && !std::isnan(val)) bond.values_.push_back(val);
         }
         numMeasures_++;

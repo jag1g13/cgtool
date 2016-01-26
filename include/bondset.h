@@ -20,7 +20,7 @@ protected:
     /** How many frames did we successfully measure */
     int numMeasures_ = 0;
     /** Temperature of simulation - for Boltzmann Inversion */
-    double temp_ = 310.;
+    double temp_ = 320.;
     /** Map of bead names to number */
     std::map<std::string, int> beadNums_;
     /** The residues */

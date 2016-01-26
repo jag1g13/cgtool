@@ -49,27 +49,27 @@ double BoltzmannInverter::invertGaussian(){
                 A(i, 1) = 1.;
                 A(i, 2) = x;
                 A(i, 3) = x*x;
-                b(i) = -R * temp_ * log(gaussian_(i - 1) / (x * x));
+                b(i) = -R * temp_ * log(gaussian_(i - 1));
                 break;
             case BondType::ANGLE:
-            case BondType::DIHEDRAL:
+//            case BondType::DIHEDRAL:
                 // Angles in GROMACS are a cos^2 term
                 // Should this be cos(x - mean_)?
-//                cosx = cos(x * M_PI/180.);
-                cosx = cos(x);
+                cosx = cos(x * M_PI/180.) - cos(mean_ * M_PI/180.);
+//                cosx = cos(x-mean_);
                 A(i, 1) = 1.;
                 A(i, 2) = cosx;
                 A(i, 3) = cosx*cosx;
-                b(i) = -R * temp_ * log(gaussian_(i - 1) / (cosx * cosx));
+                b(i) = -R * temp_ * log(gaussian_(i - 1));
                 break;
-//            case BondType::DIHEDRAL:
+            case BondType::DIHEDRAL:
                 // Dihedrals in GROMACS are k * (1 + cos(n * x - x_min))
-//                cosx = cos(x);
-//                A(i, 1) = 1.;
-//                A(i, 2) = cosx;
-//                A(i, 3) = 0;
-//                b(i) = -R * temp_ * log(gaussian_(i - 1) / (cosx));
-//                break;
+                cosx = cos(x * M_PI/180.) - cos(mean_ * M_PI/180.);
+                A(i, 1) = 1.;
+                A(i, 2) = cosx;
+                A(i, 3) = 0;
+                b(i) = -R * temp_ * log(gaussian_(i - 1));
+                break;
         };
         harmonic_(i-1) = b(i);
         x += step_;
@@ -78,7 +78,15 @@ double BoltzmannInverter::invertGaussian(){
     // Solve least squares using LAPACK
     flens::lapack::ls(flens::NoTrans, A, b);
     //TODO investigate where negative force constants come from - is it ok to just abs() them
-    return fabs(b(3));
+    const flens::Underscore<GeMatrix::IndexType>   _;
+    cout << b(_(1,3)) << endl;
+    switch(type_){
+        case BondType::LENGTH:
+        case BondType::ANGLE:
+            return fabs(b(3));
+        case BondType::DIHEDRAL:
+            return fabs(b(2));
+    }
 }
 
 double BoltzmannInverter::invertGaussianSimple(){
@@ -87,11 +95,15 @@ double BoltzmannInverter::invertGaussianSimple(){
     switch(type_){
         case BondType::LENGTH:
             // ~1% difference from force const calculated by least squares
-            return R*temp_ / (2 * sdev_*sdev_);
+            return R * temp_ / (sdev_*sdev_);
+        case BondType::ANGLE:{
+            const double sinmean = sin(mean_ * M_PI / 180.);
+            const double sdevrad = sdev_ * M_PI / 180.;
+            return R * temp_ / (sinmean * sinmean * sdevrad * sdevrad);
+        }
         case BondType::DIHEDRAL:
-        case BondType::ANGLE:
             //TODO currently just pass this back to the old least squares - replace this
-            return invertGaussian();
+            return 2 * invertGaussian();
     }
 
     // This code can never be reached but GCC still complains without it
@@ -116,8 +128,8 @@ double BoltzmannInverter::gaussianRSquared(){
     double y_bar = 0.;
     // First pass to calculate mean and gaussian integral
     for(int i=0; i<bins_; i++){
-        double x = min_ + (i + 0.5) * step_;
-        double gau = prefactor * exp(-(x-mean_) * (x-mean_) * postfactor);
+        const double x = min_ + (i + 0.5) * step_;
+        const double gau = prefactor * exp(-(x-mean_) * (x-mean_) * postfactor);
         gaussian_(i) = gau;
         y_bar += histogram_.at(i);
     }
