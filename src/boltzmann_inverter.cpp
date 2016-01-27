@@ -3,8 +3,6 @@
 #include <iostream>
 #include <cmath>
 
-#include <flens/flens.cxx>
-
 using std::cout;
 using std::endl;
 using std::vector;
@@ -29,81 +27,23 @@ void BoltzmannInverter::calculate(BondStruct &bond){
     bond.forceConstant_ = invertGaussianSimple();
 }
 
-double BoltzmannInverter::invertGaussian(){
-    // R in kJ.K-1.mol-1
-    const double R = 8.314 / 1000.;
-
-    typedef flens::GeMatrix<flens::FullStorage<double>> GeMatrix;
-    typedef flens::DenseVector<flens::Array<double>> DenseVector;
-
-    GeMatrix A(bins_, 3);
-    DenseVector b(bins_);
-
-    // Setup matrices
-    double x = min_ + 0.5*step_;
-    for(int i=1; i<=bins_; i++){
-        double cosx;
-        switch(type_){
-            case BondType::LENGTH:
-//            case BondType::DIHEDRAL:
-                A(i, 1) = 1.;
-                A(i, 2) = x;
-                A(i, 3) = x*x;
-                b(i) = -R * temp_ * log(gaussian_(i - 1));
-                break;
-            case BondType::ANGLE:
-//            case BondType::DIHEDRAL:
-                // Angles in GROMACS are a cos^2 term
-                // Should this be cos(x - mean_)?
-                cosx = cos(x * M_PI/180.) - cos(mean_ * M_PI/180.);
-//                cosx = cos(x-mean_);
-                A(i, 1) = 1.;
-                A(i, 2) = cosx;
-                A(i, 3) = cosx*cosx;
-                b(i) = -R * temp_ * log(gaussian_(i - 1));
-                break;
-            case BondType::DIHEDRAL:
-                // Dihedrals in GROMACS are k * (1 + cos(n * x - x_min))
-                cosx = cos(x * M_PI/180.) - cos(mean_ * M_PI/180.);
-                A(i, 1) = 1.;
-                A(i, 2) = cosx;
-                A(i, 3) = 0;
-                b(i) = -R * temp_ * log(gaussian_(i - 1));
-                break;
-        };
-        harmonic_(i-1) = b(i);
-        x += step_;
-    }
-
-    // Solve least squares using LAPACK
-    flens::lapack::ls(flens::NoTrans, A, b);
-    //TODO investigate where negative force constants come from - is it ok to just abs() them
-    const flens::Underscore<GeMatrix::IndexType>   _;
-    cout << b(_(1,3)) << endl;
-    switch(type_){
-        case BondType::LENGTH:
-        case BondType::ANGLE:
-            return fabs(b(3));
-        case BondType::DIHEDRAL:
-            return fabs(b(2));
-    }
-}
-
 double BoltzmannInverter::invertGaussianSimple(){
-    const double R = 8.314 / 1000.;
+    const double RT = 8.314 * temp_ / 1000.;
 
     switch(type_){
         case BondType::LENGTH:
-            // ~1% difference from force const calculated by least squares
-            return R * temp_ / (sdev_*sdev_);
+            return RT / (sdev_*sdev_);
         case BondType::ANGLE:{
             const double sinmean = sin(mean_ * M_PI / 180.);
             const double sdevrad = sdev_ * M_PI / 180.;
-            return R * temp_ / (sinmean * sinmean * sdevrad * sdevrad);
+            return RT / (sinmean * sinmean * sdevrad * sdevrad);
         }
-        case BondType::DIHEDRAL:
-            //TODO currently just pass this back to the old least squares - replace this
-            return 2 * invertGaussian();
+        case BondType::DIHEDRAL:{
+            // Assumes multiplicity 1 - CG tends to be
+            // TODO try FFT to account for other multiplicities
+            const double sdevrad = sdev_ * M_PI / 180.;
+            return RT / (sdevrad * sdevrad);
+        }
     }
 
     // This code can never be reached but GCC still complains without it

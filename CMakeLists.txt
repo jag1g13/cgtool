@@ -81,18 +81,6 @@ else()
     set (EXTRA_LIBS ${EXTRA_LIBS} xdrfile)
 endif()
 
-# Find FLENS - required
-INCLUDE(ExternalProject)
-ExternalProject_Add(flens
-                    GIT_REPOSITORY https://github.com/michael-lehn/FLENS.git
-                    GIT_TAG v1.1.0
-                    PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/lib/flens
-                    UPDATE_COMMAND ""
-                    CONFIGURE_COMMAND ""
-                    BUILD_COMMAND ""
-                    INSTALL_COMMAND "")
-                include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/flens/src/flens)
-
 # Find Boost library - required
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED)
@@ -164,7 +152,6 @@ target_link_libraries(cgtoolcore ${EXTRA_LIBS})
 
 # Add CGTOOL target
 add_executable(cgtool ${CGTOOL_FILES})
-add_dependencies(cgtool flens)
 target_link_libraries(cgtool cgtoolcore)
 
 # Add RAMSi target
@@ -200,6 +187,10 @@ add_test(GTestArrayAll gtest_array)
 add_executable(gtest_light_array EXCLUDE_FROM_ALL src/tests/light_array_test.cpp)
 target_link_libraries(gtest_light_array gtest gtest_main)
 add_test(GTestLightArrayAll gtest_light_array)
+# Test small_functions
+add_executable(gtest_small_functions EXCLUDE_FROM_ALL src/tests/small_functions_test.cpp)
+target_link_libraries(gtest_small_functions gtest gtest_main)
+add_test(GTestSmallFunctionsAll gtest_small_functions)
 
 # Integration test - does it run
 add_test(IntegrationRUNCGTOOL cgtool -c ../test_data/ALLA/cg.cfg -x ../test_data/ALLA/md.xtc -g ../test_data/ALLA/md.gro -i ../test_data/ALLA/topol.top)
@@ -215,6 +206,6 @@ add_test(IntegrationRUNRAMSi ./ramsi -c ../test_data/staph/mem.cfg -x ../test_da
 
 enable_testing()
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-                  DEPENDS gtest_parser gtest_bondset gtest_array gtest_light_array cgtool ramsi)
+                  DEPENDS gtest_parser gtest_bondset gtest_array gtest_light_array gtest_small_functions cgtool ramsi)
 add_custom_target(check-v COMMAND ${CMAKE_CTEST_COMMAND} "-V"
-                  DEPENDS gtest_parser gtest_bondset gtest_array gtest_light_array cgtool ramsi)
+                  DEPENDS gtest_parser gtest_bondset gtest_array gtest_light_array gtest_small_functions cgtool ramsi)

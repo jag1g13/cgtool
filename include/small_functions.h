@@ -62,7 +62,7 @@ std::array<double, SIZE> operator-(const std::array<double, SIZE> &vec,
                                    const std::array<double, SIZE> &vec2){
     std::array<double, SIZE> res;
     for(std::size_t i=0; i<SIZE; i++) res[i] = vec[i] - vec2[i];
-    return vec;
+    return res;
 }
 
 /** \brief Distance squared between two points as std::array<double, 3> */
