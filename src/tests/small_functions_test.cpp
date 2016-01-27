@@ -13,6 +13,16 @@ TEST(SmallFunctionsTest, ArraySubtract){
     ASSERT_DOUBLE_EQ(c[2], 2);
 }
 
+TEST(SmallFunctionsTest, WrapPi){
+    ASSERT_DOUBLE_EQ(-M_PI_2, wrapPi(3 * M_PI_2));
+    ASSERT_DOUBLE_EQ(M_PI_2, wrapPi(-3 * M_PI_2));
+}
+
+TEST(SmallFunctionsTest, WrapOneEighty){
+    ASSERT_DOUBLE_EQ(-180, wrapOneEighty(540));
+    ASSERT_DOUBLE_EQ(180, wrapOneEighty(-540));
+}
+
 int main(int argc, char **argv){
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

@@ -50,11 +50,29 @@ inline void cross(const std::array<double, SIZE> &A, const std::array<double, SI
     C[2] = A[0]*B[1] - A[1]*B[0];
 }
 
+inline double det(const std::array<double, 3> &A, const std::array<double, 3> &B,
+                  const std::array<double, 3> &C){
+    return A[0] * B[1] * C[2] - A[0] * B[2] * C[1]
+         - A[1] * B[0] * C[2] + A[1] * B[2] * C[0]
+         + A[2] * B[0] * C[1] - A[2] * B[1] * C[0];
+}
+
 /** \brief Magnitude of 3d vector as std::array<double, 3>*/
 template<std::size_t SIZE>
 inline double abs(const std::array<double, SIZE> &vec){
     assert(SIZE >= 3);
     return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
+}
+
+inline double angle(const std::array<double, 3> &A, const std::array<double, 3> &B){
+    std::array<double, 3> C;
+    cross(A, B, C);
+    return atan2(abs(C), dot(A, B));
+}
+
+inline double angle(const std::array<double, 3> &A, const std::array<double, 3> &B,
+                    const std::array<double, 3> &C){
+    return atan2(det(A, B, C), dot(A, B));
 }
 
 template<std::size_t SIZE>
@@ -81,6 +99,24 @@ inline double distSqrPlane(const std::array<double, SIZE> &c1, const std::array<
     assert(SIZE >= 2);
     return (c1[0] - c2[0]) * (c1[0] - c2[0]) +
            (c1[1] - c2[1]) * (c1[1] - c2[1]);
+}
+
+inline double wrapPi(double in){
+    if(in > 0){
+        in = std::fmod(in + M_PI, 2*M_PI) - M_PI;
+    }else{
+        in = std::fmod(in - M_PI, 2*M_PI) + M_PI;
+    }
+    return in;
+}
+
+inline double wrapOneEighty(double in){
+    if(in > 0){
+        in = std::fmod(in + 180, 360) - 180;
+    }else{
+        in = std::fmod(in - 180, 360) + 180;
+    }
+    return in;
 }
 
 
