@@ -84,15 +84,6 @@ void Cgtool::readConfig(){
     settings_["rdf"]["resolution"] =
             cfg_parser.getIntKeyFromSection("rdf", "resolution", 100);
 
-    settings_["field"]["on"] =
-            cfg_parser.findSection("field");
-    settings_["field"]["freq"] =
-            cfg_parser.getIntKeyFromSection("field", "freq", 100);
-    settings_["field"]["resolution"] =
-            cfg_parser.getIntKeyFromSection("field", "resolution", 100);
-    settings_["field"]["export"] =
-            cfg_parser.getIntKeyFromSection("field", "export", 100);
-
     string file_format = cfg_parser.getStringKeyFromSection("output", "program", "GROMACS");
     boost::to_upper(file_format);
     outProgram_ = getFileFormat.at(file_format);
@@ -151,17 +142,6 @@ void Cgtool::setupObjects(){
     if(settings_["rdf"]["on"])
         rdf_ = new RDF(residues_, settings_["rdf"]["cutoff"]/100.,
                        settings_["rdf"]["resolution"]);
-
-    if(settings_["field"]["on"]){
-        printf("ERROR: Option 'field' is no longer supported\n");
-        exit(EX_USAGE);
-//        if(settings_["map"]["on"]){
-//            field_ = new FieldMap(settings_["field"]["resolution"], residues_, cgResidues_);
-//        }else{
-//            printf("ERROR: Option 'field' requires 'mapping'\n");
-//            exit(EX_USAGE);
-//        }
-    }
 }
 
 void Cgtool::mainLoop(){
@@ -171,16 +151,6 @@ void Cgtool::mainLoop(){
         cgMap_->calcDipoles(*frame_, *cgFrame_);
         cgFrame_->outputTrajectoryFrame(*trjOutput_);
         if(settings_["bonds"]["on"]) bondSet_->calcBondsInternal(*cgFrame_);
-
-        // Calculate electric field/dipoles
-//        if(settings_["field"]["on"]){
-//            if(currFrame_ % settings_["field"]["freq"] == 0){
-//                field_->calculate(*frame_, *cgFrame_, *cgMap_);
-//            }
-//            if(currFrame_ % settings_["field"]["export"] == 0){
-//                field_->printFieldsToFile();
-//            }
-//        }
     }else{
         if(settings_["bonds"]["on"]) bondSet_->calcBondsInternal(*frame_);
     }
@@ -240,6 +210,5 @@ void Cgtool::postProcess(){
 Cgtool::~Cgtool(){
     if(bondSet_) delete bondSet_;
     if(rdf_) delete rdf_;
-//    if(field_) delete field_;
     if(trjOutput_) delete trjOutput_;
 }

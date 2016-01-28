@@ -135,7 +135,6 @@ set(CGTOOL_FILES
     "src/boltzmann_inverter.cpp"
     "src/bond_struct.cpp"
     "src/bondset.cpp"
-    "src/field_map.cpp"
     "src/histogram.cpp"
     "src/itp_writer.cpp"
     "src/non_bondset.cpp"
