@@ -7,6 +7,7 @@
 #include <cstdio>
 
 #include "xdrfile_xtc.h"
+#include "small_functions.h"
 
 using std::string;
 using std::printf;
@@ -63,9 +64,9 @@ int XTCInput::readFrame(Frame &frame){
         }
     }
     for(int i=0; i<frame.numAtoms_ && i<natoms_; i++){
-        frame.atoms_[i].coords[0] = x_[i][0];
-        frame.atoms_[i].coords[1] = x_[i][1];
-        frame.atoms_[i].coords[2] = x_[i][2];
+        frame.atoms_[i].coords[0] = wrap(x_[i][0], 0.f, box_[0][0]);
+        frame.atoms_[i].coords[1] = wrap(x_[i][1], 0.f, box_[1][1]);
+        frame.atoms_[i].coords[2] = wrap(x_[i][2], 0.f, box_[2][2]);
     }
 
     return 0;

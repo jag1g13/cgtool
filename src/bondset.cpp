@@ -148,13 +148,13 @@ void BondSet::writeCSV(const int num_molecules) const{
         scale = static_cast<int>(numMeasures_ / static_cast<double>(num_molecules));
 
     for(int i=0; i < numMeasures_; i+=scale){
-        for(const BondStruct &bond : bonds_) fprintf(f_bond, "%8.3f", bond.values_[i]);
+        for(const BondStruct &bond : bonds_) fprintf(f_bond, "%12.3f", bond.values_[i]);
         fprintf(f_bond, "\n");
 
-        for(const BondStruct &bond : angles_) fprintf(f_angle, "%8.3f", bond.values_[i]);
+        for(const BondStruct &bond : angles_) fprintf(f_angle, "%12.3f", bond.values_[i]);
         fprintf(f_angle, "\n");
 
-        for(const BondStruct &bond : dihedrals_) fprintf(f_dihedral, "%8.3f", bond.values_[i]);
+        for(const BondStruct &bond : dihedrals_) fprintf(f_dihedral, "%12.3f", bond.values_[i]);
         fprintf(f_dihedral, "\n");
     }
     printf("Written %'d molecules to CSV\n", numMeasures_/scale);

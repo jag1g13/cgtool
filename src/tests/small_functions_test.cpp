@@ -18,9 +18,18 @@ TEST(SmallFunctionsTest, WrapPi){
     ASSERT_DOUBLE_EQ(M_PI_2, wrapPi(-3 * M_PI_2));
 }
 
+TEST(SmallFunctionsTest, Wrap){
+    ASSERT_DOUBLE_EQ(-M_PI_2, wrap(3 * M_PI_2, -M_PI, M_PI));
+    ASSERT_DOUBLE_EQ(M_PI_2, wrap(5 * M_PI_2, -M_PI, M_PI));
+    ASSERT_DOUBLE_EQ(M_PI_2, wrap(-3 * M_PI_2, -M_PI, M_PI));
+    ASSERT_DOUBLE_EQ(-M_PI_2, wrap(-5 * M_PI_2, -M_PI, M_PI));
+}
+
 TEST(SmallFunctionsTest, WrapOneEighty){
-    ASSERT_DOUBLE_EQ(-180, wrapOneEighty(540));
-    ASSERT_DOUBLE_EQ(180, wrapOneEighty(-540));
+    ASSERT_DOUBLE_EQ(-90, wrapOneEighty(270));
+    ASSERT_DOUBLE_EQ(90, wrapOneEighty(450));
+    ASSERT_DOUBLE_EQ(90, wrapOneEighty(-270));
+    ASSERT_DOUBLE_EQ(-90, wrapOneEighty(-450));
 }
 
 int main(int argc, char **argv){

@@ -2,7 +2,7 @@
 library(sm)
 
 # Read in files
-atom = read.table("aa_bonds.dat")
+atom = read.table("../aa_bonds.dat")
 cg   = read.table("cg_bonds.dat")
 
 # Check there's the same number of bonds in each file
@@ -23,7 +23,7 @@ for(i in 1:ncol(atom)){
   print(sd(cg[,i]))
 }
 
-atom = read.table("aa_angles.dat")
+atom = read.table("../aa_angles.dat")
 cg   = read.table("cg_angles.dat")
 stopifnot(ncol(atom) == ncol(cg))
 par(xaxs='i',yaxs='i')
@@ -36,7 +36,7 @@ for(i in 1:ncol(atom)){
   print(sd(cg[,i]))
 }
 
-atom = read.table("aa_dihedrals.dat")
+atom = read.table("../aa_dihedrals.dat")
 cg   = read.table("cg_dihedrals.dat")
 stopifnot(ncol(atom) == ncol(cg))
 par(xaxs='i',yaxs='i')
