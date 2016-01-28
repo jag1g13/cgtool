@@ -64,7 +64,8 @@ void Ramsi::readConfig(){
     settings_["mem"]["header"] =
             cfg_parser.getIntKeyFromSection("membrane", "header", 1);
 
-    numFramesMax_ = cfg_parser.getIntKeyFromSection("general", "frames", -1);
+    if(numFramesMax_ == 0)
+        numFramesMax_ = cfg_parser.getIntKeyFromSection("general", "frames", -1);
 }
 
 void Ramsi::setupObjects(){

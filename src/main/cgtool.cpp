@@ -84,6 +84,11 @@ void Cgtool::readConfig(){
     settings_["rdf"]["resolution"] =
             cfg_parser.getIntKeyFromSection("rdf", "resolution", 100);
 
+    temperature_ = cfg_parser.getDoubleKeyFromSection("general", "temp", 310);
+
+    if(numFramesMax_ == 0)
+        numFramesMax_ = cfg_parser.getIntKeyFromSection("general", "frames", -1);
+
     string file_format = cfg_parser.getStringKeyFromSection("output", "program", "GROMACS");
     boost::to_upper(file_format);
     outProgram_ = getFileFormat.at(file_format);
@@ -118,7 +123,8 @@ void Cgtool::setupObjects(){
         cgMap_->initFrame(*frame_, *cgFrame_);
         cgFrame_->setupOutput();
         if(settings_["bonds"]["on"])
-            bondSet_ = new BondSet(inputFiles_["cfg"].name, cgResidues_, potentialTypes_);
+            bondSet_ = new BondSet(inputFiles_["cfg"].name, cgResidues_,
+                                   potentialTypes_, temperature_);
 
         string outname = residues_[0].resname;
         switch(outProgram_){
@@ -136,7 +142,8 @@ void Cgtool::setupObjects(){
         // If not mapping make both frames point to the same thing
         cgFrame_ = frame_;
         if(settings_["bonds"]["on"])
-            bondSet_ = new BondSet(inputFiles_["cfg"].name, residues_, potentialTypes_);
+            bondSet_ = new BondSet(inputFiles_["cfg"].name, residues_,
+                                   potentialTypes_, temperature_);
     }
 
     if(settings_["rdf"]["on"])

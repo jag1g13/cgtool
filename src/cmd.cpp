@@ -88,6 +88,6 @@ bool CMD::getBoolArg(const string &arg) const{
 
 int CMD::getIntArg(const string &arg) const{
     if(options_.count(arg)) return options_[arg].as<int>();
-    // No value or default - return -1
-    return -1;
+    // No value or default - return 0
+    return 0;
 }

@@ -23,6 +23,8 @@ protected:
 
     TrjOutput *trjOutput_ = nullptr;
 
+    double temperature_ = 310;
+
     // Protected functions
     /** \brief Read config file and determine which functions should be performed */
     void readConfig();

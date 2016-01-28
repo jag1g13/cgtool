@@ -20,7 +20,7 @@ protected:
     /** How many frames did we successfully measure */
     int numMeasures_ = 0;
     /** Temperature of simulation - for Boltzmann Inversion */
-    double temp_ = 320.;
+    double temp_ = 310.;
     /** Map of bead names to number */
     std::map<std::string, int> beadNums_;
     /** The residues */
@@ -36,8 +36,7 @@ public:
 
     /** \brief Constructor to read from file */
     BondSet(const std::string &cfgname, const std::vector<Residue> &residues,
-            const PotentialType potentials[3]);
-    BondSet(const std::string &cfgname, const std::vector<Residue> &residues);
+            const PotentialType potentials[3], const double temp);
 
     /**
     * \brief Reads in from file all bond properties to be calculated

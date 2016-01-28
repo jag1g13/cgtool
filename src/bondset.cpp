@@ -19,12 +19,8 @@ using std::endl;
 using std::fprintf;
 
 BondSet::BondSet(const string &cfgname, const vector<Residue> &residues,
-                 const PotentialType potentials[3]) : residues_(residues){
-    fromFile(cfgname);
-}
-
-BondSet::BondSet(const string &cfgname, const vector<Residue> &residues) :
-                 residues_(residues){
+                 const PotentialType potentials[3], const double temp) :
+        residues_(residues), temp_(temp){
     fromFile(cfgname);
 }
 
