@@ -5,15 +5,13 @@
 
 #include <map>
 
-#include <boost/any.hpp>
-
 /**
 * \brief Object to handle input to programs from the command line.
 */
 class CMDSimple : public CMDAbstract{
 protected:
     /** Store options */
-    std::map<std::string, boost::any> options_;
+    std::map<std::string, std::string> options_;
     std::map<std::string, ArgType> type_;
     std::map<std::string, std::string> shortForm_;
     std::map<std::string, std::string> descriptions_;
