@@ -64,15 +64,29 @@ inline double abs(const std::array<double, SIZE> &vec){
     return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 }
 
+template<typename T>
+inline int nint(const T in){
+    return std::floor(in + 0.5);
+}
+
 template<std::size_t SIZE>
 inline double abs(const std::array<double, SIZE> &vec,
                   const std::array<double, SIZE> &pbc){
     static_assert(SIZE >= 3, "Array must be of length 3 or greater.");
     std::array<double, 3> tmp;
-    tmp[0] = vec[0] - pbc * nint(vec[0] / pbc[0]);
-    tmp[1] = vec[1] - pbc * nint(vec[1] / pbc[1]);
-    tmp[2] = vec[2] - pbc * nint(vec[2] / pbc[2]);
+    tmp[0] = vec[0] - pbc[0] * nint(vec[0] / pbc[0]);
+    tmp[1] = vec[1] - pbc[1] * nint(vec[1] / pbc[1]);
+    tmp[2] = vec[2] - pbc[2] * nint(vec[2] / pbc[2]);
     return abs(tmp);
+}
+
+template<std::size_t SIZE>
+inline void pbcWrap(std::array<double, SIZE> &vec,
+                  const std::array<double, SIZE> &pbc){
+    static_assert(SIZE >=3, "Array must be of length 3 or greater.");
+    vec[0] -= pbc[0] * nint(vec[0] / pbc[0]);
+    vec[1] -= pbc[1] * nint(vec[1] / pbc[1]);
+    vec[2] -= pbc[2] * nint(vec[2] / pbc[2]);
 }
 
 inline double angle(const std::array<double, 3> &A, const std::array<double, 3> &B){
@@ -112,6 +126,18 @@ inline double distSqrPlane(const std::array<double, SIZE> &c1, const std::array<
            (c1[1] - c2[1]) * (c1[1] - c2[1]);
 }
 
+/** \brief Distance squared between two points in a plane as std::array<double, 3>
+ *   Slightly more efficient than distSqr.  Accounts for periodic boundaries. */
+template<std::size_t SIZE>
+inline double distSqrPlane(const std::array<double, SIZE> &c1,
+                           const std::array<double, SIZE> &c2,
+                           const std::array<double, SIZE> &pbc){
+    static_assert(SIZE >= 2, "Array must be of length 2 or greater.");
+    std::array<double, SIZE> tmp = c2 - c1;
+    pbcWrap(tmp, pbc);
+    return tmp[0]*tmp[0] + tmp[1]*tmp[1];
+}
+
 inline double wrapPi(double in){
     if(in > 0){
         in = std::fmod(in + M_PI, 2*M_PI) - M_PI;
@@ -131,12 +157,6 @@ inline T wrap(T in, const T lower, const T upper){
 inline double wrapOneEighty(double in){
     return wrap(in, -180., 180.);
 }
-
-template<typename T>
-inline int nint(const T in){
-    return std::floor(in + 0.5);
-}
-
 
 /** \brief Convert 3d vector as double[3] to polar coordinates */
 void polar(const double cart[3], double polar[3]);

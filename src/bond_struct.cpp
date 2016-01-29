@@ -16,6 +16,7 @@ double BondStruct::bondLength(const Frame &frame, const int offset) const{
     const int b = atomNums_[1] + offset;
 
     array<double, 3> vec = frame.atoms_[b].coords - frame.atoms_[a].coords;
+    pbcWrap(vec, frame.boxDiag_);
 
     return abs(vec);
 }
@@ -27,6 +28,8 @@ double BondStruct::bondAngle(const Frame &frame, const int offset) const{
 
     array<double, 3> vec1 = frame.atoms_[b].coords - frame.atoms_[a].coords;
     array<double, 3> vec2 = frame.atoms_[c].coords - frame.atoms_[b].coords;
+    pbcWrap(vec1, frame.boxDiag_);
+    pbcWrap(vec2, frame.boxDiag_);
 
     return (M_PI - angle(vec1, vec2)) * 180. / M_PI;
 }
@@ -40,6 +43,9 @@ double BondStruct::bondDihedral(const Frame &frame, const int offset) const{
     array<double, 3> vec1 = frame.atoms_[b].coords - frame.atoms_[a].coords;
     array<double, 3> vec2 = frame.atoms_[c].coords - frame.atoms_[b].coords;
     array<double, 3> vec3 = frame.atoms_[d].coords - frame.atoms_[c].coords;
+    pbcWrap(vec1, frame.boxDiag_);
+    pbcWrap(vec2, frame.boxDiag_);
+    pbcWrap(vec3, frame.boxDiag_);
 
     array<double, 3> crossa, crossb, crossc;
     cross(vec1, vec2, crossa);

@@ -32,6 +32,26 @@ TEST(SmallFunctionsTest, WrapOneEighty){
     ASSERT_DOUBLE_EQ(-90, wrapOneEighty(-450));
 }
 
+TEST(SmallFunctionsTest, PbcWrap){
+    std::array<double, 3> a={10, 10, 10}, b={9, 8, 7};
+    pbcWrap(b, a);
+    ASSERT_DOUBLE_EQ(-1, b[0]);
+    ASSERT_DOUBLE_EQ(-2, b[1]);
+    ASSERT_DOUBLE_EQ(-3, b[2]);
+}
+
+TEST(SmallFunctionsTest, DistSqr){
+    std::array<double, 3> a={0, 0, 0}, b={2, 2, 2};
+    ASSERT_DOUBLE_EQ(12, distSqr(a, b));
+}
+
+TEST(SmallFunctionsTest, DistSqrPlane){
+    std::array<double, 3> a={0, 0, 0}, b={2, 2, 10};
+    ASSERT_DOUBLE_EQ(8, distSqrPlane(a, b));
+    std::array<double, 3> c={3, 3, 20};
+    ASSERT_DOUBLE_EQ(2, distSqrPlane(a, c, b));
+}
+
 int main(int argc, char **argv){
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

@@ -70,7 +70,7 @@ protected:
     bool outputSetup_ = false;
     /** Name of the Frame; taken from comment in the GRO file */
     std::string name_ = "";
-    /** What box shape do we have?  Currently must be cubic */
+    /** What box shape do we have?  Currently should be cubic */
     BoxType boxType_ = BoxType::CUBIC;
 
     /** \brief Input readers */
@@ -100,6 +100,7 @@ public:
     int step_ = 0;
     /** Size of the simulation box */
     float box_[3][3];
+    std::array<double, 3> boxDiag_;
     /** Which data have been loaded into atoms? */
     AtomsHave atomHas_;
     std::vector<Residue> &residues_;

@@ -140,7 +140,7 @@ void Membrane::makePairs(const Frame &frame, const set<int> &ref,
             r_j[0] = frame.atoms_[j].coords[0];
             r_j[1] = frame.atoms_[j].coords[1];
 
-            const double dist_2 = distSqrPlane(r_i, r_j);
+            const double dist_2 = distSqrPlane(r_i, r_j, frame.boxDiag_);
             if(dist_2 < min_dist_2){
                 min_dist_2 = dist_2;
                 r_j[2] = frame.atoms_[j].coords[2];
@@ -196,7 +196,8 @@ double Membrane::closestLipid(const Frame &frame, const set<int> &ref,
             // Find closest lipid in reference leaflet
             int closest_int = -1;
             for(int k=0; k<ref_len; k++){
-                const double dist2 = distSqrPlane(grid_coords, ref_cache[k]);
+                const double dist2 = distSqrPlane(grid_coords, ref_cache[k],
+                                                  frame.boxDiag_);
                 if(dist2 < min_dist2){
                     closest_int = k;
                     min_dist2 = dist2;
@@ -206,7 +207,8 @@ double Membrane::closestLipid(const Frame &frame, const set<int> &ref,
             bool is_protein = false;
             if(protein_){
                 for(int k=0; k<prot_len; k++){
-                    const double dist2 = distSqrPlane(grid_coords, prot_cache[k]);
+                    const double dist2 = distSqrPlane(grid_coords, prot_cache[k],
+                                                      frame.boxDiag_);
                     if(dist2 < min_dist2){
                         is_protein = true;
                         break;

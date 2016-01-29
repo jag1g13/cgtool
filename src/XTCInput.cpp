@@ -62,6 +62,7 @@ int XTCInput::readFrame(Frame &frame){
         for(int j=0; j<3; j++){
             frame.box_[i][j] = box_[i][j];
         }
+        frame.boxDiag_[i] = box_[i][i];
     }
     for(int i=0; i<frame.numAtoms_ && i<natoms_; i++){
         frame.atoms_[i].coords[0] = wrap(x_[i][0], 0.f, box_[0][0]);
