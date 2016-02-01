@@ -85,10 +85,9 @@ void RDF::normalize(){
         const double r_outer = r_inner + r_scale;
         const double v_inner = r_inner * r_inner * r_inner;
         const double v_outer = r_outer * r_outer * r_outer;
-        rdf_(i) = 1. / (density_ * prefactor * (v_outer - v_inner));
+        rdf_(i) = histogram_.at(i) / (density_ * prefactor * (v_outer - v_inner));
     }
 
-    rdf_.elementMultiply(histogram_);
     rdf_.printCSV("rdf");
     frames_ = 0;
 }

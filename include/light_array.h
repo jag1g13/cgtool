@@ -74,6 +74,10 @@ public:
         return array_[(x%size_[0])*size_[1] + (y%size_[1])];
     }
 
+    T sum() const{
+        return array_.sum();
+    }
+
     void smooth(const int n_iter=1){
         int jsw = 0;
         int isw = 0;
@@ -124,7 +128,5 @@ public:
         fclose(f);
     }
 };
-
-
 
 #endif //CGTOOL_LIGHT_ARRAY_H

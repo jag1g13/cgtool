@@ -10,7 +10,7 @@
 #include "residue.h"
 #include "frame.h"
 #include "histogram.h"
-#include "array.h"
+#include "light_array.h"
 
 class RDF{
 protected:
@@ -24,14 +24,14 @@ protected:
     double density_ = 0.;
 
     Histogram histogram_;
-    Array rdf_;
+    LightArray<double> rdf_;
 
 public:
     RDF(const std::vector<Residue> &residues, const double cutoff, const int resolution) :
         residues_(residues), cutoff_(cutoff), resolution_(resolution){
         grid_ = static_cast<int>(cutoff_ * resolution_);
         histogram_.init(grid_);
-        rdf_.init(grid_);
+        rdf_.alloc(grid_);
     };
 
     void calculateRDF(const Frame &frame);

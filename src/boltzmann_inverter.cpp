@@ -10,8 +10,8 @@ using std::vector;
 BoltzmannInverter::BoltzmannInverter(const double temp, const int bins) :
                    temp_(temp), bins_(bins){
     histogram_.init(bins_);
-    gaussian_.init(bins_);
-    harmonic_.init(bins_);
+    gaussian_.alloc(bins_);
+    harmonic_.alloc(bins_);
 }
 
 void BoltzmannInverter::calculate(BondStruct &bond){
@@ -83,7 +83,7 @@ double BoltzmannInverter::gaussianRSquared(){
     for(int i=0; i<bins_; i++){
         int actual = histogram_.at(i);
         gaussian_(i) *= integral_;
-        const double gau = gaussian_(i);
+        const double gau = gaussian_.at(i);
         ss_reg += (gau - y_bar) * (gau - y_bar);
         ss_res += (gau - actual) * (gau - actual);
         ss_tot += (actual - y_bar) * (actual - y_bar);
@@ -119,22 +119,3 @@ double BoltzmannInverter::statisticalMoments(const vector<double> &vec){
     return mean_;
 }
 
-void BoltzmannInverter::printGraph(Array &arr, const int scale){
-    int max_num = 0;
-    for(int i=0; i<bins_; i++){
-        if(static_cast<int>(arr(i)) > max_num) max_num = static_cast<int>(arr(i));
-    }
-
-    // Go down rows in terminal and print marker if h_ is greater
-    for(int i=scale; i>0; i--){
-        printf("%5.3f|", min_);
-        for(int j=0; j<bins_; j++){
-            if(arr(j)*scale/max_num >= i){
-                printf("#");
-            }else{
-                printf(" ");
-            }
-        }
-        printf("|%5.3f\n", max_);
-    }
-}

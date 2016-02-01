@@ -131,7 +131,6 @@ set(CGTOOLCORE_FILES
 
 set(CGTOOL_FILES
     "src/main/cgtool.cpp"
-    "src/array.cpp"
     "src/boltzmann_inverter.cpp"
     "src/bond_struct.cpp"
     "src/bondset.cpp"
@@ -142,8 +141,7 @@ set(CGTOOL_FILES
 
 set(RAMSI_FILES
     "src/main/ramsi.cpp"
-    "src/membrane.cpp"
-    "src/array.cpp")
+    "src/membrane.cpp")
 
 # Add CGTOOLCORE library
 add_library(cgtoolcore ${CGTOOLCORE_FILES})
@@ -175,13 +173,9 @@ target_link_libraries(gtest_parser gtest gtest_main cgtoolcore)
 add_test(GTestParserAll gtest_parser)
 # Test bondset
 add_executable(gtest_bondset EXCLUDE_FROM_ALL src/tests/bondset_test.cpp
-    src/bondset.cpp src/boltzmann_inverter.cpp src/array.cpp src/histogram.cpp src/bond_struct.cpp)
+    src/bondset.cpp src/boltzmann_inverter.cpp src/histogram.cpp src/bond_struct.cpp)
 target_link_libraries(gtest_bondset gtest gtest_main cgtoolcore)
 add_test(GTestBondSetAll gtest_bondset)
-# Test array
-add_executable(gtest_array EXCLUDE_FROM_ALL src/tests/array_test.cpp src/array.cpp src/small_functions.cpp)
-target_link_libraries(gtest_array gtest gtest_main)
-add_test(GTestArrayAll gtest_array)
 # Test lightarray
 add_executable(gtest_light_array EXCLUDE_FROM_ALL src/tests/light_array_test.cpp)
 target_link_libraries(gtest_light_array gtest gtest_main)
@@ -205,6 +199,6 @@ add_test(IntegrationRUNRAMSi ./ramsi -c ../test_data/staph/mem.cfg -x ../test_da
 
 enable_testing()
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-                  DEPENDS gtest_parser gtest_bondset gtest_array gtest_light_array gtest_small_functions cgtool ramsi)
+                  DEPENDS gtest_parser gtest_bondset gtest_light_array gtest_small_functions cgtool ramsi)
 add_custom_target(check-v COMMAND ${CMAKE_CTEST_COMMAND} "-V"
-                  DEPENDS gtest_parser gtest_bondset gtest_array gtest_light_array gtest_small_functions cgtool ramsi)
+                  DEPENDS gtest_parser gtest_bondset gtest_light_array gtest_small_functions cgtool ramsi)

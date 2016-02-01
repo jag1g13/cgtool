@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "bond_struct.h"
-#include "array.h"
+#include "light_array.h"
 #include "histogram.h"
 
 /** \brief Class to perform Boltzmann Inversion
@@ -23,11 +23,8 @@ protected:
 
     /** Store histogram frequencies */
     Histogram histogram_;
-    Array gaussian_;
-    Array harmonic_;
-
-    /** \brief Print an array/histogram to terminal for debugging */
-    void printGraph(Array &arr, const int scale=10);
+    LightArray<double> gaussian_;
+    LightArray<double> harmonic_;
 
     /** \brief Perform a Boltzmann Inversion on a single bond parameter */
     double invertGaussian();
