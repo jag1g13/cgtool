@@ -9,7 +9,7 @@ The completed tools will be compatible with a range of MD simulators and forcefi
 RAMSi stands for Rapid Analysis of Membrane Simulations and is a tool to aid in analysing simulations of biomembranes.  It is able to calculate membrane thickness, curvature and surface area per lipid.  RAMSi makes use of multiple CPU cores via OpenMP.
 Input is GROMACS XTC and GRO files, along with a custom config file based which specifies options for the analysis. Membrane properties can be averaged over the complete simulation trajectory or output in batches.  An example config file lists the available options.
 
-These programs are work-in-progress and are not yet extensively tested.
+These programs are work-in-progress.
 
 ### How do I get set up? ###
 
@@ -17,11 +17,8 @@ Required to compile:
 
 * CMake 2.8.4 or newer
 * GCC or Clang compiler supporting the C++11 standard
-* Boost C++ libraries with program\_options module
+* Boost C++ libraries (program\_options module recommended but optional)
 * Optional: Doxygen to build developer documentation
-
-The CMake file has been tested only on Ubuntu 14.04 (GCC/Clang) but should work on similar systems.
-I intend to make executables for common OSes available once the project is more complete.
 
 To compile the program:
 
@@ -45,7 +42,7 @@ RAMSi
 * A config file is required which specifies the analysis options, in the format seen in the examples directory
 
 ### Testing ###
-The Bitbucket repo is polled every 15 minutes by a Jenkins build server for unit and integration testing.  Builds are tested on Ubuntu Linux.
+The Bitbucket repo is polled every 15 minutes by a Jenkins build server for unit and integration testing.  Builds are tested automatically on Ubuntu and CentOS7 with occasional manual tests on OSX and RHEL6.
 Currently only a few source files have complete unit tests, but this is being fixed.  Integration tests ensure that the program compiles successfully and produces correct output for a test dataset.
 
 ### Contact ###
