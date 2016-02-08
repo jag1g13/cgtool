@@ -23,6 +23,9 @@ TEST(SmallFunctionsTest, Wrap){
     ASSERT_DOUBLE_EQ(M_PI_2, wrap(5 * M_PI_2, -M_PI, M_PI));
     ASSERT_DOUBLE_EQ(M_PI_2, wrap(-3 * M_PI_2, -M_PI, M_PI));
     ASSERT_DOUBLE_EQ(-M_PI_2, wrap(-5 * M_PI_2, -M_PI, M_PI));
+    ASSERT_EQ(0, wrap(4, 0, 2));
+    ASSERT_EQ(3, wrap(7, 0, 4));
+    ASSERT_EQ(2, wrap(-2, 0, 4));
 }
 
 TEST(SmallFunctionsTest, WrapOneEighty){

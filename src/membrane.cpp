@@ -43,8 +43,8 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
         numLipids_ += res.num_residues;
         for(int i = 0; i < res.num_residues; i++){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
-            const int x = wrap(int(frame.atoms_[num].coords[0] * blocks / box_[0]), 0, blocks-1);
-            const int y = wrap(int(frame.atoms_[num].coords[1] * blocks / box_[1]), 0, blocks-1);
+            const int x = wrap(static_cast<int>(frame.atoms_[num].coords[0] * blocks / box_[0]), 0, blocks);
+            const int y = wrap(static_cast<int>(frame.atoms_[num].coords[1] * blocks / box_[1]), 0, blocks);
             block_avg_z(x, y) += frame.atoms_[num].coords[2];
             block_tot_residues(x, y)++;
         }

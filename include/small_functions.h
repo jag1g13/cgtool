@@ -138,15 +138,6 @@ inline double distSqrPlane(const std::array<double, SIZE> &c1,
     return tmp[0]*tmp[0] + tmp[1]*tmp[1];
 }
 
-inline double wrapPi(double in){
-    if(in > 0){
-        in = std::fmod(in + M_PI, 2*M_PI) - M_PI;
-    }else{
-        in = std::fmod(in - M_PI, 2*M_PI) + M_PI;
-    }
-    return in;
-}
-
 template<typename T>
 inline T wrap(T in, const T lower, const T upper){
     T range = upper - lower;
@@ -154,8 +145,12 @@ inline T wrap(T in, const T lower, const T upper){
     return lower + std::fmod(in - lower, range);
 }
 
-inline double wrapOneEighty(double in){
+inline double wrapOneEighty(const double in){
     return wrap(in, -180., 180.);
+}
+
+inline double wrapPi(const double in){
+    return wrap(in, -M_PI, M_PI);
 }
 
 /** \brief Get number of frames in XTC file */
