@@ -11,6 +11,12 @@
 
 #include "small_functions.h"
 
+#ifdef CMD_SIMPLE
+#include "cmd_simple.h"
+#else
+#include "cmd.h"
+#endif
+
 using std::string;
 using std::cout;
 using std::cin;
@@ -48,7 +54,11 @@ void Common::collectInput(const int argc, const char *argv[],
                           const std::vector<std::string> &req_files,
                           const std::vector<std::string> &opt_files){
     split_text_output(versionString_, sectionStart_);
+#ifdef CMD_SIMPLE
+    CMDSimple cmd_parser(helpHeader_, helpOptions_, compileInfo_, argc, argv);
+#else
     CMD cmd_parser(helpHeader_, helpOptions_, compileInfo_, argc, argv);
+#endif
 
     // Read in files
     for(const string &f : req_files) inputFiles_[f].name = cmd_parser.getStringArg(f);

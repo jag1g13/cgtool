@@ -92,6 +92,7 @@ if(Boost_PROGRAM_OPTIONS_FOUND)
     set(CMD_SRC "src/cmd.cpp")
 else()
     set(CMD_SRC "src/cmd_simple.cpp")
+    add_definitions(-DCMD_SIMPLE)
 endif()
 
 # Find Python to create compilation info

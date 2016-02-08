@@ -13,7 +13,7 @@ protected:
     /** Store options */
     std::map<std::string, std::string> options_;
     std::map<std::string, ArgType> type_;
-    std::map<std::string, std::string> shortForm_;
+    std::map<char, std::string> shortForm_;
     std::map<std::string, std::string> descriptions_;
 
 public:

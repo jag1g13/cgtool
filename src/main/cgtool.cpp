@@ -25,7 +25,7 @@ int main(const int argc, const char *argv[]){
             "Performs mapping from atomistic to coarse-grained molecular dynamics\n"
             "trajectories and outputs a GROMACS ITP file containing the full mapping,\n"
             "equilibrium bond parameters and force constants.\n\n"
-            "Requires GROMACS XTC and ITP files for the atomistic simulation and a\n"
+            "Requires GROMACS XTC and GRO files for the atomistic simulation and a\n"
             "configuration file as input.  The config file provides the mapping and\n"
             "bond parameters to be calculated as well as serveral other options.\n\n"
             "Usage:\n"
