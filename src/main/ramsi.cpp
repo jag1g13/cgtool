@@ -10,7 +10,7 @@ using std::vector;
 
 int main(const int argc, const char *argv[]){
     const string version_string =
-            "RAMSi v0.4"
+            "RAMSi v0.5pre"
             #include "revision_number.inc"
     ;
 

@@ -16,7 +16,7 @@ using std::vector;
 
 int main(const int argc, const char *argv[]){
     const string version_string =
-            "CGTOOL v0.4"
+            "CGTOOL v0.5pre"
             #include "revision_number.inc"
     ;
 
