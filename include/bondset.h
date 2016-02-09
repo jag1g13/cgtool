@@ -24,7 +24,7 @@ protected:
     /** Map of bead names to number */
     std::map<std::string, int> beadNums_;
     /** The residues */
-    const std::vector<Residue> *residues_;
+    const std::vector<Residue> &residues_;
 
 public:
     /** Vector of bond length pairs; Contains all bond lengths that must be calculated */
@@ -34,12 +34,9 @@ public:
     /** Vector of bond dihedral quads */
     vector<BondStruct> dihedrals_;
 
-    /** \brief Blank constructor */
-    BondSet(){};
-
     /** \brief Constructor to read from file */
-    BondSet(const std::string &cfgname, const std::vector<Residue> *residues,
-            const PotentialType potentials[3]);
+    BondSet(const std::string &cfgname, const std::vector<Residue> &residues,
+            const PotentialType potentials[3], const double temp);
 
     /**
     * \brief Reads in from file all bond properties to be calculated

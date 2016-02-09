@@ -8,6 +8,8 @@
 #include <vector>
 #include <sysexits.h>
 
+#include <boost/algorithm/string.hpp>
+
 using std::string;
 using std::printf;
 using std::vector;
@@ -138,21 +140,29 @@ void GROInput::readResidues(vector<Residue> &residues){
     for(int i=0; i<natoms_; i++){
         std::getline(file_, line);
         current.populate(line);
+        if(aminoAcids_.count(current.resname)) current.resname = "PROT";
 
+//        if(not (aminoAcids_.count(current.resname) != 0 and res->resname != "PROT")){
         if(current.resname != prev.resname){
             num_res++;
 
-            if(residues.size() < num_res){
-                printf("ERROR: Not all residues are listed in CFG\n");
+            bool res_found = false;
+            for(const Residue &r : residues){
+                if(current.resname == r.resname){
+                    res_found = true;
+                    break;
+                }
+            }
+            if(!res_found){
+                printf("ERROR: Residue %s in GRO not in CFG\n", current.resname.c_str());
                 exit(EX_CONFIG);
             }
 
-            res = &(residues[num_res-1]);
+            res = &(residues[num_res - 1]);
             res->start = i;
             res->resname = current.resname;
             res->total_atoms = 0;
             res->num_residues = 0;
-
         }
 
         if(current.resnum != prev.resnum){

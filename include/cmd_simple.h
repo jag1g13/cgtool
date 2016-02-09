@@ -1,26 +1,28 @@
-#ifndef CMD_H_
-#define CMD_H_
+#ifndef CMD_SIMPLE_H_
+#define CMD_SIMPLE_H_
 
 #include "cmd_abstract.h"
 
-#include <boost/program_options.hpp>
+#include <map>
 
 /**
 * \brief Object to handle input to programs from the command line.
 */
-class CMD : public CMDAbstract{
+class CMDSimple : public CMDAbstract{
 protected:
-    /** Store options from Boost program_options */
-    boost::program_options::variables_map options_;
-    boost::program_options::options_description desc_;
+    /** Store options */
+    std::map<std::string, std::string> options_;
+    std::map<std::string, ArgType> type_;
+    std::map<char, std::string> shortForm_;
+    std::map<std::string, std::string> descriptions_;
 
 public:
     /** \brief Constructor to parse the program help text */
-    CMD(const std::string &help_header, const std::string &help_string,
+    CMDSimple(const std::string &help_header, const std::string &help_string,
         const std::string &compile_info, const int argc, const char *argv[]);
 
-    /** \brief Empty Destructor, does nothing */
-    ~CMD(){};
+    /** \brief Empty destructor, does nothing */
+    ~CMDSimple(){};
 
     /** \brief Return the value of named filepath argument.
     * If argument was not provided by the user the default value will be used.

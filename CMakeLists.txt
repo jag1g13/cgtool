@@ -2,14 +2,11 @@ cmake_minimum_required(VERSION 2.8.4)
 
 project(CGTOOL)
 set(CGTOOL_VERSION_MAJOR 0)
-set(CGTOOL_VERSION_MINOR 3)
-
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/Modules/")
+set(CGTOOL_VERSION_MINOR 5)
 
 MESSAGE("CMAKE ${CMAKE_VERSION}")
 MESSAGE("CXX   ${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 MESSAGE("C     ${CMAKE_SYSTEM_NAME} ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
-MESSAGE("MOD   ${CMAKE_MODULE_PATH}")
 
 # TODO add C++11 checks
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -ffast-math -march=native")
@@ -20,23 +17,23 @@ if(NOT CMAKE_BUILD_TYPE)
         "Defaults to Release build" FORCE)
 endif()
 
-if(NOT CMAKE_FLAGS_Release)
-    set(CMAKE_FLAGS_Release "-O3")
+if(NOT CMAKE_CXX_FLAGS_Release)
+    set(CMAKE_CXX_FLAGS_Release "-O3")
 endif()
-if(NOT CMAKE_FLAGS_Debug)
-    set(CMAKE_FLAGS_Release "-g")
+if(NOT CMAKE_CXX_FLAGS_Debug)
+    set(CMAKE_CXX_FLAGS_Debug "-g")
 endif()
 
-if(CMAKE_BUILD_TYPE MATCHES "Release")
+if(${CMAKE_BUILD_TYPE} MATCHES "Release")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_Release}")
 elseif(CMAKE_BUILD_TYPE MATCHES "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_Release}")
 endif()
 
 # Should we ignore warnings - default ignore a few - only on gcc
-option(INGORE_SOME_WARNINGS "Don't ignore any warnings" ON)
+option(INGORE_SOME_WARNINGS "Don't ignore warnings" ON)
 set(IGNORED_WARNINGS " -Wno-sign-compare -Wno-unused-variable -Wno-comment -Wno-unused-but-set-variable")
-set(IGNORED_WARNINGS_ALWAYS " -Wno-sign-compare")
+set(IGNORED_WARNINGS_ALWAYS " -Wno-sign-compare -Wno-reorder")
 
 # Platform specifics
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
@@ -68,7 +65,7 @@ endif()
 
 message("Using " ${CMAKE_CXX_FLAGS})
 
-# Find libxdrfile - compile it if not present - replaces GROMACS library
+# Find libxdrfile - compile it if not present
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 find_library(XDRFILE_LIBRARY NAMES xdrfile
              PATHS /usr/lib /usr/local/lib ${CMAKE_CURRENT_SOURCE_DIR}/lib)
@@ -82,24 +79,19 @@ else()
     set (EXTRA_LIBS ${EXTRA_LIBS} xdrfile)
 endif()
 
-# Find FLENS - required
-INCLUDE(ExternalProject)
-ExternalProject_Add(flens
-                    GIT_REPOSITORY https://github.com/michael-lehn/FLENS.git
-                    GIT_TAG v1.1.0
-                    PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/lib/flens
-                    UPDATE_COMMAND ""
-                    CONFIGURE_COMMAND ""
-                    BUILD_COMMAND ""
-                    INSTALL_COMMAND "")
-                include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/flens/src/flens)
-
 # Find Boost library - required
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED)
-find_package(Boost COMPONENTS REQUIRED program_options)
+find_package(Boost COMPONENTS program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES})
+
+if(Boost_PROGRAM_OPTIONS_FOUND)
+    set(CMD_SRC "src/cmd.cpp")
+else()
+    set(CMD_SRC "src/cmd_simple.cpp")
+    add_definitions(-DCMD_SIMPLE)
+endif()
 
 # Find Python to create compilation info
 find_package(PythonInterp 2.6 REQUIRED)
@@ -125,33 +117,30 @@ set(CGTOOLCORE_FILES
     "src/main/common.cpp"
     "src/frame.cpp"
     "src/cg_map.cpp"
-    "src/cmd.cpp"
     "src/parser.cpp"
     "src/residue.cpp"
     "src/small_functions.cpp"
     "src/GROInput.cpp"
     "src/XTCInput.cpp"
-    "src/GROOutput.cpp"
-    "src/LammpsDataOutput.cpp"
-    "src/LammpsTrjOutput.cpp"
-    "src/XTCOutput.cpp")
+    ${CMD_SRC})
 
 set(CGTOOL_FILES
     "src/main/cgtool.cpp"
-    "src/array.cpp"
     "src/boltzmann_inverter.cpp"
     "src/bond_struct.cpp"
     "src/bondset.cpp"
-    "src/field_map.cpp"
     "src/histogram.cpp"
     "src/itp_writer.cpp"
     "src/non_bondset.cpp"
+    "src/GROOutput.cpp"
+    "src/LammpsDataOutput.cpp"
+    "src/LammpsTrjOutput.cpp"
+    "src/XTCOutput.cpp"
     "src/rdf.cpp")
 
 set(RAMSI_FILES
     "src/main/ramsi.cpp"
-    "src/membrane.cpp"
-    "src/array.cpp")
+    "src/membrane.cpp")
 
 # Add CGTOOLCORE library
 add_library(cgtoolcore ${CGTOOLCORE_FILES})
@@ -159,30 +148,41 @@ target_link_libraries(cgtoolcore ${EXTRA_LIBS})
 
 # Add CGTOOL target
 add_executable(cgtool ${CGTOOL_FILES})
-add_dependencies(cgtool flens)
 target_link_libraries(cgtool cgtoolcore)
 
 # Add RAMSi target
 add_executable(ramsi ${RAMSI_FILES})
 target_link_libraries(ramsi cgtoolcore)
 
+# Add xtc-length target
+add_executable(xtc-length "src/xtc-length.c")
+
+# Add install option
+install(TARGETS xtc-length RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+install(TARGETS ramsi RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+install(TARGETS cgtool RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+
 # Testing
-add_subdirectory(lib/gtest-1.7.0)
+add_subdirectory(lib/gtest-1.7.0 EXCLUDE_FROM_ALL)
 include_directories(lib/gtest-1.7.0/include lib/gtest-1.7.0/include)
 
 # Test parser
-add_executable(gtest_parser src/tests/parser_test.cpp)
-target_link_libraries (gtest_parser gtest gtest_main cgtoolcore)
+add_executable(gtest_parser EXCLUDE_FROM_ALL src/tests/parser_test.cpp)
+target_link_libraries(gtest_parser gtest gtest_main cgtoolcore)
 add_test(GTestParserAll gtest_parser)
 # Test bondset
-add_executable(gtest_bondset src/tests/bondset_test.cpp
-    src/bondset.cpp src/boltzmann_inverter.cpp src/array.cpp src/histogram.cpp src/bond_struct.cpp)
-target_link_libraries (gtest_bondset gtest gtest_main cgtoolcore)
+add_executable(gtest_bondset EXCLUDE_FROM_ALL src/tests/bondset_test.cpp
+    src/bondset.cpp src/boltzmann_inverter.cpp src/histogram.cpp src/bond_struct.cpp)
+target_link_libraries(gtest_bondset gtest gtest_main cgtoolcore)
 add_test(GTestBondSetAll gtest_bondset)
-# Test array
-add_executable(gtest_array src/tests/array_test.cpp src/array.cpp)
-target_link_libraries (gtest_array gtest gtest_main cgtoolcore)
-add_test(GTestArrayAll gtest_array)
+# Test lightarray
+add_executable(gtest_light_array EXCLUDE_FROM_ALL src/tests/light_array_test.cpp)
+target_link_libraries(gtest_light_array gtest gtest_main)
+add_test(GTestLightArrayAll gtest_light_array)
+# Test small_functions
+add_executable(gtest_small_functions EXCLUDE_FROM_ALL src/tests/small_functions_test.cpp)
+target_link_libraries(gtest_small_functions gtest gtest_main)
+add_test(GTestSmallFunctionsAll gtest_small_functions)
 
 # Integration test - does it run
 add_test(IntegrationRUNCGTOOL cgtool -c ../test_data/ALLA/cg.cfg -x ../test_data/ALLA/md.xtc -g ../test_data/ALLA/md.gro -i ../test_data/ALLA/topol.top)
@@ -198,4 +198,6 @@ add_test(IntegrationRUNRAMSi ./ramsi -c ../test_data/staph/mem.cfg -x ../test_da
 
 enable_testing()
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-                  DEPENDS gtest_parser gtest_bondset gtest_array cgtool ramsi)
+                  DEPENDS gtest_parser gtest_bondset gtest_light_array gtest_small_functions cgtool ramsi)
+add_custom_target(check-v COMMAND ${CMAKE_CTEST_COMMAND} "-V"
+                  DEPENDS gtest_parser gtest_bondset gtest_light_array gtest_small_functions cgtool ramsi)

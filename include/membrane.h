@@ -7,10 +7,11 @@
 
 #include <string>
 #include <vector>
-#include <memory>
+#include <set>
+#include <array>
+#include <map>
 
 #include "frame.h"
-#include "array.h"
 #include "residue.h"
 #include "light_array.h"
 
@@ -20,6 +21,10 @@ protected:
     std::vector<int> upperHeads_;
     /** Head group reference atoms in the lower layer */
     std::vector<int> lowerHeads_;
+    /** Protein reference atoms */
+    std::vector<int> protAtoms_;
+    /** Is protein present? */
+    bool protein_ = false;
     /** Distance from ref in upper leaflet to closest in lower */
     std::map<int, double> upperPair_;
     /** Distance from ref in lower leaflet to closest in upper */
@@ -34,15 +39,15 @@ protected:
     LightArray<double> curvGaussian_;
 
     /** List of residues present in simulation */
-    const std::vector<Residue> *residues_;
+    const std::vector<Residue> &residues_;
     /** Total number of lipids */
     int numLipids_ = 0;
     /** Size of he simulation box - assume orthorhombic */
-    double box_[3];
+    std::array<double, 3> box_;
     /** Distance between grid points in xy plane */
-    double step_[2];
+    std::array<double, 2> step_;
     /** 2d Array to hold the membrane thickness on a grid */
-    Array thickness_;
+    LightArray<double> thickness_;
     /** Number of grid points in x and y direction */
     int grid_ = 0;
     /** Total number of frames processed - for averaging */
@@ -52,7 +57,10 @@ protected:
     FILE *aplFile_ = nullptr;
     FILE *avgFile_ = nullptr;
     /** \brief Number of grid points for each residue */
-    std::vector<int> residuePPL_;
+    std::map<std::string, int> upperResPPL_;
+    std::map<std::string, int> lowerResPPL_;
+    std::map<std::string, int> upperNumRes_;
+    std::map<std::string, int> lowerNumRes_;
 
     /** \brief Create closest pairs of reference groups between layers */
     void makePairs(const Frame &frame, const std::vector<int> &ref,
@@ -60,25 +68,23 @@ protected:
 
     /** \brief Find closest head group to each grid cell */
     double closestLipid(const Frame &frame, const std::vector<int> &ref,
-                      const std::map<int, double> &pairs, LightArray<int> &closest);
+                        const std::map<int, double> &pairs,
+                        std::map<std::string, int> &resPPL, LightArray<int> &closest);
 
-    void printCSVAreaPerLipid(const float time) const;
-    void prepCSVAreaPerLipid();
     void prepCSVAvgThickness();
+    void prepCSVAreaPerLipid();
 
 public:
 
     /** \brief Print header in CSV or not */
-    bool header_ = false;
-
-    /** \brief Blank constructor */
-    Membrane(){};
+    const bool header_;
 
     /** \brief Destructor */
     ~Membrane();
 
     /** \brief Construct Membrane with vector of Residues present in simulation */
-    Membrane(const std::vector<Residue> *residues);
+    Membrane(const std::vector<Residue> &residues, const Frame &frame,
+             const int resolution=100, const int blocks=4, const bool header=true);
 
     /** \brief Sort head groups into upper and lower bilayer
      *  Divided into blocks to account for curvature. Size blocks * blocks */
@@ -86,9 +92,6 @@ public:
 
     /** \brief Calculate thickness of bilayer */
     double thickness(const Frame &frame, const bool with_reset=false);
-
-    /** \brief Calculate surface area per lipid by residue */
-    void areaPerLipid(const LightArray<int> &closest);
 
     /** \brief Calculate curvature of membrane by 2nd order finite differences */
     void curvature(const Frame &frame);
@@ -104,6 +107,8 @@ public:
 
     /** \brief Print thickness array to CSV */
     void printCSV(const std::string &filename) const;
+
+    void printCSVAreaPerLipid(const float time) const;
 
     /** \brief Set resolution of calculation
      * Number of grid points in x and y */

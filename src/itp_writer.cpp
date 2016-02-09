@@ -155,7 +155,8 @@ void ITPWriter::printBonds(const BondSet &bond_set, const bool round) const{
                 fprintf(itp_, "%5i %5i %5i %5i %5i %12.5f %12.5f %5i; %5.3f\n",
                         bond.atomNums_[0]+1, bond.atomNums_[1]+1,
                         bond.atomNums_[2]+1, bond.atomNums_[3]+1,
-                        1, bond.avg_, f_const, 1, bond.rsqr_);
+                        // TODO support multiplicity
+                        1, wrapOneEighty(bond.avg_ + 180), f_const, 1, bond.rsqr_);
             }
             break;
 

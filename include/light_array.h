@@ -5,100 +5,128 @@
 #ifndef CGTOOL_LIGHT_ARRAY_H
 #define CGTOOL_LIGHT_ARRAY_H
 
+#include <cassert>
+#include <stdexcept>
+
+#include <valarray>
+#include <array>
+
+#include "small_functions.h"
+
 template <typename T> class LightArray{
 protected:
-    T *array_;
-    int size_[2] = {0, 0};
-    int length_ = 0;
-    bool safe_ = true;
+    std::valarray<T> array_;
+    std::array<int, 2> size_ = {{0, 0}};
+    const bool safe_;
 
 public:
-    LightArray<T>(){};
-    LightArray<T>(const int x, const int y=1, const bool safe=true){
+    LightArray<T>(const bool safe=true) : safe_(safe){};
+
+    LightArray<T>(const int x, const int y = 1, const bool safe = true) : safe_(safe){
         alloc(x, y);
-        safe_ = safe;
-        if(safe_) zero();
     };
-    ~LightArray<T>(){
-        delete array_;
-    };
-
-    LightArray<T>(const LightArray &other);
-    LightArray<T>& operator=(const LightArray<T> &other);
-
-    void alloc(const int x, const int y=1);
-
-    void zero(const T init=0);
-
-    T& operator()(const int x, const int y=0);
-
-    const T& at(const int x, const int y=0) const;
-
-    void smooth(const int n_iter=1);
-
-    void print(const char *format="%8.3f") const;
-};
 
 /** \brief Copy constructor */
-template <typename T> LightArray<T>::LightArray(const LightArray &other){
-    alloc(other.size_[0], other.size_[1]);
-    for(int i=0; i<length_; i++){
-        array_[i] = other.array_[i];
+    LightArray<T>(const LightArray &other) :
+            safe_(other.safe_), size_(other.size_), array_(other.array_){
     }
-}
 
 /** \brief Assignment operator */
-template <typename T> LightArray<T>& LightArray<T>::operator=(const LightArray<T> &other){
-    if(size_[0]==other.size_[0] && size_[1]==other.size_[1]){
-        for(int i=0; i<length_; i++){
-            array_[i] = other.array_[i];
-        }
+    LightArray<T> &operator=(const LightArray<T> &other){
+        size_ = other.size_;
+        // Valarray resizes if necessary since C++11
+        array_ = other.array_;
+        return *this;
     }
-}
 
-template <typename T> void LightArray<T>::alloc(const int x, const int y){
-    size_[0] = x; size_[1] = y;
-    length_ = x * y;
-    array_ = new T[length_];
-    if(array_ == nullptr) throw std::runtime_error("Could not allocate array");
-}
+    LightArray<T> &operator/=(const T &div){
+        array_ /= div;
+        return *this;
+    }
 
-template <typename T> void LightArray<T>::zero(const T init){
-    for(int i=0; i<length_; i++) array_[i] = init;
-}
+    LightArray<T> &operator/=(const LightArray<T> &other){
+        assert(size_ == other.size_);
+        array_ /= other.array_;
+        return *this;
+    }
 
-template <typename T> T& LightArray<T>::operator()(const int x, const int y){
-    return array_[x*size_[1] + y];
-}
+    bool operator==(const LightArray<T> &other) const{
+        std::valarray<bool> eq = array_ == other.array_;
+        return (size_ == other.size_) && (std::all_of(std::begin(eq), std::end(eq), [](bool b){return b;}));
+    }
 
-template <typename T> const T& LightArray<T>::at(const int x, const int y) const{
-    return array_[x*size_[1] + y];
-}
+    void alloc(const int x, const int y = 1){
+        size_[0] = x;
+        size_[1] = y;
+        array_.resize(x * y);
+        if(safe_) zero();
+    }
 
-/** \brief Apply n iterations of Jacobi smoothing */
-template <typename T> void LightArray<T>::smooth(const int n_iter){
-    int jsw = 0;
-    int isw = 0;
-    for(int ipass = 0; ipass < 2 * n_iter; ipass++){
-        jsw = isw;
-        for(int i = 1; i < size_[0]-1; i++){
-            for(int j = jsw+1; j < size_[1]-1; j += 2){
-                const int loc = i*size_[0] + j;
-                array_[loc] += 0.25 * (array_[loc+size_[0]] + array_[loc+1] + array_[loc-1] + array_[loc-size_[0]] - 4 * array_[loc]);
+    void zero(const T init = 0){
+        array_ = init;
+    }
+
+    T &operator()(const int x, const int y = 0){
+        return array_[x*size_[1] + y];
+    }
+
+    const T &at(const int x, const int y = 0) const{
+        return array_[(x%size_[0])*size_[1] + (y%size_[1])];
+    }
+
+    T sum() const{
+        return array_.sum();
+    }
+
+    void smooth(const int n_iter=1){
+        int jsw = 0;
+        int isw = 0;
+        for(int ipass = 0; ipass < 2 * n_iter; ipass++){
+            jsw = isw;
+            for(int i = 1; i < size_[0]-1; i++){
+                for(int j = jsw+1; j < size_[1]-1; j += 2){
+                    const int loc = i*size_[0] + j;
+                    array_[loc] += 0.25 * (array_[loc+size_[0]] + array_[loc+1] + array_[loc-1] + array_[loc-size_[0]] - 4 * array_[loc]);
+                }
+                jsw = 1 - jsw;
             }
-            jsw = 1 - jsw;
+            isw = 1 - isw;
         }
-        isw = 1 - isw;
     }
-}
+
+    double mean() const{
+        return array_.sum() / array_.size();
+    }
 
 /** \brief Print the array - format required to account for different types */
-template <typename T> void LightArray<T>::print(const char *format) const{
-    for(int i=0; i<size_[0]; i++){
-        for(int j=0; j<size_[1]; j++){
-            printf(format, array_[i*size_[0] + j]);
+    void print(const char *format="%8.3f") const{
+        for(int i = 0; i < size_[0]; i++){
+            for(int j = 0; j < size_[1]; j++){
+                printf(format, array_[i * size_[0] + j]);
+            }
+            printf("\n");
         }
-        printf("\n");
     }
-}
+
+    void printCSV(const std::string &filename, const bool suppress_backup=false,
+                  const int remove_border=0) const{
+        const int r = remove_border;
+        assert(r >= 0);
+        const std::string file = filename + ".dat";
+
+        // Backup using small_functions.h
+        if(!suppress_backup) backup_old_file(file);
+
+        FILE *f = fopen(file.c_str(), "a");
+        for(int i=r; i < size_[0]-r; i++){
+            for(int j=r; j < size_[1]-r; j++){
+                fprintf(f, "%8.3f", array_[i*size_[0] + j]);
+            }
+            fprintf(f, "\n");
+        }
+
+        fclose(f);
+    }
+};
+
 #endif //CGTOOL_LIGHT_ARRAY_H

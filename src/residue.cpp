@@ -67,10 +67,9 @@ void Residue::set_total_atoms(const int val){
 
 void Residue::print(const bool extra) const{
     if(extra){
-        printf("%'6d x %5s with %'3d atoms total %'6d, starting at %'6d end %'6d\n",
-               num_residues, resname.c_str(), num_atoms, total_atoms, start, end);
+        printf("%'6d x %5s with %'3d atoms total %'6d, starting at %'6d end %'6d, ref %'6d %5s\n",
+               num_residues, resname.c_str(), num_atoms, total_atoms, start, end, ref_atom, ref_atom_name.c_str());
     }else{
-
         printf("%'6d x %5s with %'3d atoms\n",
                num_residues, resname.c_str(), num_atoms);
     }

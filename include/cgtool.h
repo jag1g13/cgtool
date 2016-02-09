@@ -9,7 +9,6 @@
 
 #include "bondset.h"
 #include "rdf.h"
-#include "field_map.h"
 
 class Cgtool : public Common{
 protected:
@@ -21,9 +20,10 @@ protected:
 
     BondSet  *bondSet_ = nullptr;
     RDF      *rdf_ = nullptr;
-    FieldMap *field_ = nullptr;
 
     TrjOutput *trjOutput_ = nullptr;
+
+    double temperature_ = 310;
 
     // Protected functions
     /** \brief Read config file and determine which functions should be performed */

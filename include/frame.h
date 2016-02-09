@@ -3,10 +3,10 @@
 
 #include <vector>
 #include <string>
-
-#include <boost/algorithm/string.hpp>
+#include <array>
 
 #include "residue.h"
+
 class TrjOutput;
 class TrjInput;
 
@@ -33,28 +33,28 @@ struct AtomsHave{
 
 /** \brief Struct to hold atom data */
 struct Atom{
-    /** Atomtype as a string */
-    std::string atom_type = "";
-    /** Atomname as a string */
-    std::string atom_name = "";
     /** Atomic coordinates in x, y, z */
-    double coords[3] = {0., 0., 0.};
+    std::array<double, 3> coords = {{0., 0., 0.}};
     /** Atom dipole components in x, y, z and magnitude */
-    double dipole[4] = {0., 0., 0., 0.};
+    std::array<double, 4> dipole = {{0., 0., 0., 0.}};
+
     /** Atomic charge from the force field */
     double charge = 0.;
     /** Atomic mass */
     double mass = 0.;
-    /** Residue number */
-    int resnum = 0;
+
+    /** Atomtype as a string */
+    std::string atom_type = "\0\0\0\0\0";
+    /** Atomname as a string */
+    std::string atom_name = "\0\0\0\0\0";
+
     /** Lennard-Jones C6 parameter */
     double c06 = 0.;
     /** Lennard-Jones C12 parameter */
     double c12 = 0.;
-    /** Create a blank Atom instance */
-    Atom(){};
 
-    Atom(const Atom &other){};
+    /** Residue number */
+    int resnum = 0;
 };
 
 enum class BoxType{CUBIC, TRICLINIC};
@@ -70,13 +70,11 @@ protected:
     bool outputSetup_ = false;
     /** Name of the Frame; taken from comment in the GRO file */
     std::string name_ = "";
-    /** What box shape do we have?  Currently must be cubic */
+    /** What box shape do we have?  Currently should be cubic */
     BoxType boxType_ = BoxType::CUBIC;
 
     /** \brief Input readers */
     TrjInput *trjIn_ = nullptr;
-
-    void createAtoms(int natoms);
 
     bool initFromGRO(const std::string &groname);
 
@@ -102,14 +100,24 @@ public:
     int step_ = 0;
     /** Size of the simulation box */
     float box_[3][3];
+    std::array<double, 3> boxDiag_;
     /** Which data have been loaded into atoms? */
     AtomsHave atomHas_;
-    std::vector<Residue> *residues_;
+    std::vector<Residue> &residues_;
 
     /** \brief Create Frame passing config files.
     * Replaces calls to the function Frame::setupFrame() */
     Frame(const std::string &xtcname, const std::string &groname,
-          std::vector<Residue> *residues);
+          std::vector<Residue> &residues);
+
+    Frame(const Frame &frame) : name_(frame.name_), boxType_(frame.boxType_),
+                                time_(frame.time_), num_(frame.num_), step_(frame.step_),
+                                residues_(frame.residues_){}
+
+    Frame(const Frame &frame, std::vector<Residue> &residues) :
+                                name_(frame.name_), boxType_(frame.boxType_),
+                                time_(frame.time_), num_(frame.num_), step_(frame.step_),
+                                residues_(frame.residues_){}
 
     /** \brief Create Frame by copying data from another Frame
     * Intended for creating a CG Frame from an atomistic one.  Atoms are not copied. */

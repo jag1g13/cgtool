@@ -5,12 +5,17 @@
 #include "common.h"
 
 #include <iostream>
-#include <vector>
 
 #include <sysexits.h>
 #include <locale.h>
 
 #include "small_functions.h"
+
+#ifdef CMD_SIMPLE
+#include "cmd_simple.h"
+#else
+#include "cmd.h"
+#endif
 
 using std::string;
 using std::cout;
@@ -49,7 +54,11 @@ void Common::collectInput(const int argc, const char *argv[],
                           const std::vector<std::string> &req_files,
                           const std::vector<std::string> &opt_files){
     split_text_output(versionString_, sectionStart_);
+#ifdef CMD_SIMPLE
+    CMDSimple cmd_parser(helpHeader_, helpOptions_, compileInfo_, argc, argv);
+#else
     CMD cmd_parser(helpHeader_, helpOptions_, compileInfo_, argc, argv);
+#endif
 
     // Read in files
     for(const string &f : req_files) inputFiles_[f].name = cmd_parser.getStringArg(f);
@@ -121,7 +130,7 @@ void Common::doMainLoop(){
     sectionStart_ = start_timer();
 
     wholeXTCFrames_ = get_xtc_num_frames(inputFiles_["xtc"].name);
-    printf("Approx %'8d frames in XTC\n", wholeXTCFrames_);
+    printf("%'8d frames in XTC\n", wholeXTCFrames_);
 
     untilEnd_ = numFramesMax_ < 0;
     if(untilEnd_){

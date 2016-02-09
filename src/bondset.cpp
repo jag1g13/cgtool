@@ -18,9 +18,9 @@ using std::cout;
 using std::endl;
 using std::fprintf;
 
-BondSet::BondSet(const string &cfgname, const vector<Residue> *residues,
-                 const PotentialType potentials[3]){
-    residues_ = residues;
+BondSet::BondSet(const string &cfgname, const vector<Residue> &residues,
+                 const PotentialType potentials[3], const double temp) :
+        residues_(residues), temp_(temp){
     fromFile(cfgname);
 }
 
@@ -37,25 +37,25 @@ void BondSet::fromFile(const string &filename){
             i++;
         }
     }else{
-        beadNums_ = (*residues_)[0].name_to_num;
+        beadNums_ = residues_[0].name_to_num;
     }
 
     //TODO Can emplace_back() be replaced?
     while(parser.getLineFromSection("length", tokens, 2)){
-        bonds_.emplace_back(BondStruct(2));
+        bonds_.emplace_back(BondStruct(BondType::LENGTH));
         bonds_.back().atomNums_[0] = beadNums_[tokens[0]];
         bonds_.back().atomNums_[1] = beadNums_[tokens[1]];
     }
 
     while(parser.getLineFromSection("angle", tokens, 3)){
-        angles_.emplace_back(BondStruct(3));
+        angles_.emplace_back(BondStruct(BondType::ANGLE));
         angles_.back().atomNums_[0] = beadNums_[tokens[0]];
         angles_.back().atomNums_[1] = beadNums_[tokens[1]];
         angles_.back().atomNums_[2] = beadNums_[tokens[2]];
     }
 
     while(parser.getLineFromSection("dihedral", tokens, 4)){
-        dihedrals_.emplace_back(BondStruct(4));
+        dihedrals_.emplace_back(BondStruct(BondType::DIHEDRAL));
         dihedrals_.back().atomNums_[0] = beadNums_[tokens[0]];
         dihedrals_.back().atomNums_[1] = beadNums_[tokens[1]];
         dihedrals_.back().atomNums_[2] = beadNums_[tokens[2]];
@@ -64,9 +64,9 @@ void BondSet::fromFile(const string &filename){
 }
 
 void BondSet::calcBondsInternal(Frame &frame){
-    for(int i=0; i < (*residues_)[0].num_residues; i++){
+    for(int i=0; i < residues_[0].num_residues; i++){
         bool res_okay = true;
-        const int offset = i * (*residues_)[0].num_atoms;
+        const int offset = i * residues_[0].num_atoms;
         // Does the structure cross a pbc - will break bond lengths
         for(BondStruct &bond : bonds_){
             double dist = bond.bondLength(frame, offset);
@@ -89,7 +89,7 @@ void BondSet::calcBondsInternal(Frame &frame){
             if(!std::isinf(val) && !std::isnan(val)) bond.values_.push_back(val);
         }
         for(BondStruct &bond : dihedrals_){
-            const double val = bond.bondAngle(frame, offset);
+            const double val = bond.bondDihedral(frame, offset);
             if(!std::isinf(val) && !std::isnan(val)) bond.values_.push_back(val);
         }
         numMeasures_++;
@@ -125,9 +125,9 @@ void BondSet::calcAvgs(){
 }
 
 void BondSet::writeCSV(const int num_molecules) const{
-    const string bond_file = (*residues_)[0].resname + "_bonds.dat";
-    const string angle_file = (*residues_)[0].resname + "_angles.dat";
-    const string dihedral_file = (*residues_)[0].resname + "_dihedrals.dat";
+    const string bond_file = residues_[0].resname + "_bonds.dat";
+    const string angle_file = residues_[0].resname + "_angles.dat";
+    const string dihedral_file = residues_[0].resname + "_dihedrals.dat";
 
     backup_old_file(bond_file);
     backup_old_file(angle_file);
@@ -144,13 +144,13 @@ void BondSet::writeCSV(const int num_molecules) const{
         scale = static_cast<int>(numMeasures_ / static_cast<double>(num_molecules));
 
     for(int i=0; i < numMeasures_; i+=scale){
-        for(const BondStruct &bond : bonds_) fprintf(f_bond, "%8.3f", bond.values_[i]);
+        for(const BondStruct &bond : bonds_) fprintf(f_bond, "%12.3f", bond.values_[i]);
         fprintf(f_bond, "\n");
 
-        for(const BondStruct &bond : angles_) fprintf(f_angle, "%8.3f", bond.values_[i]);
+        for(const BondStruct &bond : angles_) fprintf(f_angle, "%12.3f", bond.values_[i]);
         fprintf(f_angle, "\n");
 
-        for(const BondStruct &bond : dihedrals_) fprintf(f_dihedral, "%8.3f", bond.values_[i]);
+        for(const BondStruct &bond : dihedrals_) fprintf(f_dihedral, "%12.3f", bond.values_[i]);
         fprintf(f_dihedral, "\n");
     }
     printf("Written %'d molecules to CSV\n", numMeasures_/scale);

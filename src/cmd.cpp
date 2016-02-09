@@ -30,11 +30,9 @@ CMD::CMD(const string &help_header, const string &help_string,
         boost::split(parts, line, boost::is_any_of("\t"));
         const string arg = boost::trim_left_copy_if(parts[0], boost::is_any_of("-"));
         switch(static_cast<ArgType>(stoi(parts[2]))){
-            case ArgType::PATH:
             case ArgType::STRING:
                 // String arguments get a short form
                 desc_.add_options()((arg + "," + arg[0]).c_str(),
-//                                    po::value<string>()->default_value(parts[2].c_str()),
                                     po::value<string>(),
                                     parts[1].c_str());
                 break;
@@ -76,20 +74,20 @@ CMD::CMD(const string &help_header, const string &help_string,
     }
 }
 
-const std::string CMD::getStringArg(const string &arg){
+std::string CMD::getStringArg(const string &arg) const{
     if(options_.count(arg)) return options_[arg].as<string>();
     // No value or default - return empty string
     return "";
 }
 
-const bool CMD::getBoolArg(const string &arg){
+bool CMD::getBoolArg(const string &arg) const{
     if(options_.count(arg)) return options_[arg].as<bool>();
     // No value or default - return false
     return false;
 }
 
-const int CMD::getIntArg(const string &arg){
+int CMD::getIntArg(const string &arg) const{
     if(options_.count(arg)) return options_[arg].as<int>();
-    // No value or default - return -1
-    return -1;
+    // No value or default - return 0
+    return 0;
 }

@@ -1,10 +1,17 @@
 #include "bondset.h"
 
+#include <vector>
+
 #include "gtest/gtest.h"
 
+#include "residue.h"
+
+using std::vector;
+
 TEST(BondSetTest, FromFile){
-    BondSet bondset;
-    bondset.fromFile("../test_data/ALLA/cg.cfg");
+    vector<Residue> tmpres;
+    PotentialType tmppots[3];
+    BondSet bondset("../test_data/ALLA/cg.cfg", tmpres, tmppots, 310);
     ASSERT_EQ(bondset.bonds_.size(), 6);
     ASSERT_EQ(bondset.bonds_[0].atomNums_[0], 0);
     ASSERT_EQ(bondset.bonds_[0].atomNums_[1], 1);

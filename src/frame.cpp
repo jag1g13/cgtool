@@ -2,7 +2,6 @@
 
 #include <sstream>
 
-#include <math.h>
 #include <assert.h>
 #include <sysexits.h>
 
@@ -19,33 +18,16 @@ using std::stof;
 using std::printf;
 using std::map;
 
-Frame::Frame(const Frame &frame, vector<Residue> *residues){
-    num_ = frame.num_;
-    name_ = frame.name_;
-    time_ = frame.time_;
-    step_ = frame.step_;
-    boxType_ = frame.boxType_;
-
-    if(residues == nullptr){
-        residues_ = frame.residues_;
-    }else{
-        residues_ = residues;
-    }
-
-    isSetup_ = true;
-}
-
 Frame::Frame(const string &xtcname, const string &groname,
-             vector<Residue> *residues){
-    residues_ = residues;
-
+      vector<Residue> &residues) : residues_(residues){
     if(!initFromGRO(groname)){
         printf("ERROR: Something went wrong with reading GRO file\n");
         exit(EX_UNAVAILABLE);
     };
 
     trjIn_ = new XTCInput(xtcname);
-}
+    isSetup_ = true;
+};
 
 Frame::~Frame(){
     isSetup_ = false;
@@ -53,7 +35,7 @@ Frame::~Frame(){
 }
 
 void Frame::setupOutput(string xtcname, string topname){
-    if(topname == "") topname = (*residues_)[0].resname + ".top";
+    if(topname == "") topname = residues_[0].resname + ".top";
 
     writeTOP(topname);
     outputSetup_ = true;
@@ -66,11 +48,11 @@ void Frame::writeTOP(const string &filename){
     if(!top.is_open()) throw std::runtime_error("Could not open output TOP file");
 
     top << "; Include forcefield parameters" << endl;
-    top << "#include \"" << (*residues_)[0].resname << ".itp\"" << endl << endl;
+    top << "#include \"" << residues_[0].resname << ".itp\"" << endl << endl;
     top << "[ system ]" << endl;
-    top << (*residues_)[0].resname << endl << endl;
+    top << residues_[0].resname << endl << endl;
     top << "[ molecules ]" << endl;
-    top << (*residues_)[0].resname << "\t\t" << (*residues_)[0].num_residues << endl;
+    top << residues_[0].resname << "\t\t" << residues_[0].num_residues << endl;
 
     top.close();
 }
@@ -84,12 +66,16 @@ bool Frame::outputTrajectoryFrame(TrjOutput &output){
 bool Frame::initFromGRO(const string &groname){
     GROInput in(groname);
     numAtoms_ = in.getNumAtoms();
-    createAtoms(numAtoms_);
+    atoms_.resize(numAtoms_);
+    atomHas_.created = true;
+
     in.readFrame(*this);
-    in.readResidues(*residues_);
+    in.readResidues(residues_);
 
     // Create diciontary of residues
-    for(Residue &res : *residues_){
+    for(Residue &res : residues_){
+        if(res.resname == "PROT") continue;
+
         for(int i=0; i<res.num_atoms; i++){
             const int atom = res.start + i;
             res.name_to_num.insert(std::pair<string, int>(atoms_[atom].atom_name, i));
@@ -107,11 +93,6 @@ bool Frame::initFromGRO(const string &groname){
     }
 
     return true;
-}
-
-void Frame::createAtoms(int natoms){
-    atoms_.resize(natoms);
-    atomHas_.created = true;
 }
 
 void Frame::pbcAtom(int natoms){
@@ -136,15 +117,15 @@ void Frame::initFromITP(const string &itpname){
     Parser itp_parser(itpname, FileFormat::GROMACS);
 
     // How many atoms are there?  Per residue?  In total?
-    if((*residues_)[0].num_atoms < 0){
+    if(residues_[0].num_atoms < 0){
         while(itp_parser.getLineFromSection("atoms", substrs, 4)){
             // Loop through all atoms in residue and take the last number
-            if(substrs[3] == (*residues_)[0].resname) (*residues_)[0].num_atoms++;
+            if(substrs[3] == residues_[0].resname) residues_[0].num_atoms++;
         }
     }
-    (*residues_)[0].calc_total();
+    residues_[0].calc_total();
 
-    for(int i = 0; i < (*residues_)[0].num_atoms; i++){
+    for(int i = 0; i < residues_[0].num_atoms; i++){
         // Read data from topology file for each atom
         itp_parser.getLineFromSection("atoms", substrs, 5);
         const string type = substrs[1];
@@ -164,8 +145,8 @@ void Frame::initFromITP(const string &itpname){
             atomHas_.mass = true;
         }
 
-        for(int j = 0; j < (*residues_)[0].num_residues; j++){
-            const int num = i + j * (*residues_)[0].num_atoms;
+        for(int j = 0; j < residues_[0].num_residues; j++){
+            const int num = i + j * residues_[0].num_atoms;
             atoms_[num] = Atom();
             atoms_[num].atom_type = type;
             atoms_[num].atom_name = name;
@@ -192,7 +173,7 @@ void Frame::initFromFLD(const std::string &fldname){
         c12[tokens[0]] = stof(tokens[6]);
     }
 
-    for(int i=0; i<(*residues_)[0].total_atoms; i++){
+    for(int i=0; i<residues_[0].total_atoms; i++){
         atoms_[i].c06 = c06.at(atoms_[i].atom_type);
         atoms_[i].c12 = c12.at(atoms_[i].atom_type);
     }

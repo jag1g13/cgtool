@@ -38,7 +38,7 @@ protected:
 
     // Run control
     int currFrame_ = 1;
-    int numFramesMax_ = -1;
+    int numFramesMax_ = 0;
     int wholeXTCFrames_ = -1;
     bool untilEnd_ = true;
     std::map<std::string, std::map<std::string, int>> settings_;

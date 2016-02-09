@@ -5,38 +5,27 @@
 #include "rdf.h"
 
 #include <cmath>
+#include <array>
 
 #include "small_functions.h"
 
 using std::vector;
-
-RDF::RDF(const vector<Residue> *residues, const double cutoff, const int resolution){
-    init(residues, cutoff, resolution);
-}
-
-void RDF::init(const vector<Residue> *residues, const double cutoff, const int resolution){
-    residues_ = residues;
-    cutoff_ = cutoff;
-    resolution_ = resolution;
-    grid_ = static_cast<int>(cutoff * resolution_);
-    histogram_.init(grid_);
-    rdf_.init(grid_);
-}
+using std::array;
 
 void RDF::calculateRDF(const Frame &frame){
     // Calculate average number density in cell
     const double box[3] = {frame.box_[0][0], frame.box_[1][1], frame.box_[2][2]};
     const double volume = box[0] * box[1] * box[2];
-    density_ += (*residues_)[0].num_residues / volume;
+    density_ += residues_[0].num_residues / volume;
 
     //TODO just put this inline?
-    const Residue &res = (*residues_)[0];
+    const Residue &res = residues_[0];
     #pragma omp parallel for default(none) shared(res, frame, box)
     for(int i=0; i<res.num_residues; i++){
         // Get number of ref atom for this residue
         const int atom_a = res.start + i*res.num_atoms + res.ref_atom;
 
-        double R_a[3];
+        array<double, 3> R_a;
         R_a[0] = frame.atoms_[atom_a].coords[0];
         R_a[1] = frame.atoms_[atom_a].coords[1];
         R_a[2] = frame.atoms_[atom_a].coords[2];
@@ -54,7 +43,7 @@ void RDF::calculateRDF(const Frame &frame){
             if(i == j) continue;
 
             const int atom_b = res.start + j*res.num_atoms + res.ref_atom;
-            double R_b[3];
+            array<double, 3> R_b;
             R_b[0] = frame.atoms_[atom_b].coords[0];
             R_b[1] = frame.atoms_[atom_b].coords[1];
             R_b[2] = frame.atoms_[atom_b].coords[2];
@@ -67,7 +56,7 @@ void RDF::calculateRDF(const Frame &frame){
                     for(int kk=-1; kk<=1; kk++){
                         if(pbc_axis[2] != kk && kk != 0) continue;
 
-                        double R_b_adj[3];
+                        array<double, 3> R_b_adj;
                         R_b_adj[0] = R_b[0] + ii*box[0];
                         R_b_adj[1] = R_b[1] + jj*box[1];
                         R_b_adj[2] = R_b[2] + kk*box[2];
@@ -96,10 +85,9 @@ void RDF::normalize(){
         const double r_outer = r_inner + r_scale;
         const double v_inner = r_inner * r_inner * r_inner;
         const double v_outer = r_outer * r_outer * r_outer;
-        rdf_(i) = 1. / (density_ * prefactor * (v_outer - v_inner));
+        rdf_(i) = histogram_.at(i) / (density_ * prefactor * (v_outer - v_inner));
     }
 
-    rdf_.elementMultiply(histogram_);
     rdf_.printCSV("rdf");
     frames_ = 0;
 }

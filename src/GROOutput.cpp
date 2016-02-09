@@ -38,7 +38,7 @@ int GROOutput::closeFile(){
 
 int GROOutput::writeFrame(const Frame &frame){
     // Print atoms
-    Residue &res = (*(frame.residues_))[0];
+    Residue &res = frame.residues_[0];
     for(int i=0; i < natoms_; i++){
         const Atom &atom = frame.atoms_[i];
         fprintf(file_, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n",

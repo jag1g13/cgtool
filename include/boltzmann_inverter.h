@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "bond_struct.h"
-#include "array.h"
+#include "light_array.h"
 #include "histogram.h"
 
 /** \brief Class to perform Boltzmann Inversion
@@ -12,18 +12,19 @@
 */
 class BoltzmannInverter{
 protected:
-    /** Store histogram frequencies */
-    Histogram histogram_;
-    Array gaussian_;
-    Array harmonic_;
-    int bins_ = 55, n_ = 0, meanBin_=0;
-    double temp_ = 310.;
+    const double temp_;
+    const int bins_;
+
+    BondType type_;
+
+    int n_ = 0, meanBin_=0;
     double min_, max_, step_;
     double integral_, mean_, adev_, var_, sdev_;
-    BondType type_ = BondType::LENGTH;
 
-    /** \brief Print an array/histogram to terminal for debugging */
-    void printGraph(Array &arr, const int scale=10);
+    /** Store histogram frequencies */
+    Histogram histogram_;
+    LightArray<double> gaussian_;
+    LightArray<double> harmonic_;
 
     /** \brief Perform a Boltzmann Inversion on a single bond parameter */
     double invertGaussian();
@@ -37,7 +38,7 @@ protected:
 
 
 public:
-    BoltzmannInverter(const double temp=310, const int bins=-1);
+    BoltzmannInverter(const double temp=310., const int bins=55);
 
     /** \brief Calculate statistical moments of bond data.
     * Mean, standard deviation, skewness and kurtosis.

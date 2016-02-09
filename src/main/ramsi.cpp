@@ -10,7 +10,7 @@ using std::vector;
 
 int main(const int argc, const char *argv[]){
     const string version_string =
-            "RAMSi v0.4"
+            "RAMSi v0.5pre"
             #include "revision_number.inc"
     ;
 
@@ -27,7 +27,8 @@ int main(const int argc, const char *argv[]){
     const string help_options =
             "--cfg\tRAMSi config file\t0\n"
             "--xtc\tGROMACS XTC file\t0\n"
-            "--gro\tGROMACS GRO file\t0";
+            "--gro\tGROMACS GRO file\t0\n"
+            "--frames\tNumber of frames\t1\t-1";
 
     const string compile_info =
             #include "compile_info.inc"
@@ -63,27 +64,27 @@ void Ramsi::readConfig(){
     settings_["mem"]["header"] =
             cfg_parser.getIntKeyFromSection("membrane", "header", 1);
 
-    numFramesMax_ = cfg_parser.getIntKeyFromSection("general", "frames", -1);
+    if(numFramesMax_ == 0)
+        numFramesMax_ = cfg_parser.getIntKeyFromSection("general", "frames", -1);
 }
 
 void Ramsi::setupObjects(){
-    frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, &residues_);
-    for(Residue &res : residues_) res.print();
+    frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, residues_);
+    for(Residue &res : residues_) res.print(true);
 
     if(settings_["map"]["on"]){
-        cgFrame_ = new Frame(*frame_, &cgResidues_);
-        cgMap_ = new CGMap(&residues_, &cgResidues_);
+        cgFrame_ = new Frame(*frame_, cgResidues_);
+        cgMap_ = new CGMap(residues_, cgResidues_);
         cgMap_->fromFile(inputFiles_["cfg"].name);
         cgMap_->initFrame(*frame_, *cgFrame_);
     }else{
         // If not mapping make both frames point to the same thing
         cgFrame_ = frame_;
+        cgResidues_ = residues_;
     }
 
-    membrane_ = new Membrane(&residues_);
-    membrane_->sortBilayer(*frame_, settings_["mem"]["blocks"]);
-    membrane_->setResolution(settings_["mem"]["resolution"]);
-    membrane_->header_ = static_cast<bool>(settings_["mem"]["header"]);
+    membrane_ = new Membrane(residues_, *frame_, settings_["mem"]["resolution"],
+                             settings_["mem"]["blocks"], settings_["mem"]["header"]);
 }
 
 void Ramsi::mainLoop(){
@@ -95,6 +96,7 @@ void Ramsi::mainLoop(){
     if(currFrame_ % settings_["mem"]["freq"] == 0){
         thickness_.push_back(membrane_->thickness(*cgFrame_));
         membrane_->curvature(*cgFrame_);
+        membrane_->printCSVAreaPerLipid(cgFrame_->time_);
     }
 
     if(settings_["mem"]["export"] > 0){
@@ -112,11 +114,12 @@ void Ramsi::postProcess(){
         membrane_->normalize(0);
         membrane_->printCSV("thickness_avg");
         membrane_->printCSVCurvature("curvature_final");
+        membrane_->printCSVAreaPerLipid(cgFrame_->time_);
     }
     double mean = vector_mean(thickness_);
-    double se = vector_stderr(thickness_, mean);
+    double se = vector_stderr(thickness_);
 
-    printf("Thickness mean: %8.3f, SE %8.3f\n", mean, se);
+    printf("Thickness mean: %8.3f, SE %8.3e\n", mean, se);
 }
 
 Ramsi::~Ramsi(){

@@ -1,9 +1,8 @@
 #include "cgtool.h"
 
-#include <string>
-#include <vector>
-
 #include <sysexits.h>
+
+#include <boost/algorithm/string.hpp>
 
 #include "itp_writer.h"
 
@@ -17,7 +16,7 @@ using std::vector;
 
 int main(const int argc, const char *argv[]){
     const string version_string =
-            "CGTOOL v0.4"
+            "CGTOOL v0.5pre"
             #include "revision_number.inc"
     ;
 
@@ -26,7 +25,7 @@ int main(const int argc, const char *argv[]){
             "Performs mapping from atomistic to coarse-grained molecular dynamics\n"
             "trajectories and outputs a GROMACS ITP file containing the full mapping,\n"
             "equilibrium bond parameters and force constants.\n\n"
-            "Requires GROMACS XTC and ITP files for the atomistic simulation and a\n"
+            "Requires GROMACS XTC and GRO files for the atomistic simulation and a\n"
             "configuration file as input.  The config file provides the mapping and\n"
             "bond parameters to be calculated as well as serveral other options.\n\n"
             "Usage:\n"
@@ -39,7 +38,7 @@ int main(const int argc, const char *argv[]){
             "--gro\tGROMACS GRO file\t0\n"
             "--itp\tGROMACS ITP file\t0\n"
             "--fld\tGROMACS forcefield file\t0\n"
-            "--frames\tNumber of frames to read\t2\t-1";
+            "--frames\tNumber of frames to read\t1\t-1";
 
     const string compile_info =
             #include "compile_info.inc"
@@ -85,14 +84,10 @@ void Cgtool::readConfig(){
     settings_["rdf"]["resolution"] =
             cfg_parser.getIntKeyFromSection("rdf", "resolution", 100);
 
-    settings_["field"]["on"] =
-            cfg_parser.findSection("field");
-    settings_["field"]["freq"] =
-            cfg_parser.getIntKeyFromSection("field", "freq", 100);
-    settings_["field"]["resolution"] =
-            cfg_parser.getIntKeyFromSection("field", "resolution", 100);
-    settings_["field"]["export"] =
-            cfg_parser.getIntKeyFromSection("field", "export", 100);
+    temperature_ = cfg_parser.getDoubleKeyFromSection("general", "temp", 310);
+
+    if(numFramesMax_ == 0)
+        numFramesMax_ = cfg_parser.getIntKeyFromSection("general", "frames", -1);
 
     string file_format = cfg_parser.getStringKeyFromSection("output", "program", "GROMACS");
     boost::to_upper(file_format);
@@ -112,7 +107,7 @@ void Cgtool::readConfig(){
 
 void Cgtool::setupObjects(){
     // Open files and do setup
-    frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, &residues_);
+    frame_ = new Frame(inputFiles_["xtc"].name, inputFiles_["gro"].name, residues_);
     if(inputFiles_["itp"].exists){
         frame_->initFromITP(inputFiles_["itp"].name);
     }else{
@@ -122,13 +117,14 @@ void Cgtool::setupObjects(){
     for(Residue &res : residues_) res.print();
 
     if(settings_["map"]["on"]){
-        cgMap_ = new CGMap(&residues_, &cgResidues_);
+        cgMap_ = new CGMap(residues_, cgResidues_);
         cgMap_->fromFile(inputFiles_["cfg"].name);
-        cgFrame_ = new Frame(*frame_, &cgResidues_);
+        cgFrame_ = new Frame(*frame_, cgResidues_);
         cgMap_->initFrame(*frame_, *cgFrame_);
         cgFrame_->setupOutput();
         if(settings_["bonds"]["on"])
-            bondSet_ = new BondSet(inputFiles_["cfg"].name, &cgResidues_, potentialTypes_);
+            bondSet_ = new BondSet(inputFiles_["cfg"].name, cgResidues_,
+                                   potentialTypes_, temperature_);
 
         string outname = residues_[0].resname;
         switch(outProgram_){
@@ -146,21 +142,13 @@ void Cgtool::setupObjects(){
         // If not mapping make both frames point to the same thing
         cgFrame_ = frame_;
         if(settings_["bonds"]["on"])
-            bondSet_ = new BondSet(inputFiles_["cfg"].name, &residues_, potentialTypes_);
+            bondSet_ = new BondSet(inputFiles_["cfg"].name, residues_,
+                                   potentialTypes_, temperature_);
     }
 
     if(settings_["rdf"]["on"])
-        rdf_ = new RDF(&residues_, settings_["rdf"]["cutoff"]/100.,
+        rdf_ = new RDF(residues_, settings_["rdf"]["cutoff"]/100.,
                        settings_["rdf"]["resolution"]);
-
-    if(settings_["field"]["on"]){
-        if(settings_["map"]["on"]){
-            field_ = new FieldMap(settings_["field"]["resolution"], &residues_, &cgResidues_);
-        }else{
-            printf("ERROR: Option 'field' requires 'mapping'\n");
-            exit(EX_USAGE);
-        }
-    }
 }
 
 void Cgtool::mainLoop(){
@@ -170,16 +158,6 @@ void Cgtool::mainLoop(){
         cgMap_->calcDipoles(*frame_, *cgFrame_);
         cgFrame_->outputTrajectoryFrame(*trjOutput_);
         if(settings_["bonds"]["on"]) bondSet_->calcBondsInternal(*cgFrame_);
-
-        // Calculate electric field/dipoles
-        if(settings_["field"]["on"]){
-            if(currFrame_ % settings_["field"]["freq"] == 0){
-                field_->calculate(*frame_, *cgFrame_, *cgMap_);
-            }
-            if(currFrame_ % settings_["field"]["export"] == 0){
-                field_->printFieldsToFile();
-            }
-        }
     }else{
         if(settings_["bonds"]["on"]) bondSet_->calcBondsInternal(*frame_);
     }
@@ -239,6 +217,5 @@ void Cgtool::postProcess(){
 Cgtool::~Cgtool(){
     if(bondSet_) delete bondSet_;
     if(rdf_) delete rdf_;
-    if(field_) delete field_;
     if(trjOutput_) delete trjOutput_;
 }

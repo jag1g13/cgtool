@@ -8,11 +8,22 @@
 #include "TrjInput.h"
 
 #include <fstream>
+#include <set>
 
 class GROInput : public TrjInput{
 protected:
     /** \brief Input file stream. */
     std::ifstream file_;
+
+    /** \brief Set of amino acid residue names. */
+    const std::set<std::string> aminoAcids_ = {
+            "ALA", "ARG", "ASN", "ASP",
+            "ASX", "CYS", "GLU", "GLN",
+            "GLX", "GLY", "HIS", "ILE",
+            "LEU", "LYS", "MET", "PHE",
+            "PRO", "SER", "THR", "TRP",
+            "TYR", "VAL"
+    };
 
     /** \brief Open and prepare input file. */
     int openFile(const std::string &filename);
