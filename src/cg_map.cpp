@@ -5,6 +5,8 @@
 #include <assert.h>
 #include <cmath>
 
+#include <sysexits.h>
+
 #include "parser.h"
 
 using std::cout;
@@ -86,6 +88,7 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
         vector<int> c12s;
 
         // Calculate bead properties from atomistic frame
+        int atoms_found = 0;
         for(const string &atomname : bead.atoms){
             bool atom_found = false;
             for(int j=aaRes_[0].start; j<aaRes_[0].start+aaRes_[0].num_atoms; j++){
@@ -102,8 +105,18 @@ void CGMap::initFrame(const Frame &aa_frame, Frame &cg_frame){
                 }
             }
 
-            if(!atom_found) printf("WARNING: Atom %s in bead %s not found\n",
-                                   atomname.c_str(), bead.name.c_str());
+            if(!atom_found){
+                printf("WARNING: Atom %s in bead %s not found\n",
+                       atomname.c_str(), bead.name.c_str());
+            }else{
+                atoms_found++;
+            }
+        }
+
+        if(atoms_found == 0){
+            printf("ERROR: No atoms were found from bead %s\n",
+                   bead.name.c_str());
+            exit(EX_DATAERR);
         }
 
         if(aa_frame.atomHas_.lj){
