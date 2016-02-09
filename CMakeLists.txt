@@ -12,8 +12,6 @@ MESSAGE("C     ${CMAKE_SYSTEM_NAME} ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VE
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -ffast-math -march=native")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -march=native")
 
-message("${CMAKE_BUILD_TYPE}")
-
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING
         "Defaults to Release build" FORCE)
@@ -23,7 +21,7 @@ if(NOT CMAKE_CXX_FLAGS_Release)
     set(CMAKE_CXX_FLAGS_Release "-O3")
 endif()
 if(NOT CMAKE_CXX_FLAGS_Debug)
-    set(CMAKE_CXX_FLAGS_Release "-g")
+    set(CMAKE_CXX_FLAGS_Debug "-g")
 endif()
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
@@ -67,7 +65,7 @@ endif()
 
 message("Using " ${CMAKE_CXX_FLAGS})
 
-# Find libxdrfile - compile it if not present - replaces GROMACS library
+# Find libxdrfile - compile it if not present
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 find_library(XDRFILE_LIBRARY NAMES xdrfile
              PATHS /usr/lib /usr/local/lib ${CMAKE_CURRENT_SOURCE_DIR}/lib)
@@ -124,10 +122,6 @@ set(CGTOOLCORE_FILES
     "src/small_functions.cpp"
     "src/GROInput.cpp"
     "src/XTCInput.cpp"
-    "src/GROOutput.cpp"
-    "src/LammpsDataOutput.cpp"
-    "src/LammpsTrjOutput.cpp"
-    "src/XTCOutput.cpp"
     ${CMD_SRC})
 
 set(CGTOOL_FILES
@@ -138,6 +132,10 @@ set(CGTOOL_FILES
     "src/histogram.cpp"
     "src/itp_writer.cpp"
     "src/non_bondset.cpp"
+    "src/GROOutput.cpp"
+    "src/LammpsDataOutput.cpp"
+    "src/LammpsTrjOutput.cpp"
+    "src/XTCOutput.cpp"
     "src/rdf.cpp")
 
 set(RAMSI_FILES

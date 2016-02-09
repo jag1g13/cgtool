@@ -18,11 +18,11 @@
 class Membrane{
 protected:
     /** Head group reference atoms in the upper layer */
-    std::set<int> upperHeads_;
+    std::vector<int> upperHeads_;
     /** Head group reference atoms in the lower layer */
-    std::set<int> lowerHeads_;
+    std::vector<int> lowerHeads_;
     /** Protein reference atoms */
-    std::set<int> protAtoms_;
+    std::vector<int> protAtoms_;
     /** Is protein present? */
     bool protein_ = false;
     /** Distance from ref in upper leaflet to closest in lower */
@@ -63,11 +63,11 @@ protected:
     std::map<std::string, int> lowerNumRes_;
 
     /** \brief Create closest pairs of reference groups between layers */
-    void makePairs(const Frame &frame, const std::set<int> &ref,
-                   const std::set<int> &other, std::map<int, double> &pairs);
+    void makePairs(const Frame &frame, const std::vector<int> &ref,
+                   const std::vector<int> &other, std::map<int, double> &pairs);
 
     /** \brief Find closest head group to each grid cell */
-    double closestLipid(const Frame &frame, const std::set<int> &ref,
+    double closestLipid(const Frame &frame, const std::vector<int> &ref,
                         const std::map<int, double> &pairs,
                         std::map<std::string, int> &resPPL, LightArray<int> &closest);
 

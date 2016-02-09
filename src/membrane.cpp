@@ -28,6 +28,14 @@ Membrane::~Membrane(){
 };
 
 void Membrane::sortBilayer(const Frame &frame, const int blocks){
+    // Reset running values
+    numLipids_ = 0;
+    upperHeads_.clear();
+    lowerHeads_.clear();
+    protAtoms_.clear();
+    lowerNumRes_.clear();
+    upperNumRes_.clear();
+
     // Copy box from Frame - assume orthorhombic
     box_[0] = frame.box_[0][0];
     box_[1] = frame.box_[1][1];
@@ -69,11 +77,11 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
             maxz = std::max(maxz, z);
 
             if(z < block_avg_z(x, y)){
-                lowerHeads_.insert(num);
+                lowerHeads_.push_back(num);
                 num_in_leaflet[0]++;
                 lowerNumRes_[res.resname]++;
             }else{
-                upperHeads_.insert(num);
+                upperHeads_.push_back(num);
                 num_in_leaflet[1]++;
                 upperNumRes_[res.resname]++;
             }
@@ -87,7 +95,7 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
         if(res.ref_atom_name == "ALL"){
             for(int i=res.start; i<res.end; i++){
                 const double z = frame.atoms_[i].coords[2];
-                if(minz < z && z < maxz) protAtoms_.insert(i);
+                if(minz < z && z < maxz) protAtoms_.push_back(i);
             }
             protein_ = true;
         }
@@ -105,6 +113,7 @@ double Membrane::thickness(const Frame &frame, const bool with_reset){
     step_[1] = box_[1] / grid_;
 
     double avg_thickness = 0;
+//    sortBilayer(frame, 4);
 
 #pragma omp parallel sections reduction(+:avg_thickness) default(shared)
     {
@@ -127,8 +136,8 @@ double Membrane::thickness(const Frame &frame, const bool with_reset){
     return avg_thickness;
 }
 
-void Membrane::makePairs(const Frame &frame, const set<int> &ref,
-                         const set<int> &other, map<int, double> &pairs){
+void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
+                         const vector<int> &other, map<int, double> &pairs){
     // For each reference particle in the ref leaflet
     for(const int i : ref){
         double min_dist_2 = box_[0] * box_[1];
@@ -152,7 +161,7 @@ void Membrane::makePairs(const Frame &frame, const set<int> &ref,
 }
 
 //TODO optimise this more - it takes ~80% of runtime
-double Membrane::closestLipid(const Frame &frame, const set<int> &ref,
+double Membrane::closestLipid(const Frame &frame, const vector<int> &ref,
                               const map<int, double> &pairs,
                               map<string, int> &resPPL, LightArray<int> &closest){
     const double box_diag2 = box_[0] * box_[1];
