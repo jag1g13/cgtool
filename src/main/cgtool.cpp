@@ -117,8 +117,7 @@ void Cgtool::setupObjects(){
     for(Residue &res : residues_) res.print();
 
     if(settings_["map"]["on"]){
-        cgMap_ = new CGMap(residues_, cgResidues_);
-        cgMap_->fromFile(inputFiles_["cfg"].name);
+        cgMap_ = new CGMap(residues_, cgResidues_, inputFiles_["cfg"].name);
         cgFrame_ = new Frame(*frame_, cgResidues_);
         cgMap_->initFrame(*frame_, *cgFrame_);
         cgFrame_->setupOutput();

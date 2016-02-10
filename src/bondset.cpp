@@ -73,6 +73,8 @@ void BondSet::calcBondsInternal(Frame &frame){
             // If any distances > 1nm, molecule is on PBC
             // Also check for errors
             if(dist > 1. || std::isinf(dist) || std::isnan(dist)){
+                printf("%d: %d %d %8.3f\n",
+                       frame.num_, bond.atomNums_[0], bond.atomNums_[1], dist);
                 res_okay = false;
                 break;
             }

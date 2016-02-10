@@ -69,8 +69,8 @@ void Membrane::sortBilayer(const Frame &frame, const int blocks){
         int num_in_leaflet[2] = {0, 0};
         for(int i = 0; i < res.num_residues; i++){
             const int num = res.ref_atom + i * res.num_atoms + res.start;
-            const int x = int(frame.atoms_[num].coords[0] * blocks / box_[0]) % blocks;
-            const int y = int(frame.atoms_[num].coords[1] * blocks / box_[1]) % blocks;
+            const int x = wrap(static_cast<int>(frame.atoms_[num].coords[0] * blocks / box_[0]), 0, blocks);
+            const int y = wrap(static_cast<int>(frame.atoms_[num].coords[1] * blocks / box_[1]), 0, blocks);
             const double z = frame.atoms_[num].coords[2];
 
             minz = std::min(minz, z);
