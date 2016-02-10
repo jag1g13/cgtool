@@ -138,6 +138,7 @@ double Membrane::thickness(const Frame &frame, const bool with_reset){
 
 void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
                          const vector<int> &other, map<int, double> &pairs){
+    const array<double, 3> boxdiag = {frame.box_[0][0], frame.box_[1][1], frame.box_[2][2]};
     // For each reference particle in the ref leaflet
     for(const int i : ref){
         double min_dist_2 = box_[0] * box_[1];
@@ -149,7 +150,7 @@ void Membrane::makePairs(const Frame &frame, const vector<int> &ref,
             r_j[0] = frame.atoms_[j].coords[0];
             r_j[1] = frame.atoms_[j].coords[1];
 
-            const double dist_2 = distSqrPlane(r_i, r_j, frame.boxDiag_);
+            const double dist_2 = distSqrPlane(r_i, r_j, boxdiag);
             if(dist_2 < min_dist_2){
                 min_dist_2 = dist_2;
                 r_j[2] = frame.atoms_[j].coords[2];
@@ -165,6 +166,7 @@ double Membrane::closestLipid(const Frame &frame, const vector<int> &ref,
                               const map<int, double> &pairs,
                               map<string, int> &resPPL, LightArray<int> &closest){
     const double box_diag2 = box_[0] * box_[1];
+    const array<double, 3> boxdiag = {frame.box_[0][0], frame.box_[1][1], frame.box_[2][2]};
 
     const size_t ref_len = ref.size();
     vector<array<double, 3>> ref_cache(ref.size());
@@ -195,7 +197,7 @@ double Membrane::closestLipid(const Frame &frame, const vector<int> &ref,
  shared(frame, ref, pairs, closest, ref_cache, ref_lookup, prot_cache, resPPL) \
  reduction(+: sum, n_vals)
     for(int i=0; i<grid_; i++){
-        array<double, 3> grid_coords;
+        array<double, 3> grid_coords = {0, 0, 0};
         grid_coords[0] = (i + 0.5) * step_[0];
 
         for(int j=0; j<grid_; j++){
@@ -206,7 +208,7 @@ double Membrane::closestLipid(const Frame &frame, const vector<int> &ref,
             int closest_int = -1;
             for(int k=0; k<ref_len; k++){
                 const double dist2 = distSqrPlane(grid_coords, ref_cache[k],
-                                                  frame.boxDiag_);
+                                                  boxdiag);
                 if(dist2 < min_dist2){
                     closest_int = k;
                     min_dist2 = dist2;
@@ -217,7 +219,7 @@ double Membrane::closestLipid(const Frame &frame, const vector<int> &ref,
             if(protein_){
                 for(int k=0; k<prot_len; k++){
                     const double dist2 = distSqrPlane(grid_coords, prot_cache[k],
-                                                      frame.boxDiag_);
+                                                      boxdiag);
                     if(dist2 < min_dist2){
                         is_protein = true;
                         break;

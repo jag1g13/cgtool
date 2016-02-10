@@ -52,18 +52,13 @@ int XTCInput::readFrame(Frame &frame){
     int status = read_xtc(file_, natoms_, &step_, &time_, box_, x_, &prec_);
     if(status != exdrOK) return 1;
 
-//    pbcAtom();
-//    copyCoordsIntoAtoms();
-
     // Copy data into Frame
     frame.step_ = step_;
     frame.time_ = time_;
     for(int i=0; i<3; i++){
-        for(int j=0; j<3; j++){
-            frame.box_[i][j] = box_[i][j];
-        }
-        frame.boxDiag_[i] = box_[i][i];
+        for(int j=0; j<3; j++) frame.box_[i][j] = box_[i][j];
     }
+
     for(int i=0; i<frame.numAtoms_ && i<natoms_; i++){
         frame.atoms_[i].coords[0] = wrap(x_[i][0], 0.f, box_[0][0]);
         frame.atoms_[i].coords[1] = wrap(x_[i][1], 0.f, box_[1][1]);

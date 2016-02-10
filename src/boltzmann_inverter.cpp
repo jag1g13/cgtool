@@ -51,6 +51,10 @@ double BoltzmannInverter::invertGaussianSimple(){
 }
 
 void BoltzmannInverter::binHistogram(const vector<double> &vec){
+    if(std::abs(max_ - min_) / mean_ < mean_ / 10){
+        max_ += mean_ / 10;
+        min_ -= mean_ / 10;
+    }
     step_ = (max_ - min_) / (bins_-1);
     meanBin_ = static_cast<int>((mean_ - min_) / step_);
 
