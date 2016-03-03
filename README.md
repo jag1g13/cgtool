@@ -1,3 +1,6 @@
+
+**Please consider using the Python implementation PyCGTOOL at [https://github.com/jag1g13/pycgtool](https://github.com/jag1g13/pycgtool) as it has several advantages over this version.**
+
 # CGTOOLS v0.4
 ##README
 
